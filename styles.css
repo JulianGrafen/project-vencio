@@ -5,6 +5,7 @@
 }
 body{
     background-image: url("images/forest.jpg");
+    width: 100%;
     background-position: center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
