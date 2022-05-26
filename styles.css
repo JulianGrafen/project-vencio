@@ -142,6 +142,26 @@ p{
     padding: 4em 1em;
 }
 
+/* ||||||||||||||||||| Form ||||||||||||||||*/
+
+.contact-us{
+    border-radius: 3px;
+    background-color: lightgrey;
+    opacity: 0.6;
+    font-family: Arial;
+    font-weight: bold;
+
+    margin:0 auto;
+    margin-bottom: 5em;
+    width: 50%;
+    padding: 4em 1em;
+}
+
+.form-row{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
 
 @media only screen and (min-width: 800px) {
     nav a {
