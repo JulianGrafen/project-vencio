@@ -161,6 +161,13 @@ p{
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
+    overflow: hidden;
+}
+
+.form-row textarea{
+    resize:none;
+    display:flex;
+
 }
 
 @media only screen and (min-width: 800px) {
