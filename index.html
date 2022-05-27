@@ -61,11 +61,11 @@
 </section>
 <a id="contact-us"></a>
 
-<form action="" method="get" class="contact-us">
+<form action="form.php" method="POST" class="contact-us">
     <h2>CONTACT US</h2>
     <div class ="form-row">
-        <label for="full-name">Full Name: *</label>
-        <input id="full-name" name="full-name" type="text"/>
+        <label for="name">Full Name: *</label>
+        <input id="name" name="name" type="text"/>
     </div>
     <div class="form-row">
         <label for="email">Email: *</label>
@@ -74,8 +74,8 @@
                type="email"/>
     </div>
     <div class="form-row">
-        <label for="your-message">Your message:</label>
-        <textarea id="your-message" name="your-message" rows="8" ></textarea>
+        <label for="message">Your message:</label>
+        <textarea id="message" name="message" rows="8" ></textarea>
     </div>
     <button class="button" type="submit" value="=submit">Send</button>
 </form>
