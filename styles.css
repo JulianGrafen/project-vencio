@@ -129,10 +129,9 @@ p{
     color: black;
     font-family: Arial;
 
-
 }
 
-.article {
+.article, .contact-us {
     background-color: lightgrey;
     opacity: 0.6;
     max-width: 540px;
@@ -146,8 +145,7 @@ p{
 
 .contact-us{
     border-radius: 3px;
-    background-color: lightgrey;
-    opacity: 0.6;
+
     font-family: Arial;
     font-weight: bold;
 
@@ -174,7 +172,38 @@ p{
     font-weight: bold;
 }
 
-/*||||||||||||||||||||||||||||*/
+/*|||||||||||| Timeline ||||||||||||||||*/
+
+h3 {
+
+    font-family: Arial;
+    font-weight: bold;
+}
+
+.content{
+    position: relative;
+    padding-right: 10px;
+}
+
+.timeline{
+    width: 5px;
+    background-color: black;
+    margin: 0 auto
+}
+
+.timeline-box {
+    background-color: lightgrey;
+    opacity: 0.6;
+    max-width: 540px;
+    margin: 0 auto;
+    margin-bottom: 5em;
+    width: 100%;
+    padding: 4em 1em;
+}
+
+
+
+/*|||||||||||||||||||||||||||||||||*/
 
 @media only screen and (min-width: 800px) {
     nav a {
