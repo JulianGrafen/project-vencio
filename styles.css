@@ -184,17 +184,10 @@ h3 {
     position: relative;
     min-width: min-content;
     border: 1px solid black;
+    border-radius: 5px;
 
 }
 
-
-.timeline-dot{
-    max-height: 5px;
-    width: 5px;
-    background-color: red;
-    margin: 0 auto;
-    border-radius: 50px;
-}
 
 .timeline{
     width: 5px;
@@ -212,7 +205,7 @@ h3 {
     margin: 0 auto;
     margin-bottom: 5em;
     width: 100%;
-    padding: 4em 1em;
+    padding: 4em 1em
 }
 
 .left{
@@ -223,11 +216,29 @@ h3 {
     transform : translateX(10px);
 }
 
-
-
 /*|||||||||||||||||||||||||||||||||*/
 
 @media only screen and (min-width: 800px) {
+
+
+    .container{
+        position: relative;
+        min-width: min-content;
+        border: 1px solid black;
+        border-radius: 5px;
+        font-size: 20px;
+
+    }
+
+    .left{
+        transform: translateX(-57px);
+    }
+
+    .right{
+        transform : translateX(5px);
+    }
+
+
     nav a {
         font-size: 25px;
         padding: 10px;
