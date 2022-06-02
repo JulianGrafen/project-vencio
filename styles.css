@@ -180,16 +180,30 @@ h3 {
     font-weight: bold;
 }
 
-.content{
+.container{
     position: relative;
-    padding-right: 10px;
+    min-width: min-content;
+    border: 1px solid black;
+
+}
+
+
+.timeline-dot{
+    max-height: 5px;
+    width: 5px;
+    background-color: red;
+    margin: 0 auto;
+    border-radius: 50px;
 }
 
 .timeline{
     width: 5px;
     background-color: black;
-    margin: 0 auto
+    margin: 0 auto;
+    border-radius: 5px;
 }
+
+
 
 .timeline-box {
     background-color: lightgrey;
@@ -199,6 +213,14 @@ h3 {
     margin-bottom: 5em;
     width: 100%;
     padding: 4em 1em;
+}
+
+.left{
+    transform: translateX(-50px);
+}
+
+.right{
+    transform : translateX(10px);
 }
 
 
