@@ -132,7 +132,8 @@ h2 {
 }
 
 .article, .contact-us {
-    background-color: rgba(blue,grey,redg);
+    background-color: lightgrey;
+    opacity: 0.6;
     max-width: 540px;
     margin:0 auto;
     margin-bottom: 5em;
