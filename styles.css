@@ -125,15 +125,14 @@ h2 {
     font-size: 30px;
 }
 
-p{
+.article,p{
     color: black;
     font-family: Arial;
 
 }
 
 .article, .contact-us {
-    background-color: lightgrey;
-    opacity: 0.6;
+    background-color: rgba(blue,grey,redg);
     max-width: 540px;
     margin:0 auto;
     margin-bottom: 5em;
@@ -145,10 +144,8 @@ p{
 
 .contact-us{
     border-radius: 3px;
-
     font-family: Arial;
     font-weight: bold;
-
     margin:0 auto;
     margin-bottom: 5em;
     width: 100%;
@@ -182,10 +179,9 @@ h3 {
 
 .container{
     position: relative;
-    min-width: min-content;
+    min-width: 100px;
     border: 1px solid black;
     border-radius: 5px;
-
 }
 
 
@@ -209,11 +205,11 @@ h3 {
 }
 
 .left{
-    transform: translateX(-50px);
+    transform: translateX(-110px);
 }
 
 .right{
-    transform : translateX(10px);
+    transform : translateX(15px);
 }
 
 /*|||||||||||||||||||||||||||||||||*/
@@ -221,13 +217,16 @@ h3 {
 @media only screen and (min-width: 800px) {
 
 
+    .article p{
+        color: black;
+    }
+
     .container{
         position: relative;
         min-width: min-content;
         border: 1px solid black;
         border-radius: 5px;
         font-size: 20px;
-
     }
 
     .left{
