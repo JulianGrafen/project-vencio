@@ -150,15 +150,14 @@ h2 {
     margin:0 auto;
     margin-bottom: 5em;
     width: 100%;
-    padding: 4em 1em;
+    padding: 50px;
 }
-
-
 .form-row{
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
     overflow: hidden;
+    padding-top: 10px;
 }
 
 .form-row textarea{
@@ -167,8 +166,13 @@ h2 {
 }
 
 .button{
-    margin-top:10px;
+    display: flex;
+    justify-content: center;
     font-weight: bold;
+    padding: 30px;
+    font-size: inherit;
+    width: 300px;
+    margin: 10px auto;
 }
 
 /*|||||||||||| Timeline ||||||||||||||||*/
