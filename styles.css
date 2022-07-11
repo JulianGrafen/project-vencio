@@ -103,6 +103,13 @@ a{
 
 }
 
+a.link-studies{
+    color: blue;
+}
+
+a.link-studies:visited{
+    color: blueviolet;
+}
 
 .heading{
     display: flex;
@@ -142,6 +149,15 @@ h2 {
 }
 
 /* ||||||||||||||||||| Form ||||||||||||||||*/
+
+input::placeholder{
+    opacity: 1;
+    color: black;
+}
+
+input{
+    height: 30px;
+}
 
 .contact-us{
     border-radius: 3px;
@@ -185,7 +201,8 @@ h3 {
 
 .container{
     position: relative;
-    min-width: 100px;
+    width: 120px;
+    padding: 10px;
     border: 1px solid black;
     border-radius: 5px;
 }
@@ -211,7 +228,7 @@ h3 {
 }
 
 .left{
-    transform: translateX(-110px);
+    transform: translateX(-130px);
 }
 
 .right{
@@ -240,20 +257,36 @@ h3 {
         color: black;
     }
 
-    .container {
+    .container{
         position: relative;
-        min-width: min-content;
+        width: 120px;
+        padding: 10px;
         border: 1px solid black;
         border-radius: 5px;
-        font-size: 20px;
     }
 
-    .container p{
-        padding-right: 20px;
+
+    .timeline{
+        width: 5px;
+        background-color: black;
+        margin: 0 auto;
+        border-radius: 5px;
+    }
+
+
+
+    .timeline-box {
+        background-color: lightgrey;
+        opacity: 0.6;
+        max-width: 540px;
+        margin: 0 auto;
+        margin-bottom: 5em;
+        width: 100%;
+        padding: 4em 1em
     }
 
     .left{
-        transform: translateX(-110px);
+        transform: translateX(-130px);
     }
 
     .right{
