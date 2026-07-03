@@ -7,4 +7,6 @@ export * from "./health-data-guard";
 export * from "./tenant-context";
 export * from "./key-resolver";
 export * from "./record-crypto";
+export * from "./kms";
 export * from "./kms/local-envelope-kms";
+export * from "./kms/aws-kms";

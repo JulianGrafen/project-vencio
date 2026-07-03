@@ -1,5 +1,6 @@
 import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { runWithDentalPracticeContextForEventType } from "@calcom/lib/dental/run-with-dental-context";
 import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import { BotDetectionService } from "@calcom/features/bot-detection";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -47,15 +48,25 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
   };
 
   const regularBookingService = getRegularBookingService();
-  const booking = await regularBookingService.createBooking({
-    bookingData: req.body,
-    bookingMeta: {
-      userId: session?.user?.id || -1,
-      hostname: req.headers.host || "",
-      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-      traceContext: req.traceContext,
+  const eventTypeId = Number(req.body.eventTypeId);
+
+  const booking = await runWithDentalPracticeContextForEventType(
+    {
+      eventTypeId,
+      operation: "encrypt",
+      actorUserId: session?.user?.id,
     },
-  });
+    () =>
+      regularBookingService.createBooking({
+        bookingData: req.body,
+        bookingMeta: {
+          userId: session?.user?.id || -1,
+          hostname: req.headers.host || "",
+          forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+          traceContext: req.traceContext,
+        },
+      })
+  );
 
   return booking;
 }

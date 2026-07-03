@@ -1,4 +1,7 @@
 import process from "node:process";
+import { sanitizeBookingTracking } from "@calcom/lib/dental/compliance-config";
+import { runWithDentalPracticeContextForEventType } from "@calcom/lib/dental/run-with-dental-context";
+import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
@@ -570,6 +573,14 @@ async function handler(
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
+
+  if (additionalNotes) {
+    assertNoHealthDataInText("notes", additionalNotes);
+  }
+
+  reqBody.tracking = sanitizeBookingTracking(reqBody.tracking as Record<string, unknown> | undefined) as
+    | typeof reqBody.tracking
+    | undefined;
 
   let troubleshooterData = buildTroubleshooterData({
     eventType,
@@ -2651,22 +2662,40 @@ export class RegularBookingService implements IBookingService {
   }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)(
+    const eventTypeId = input.bookingData.eventTypeId;
+    return runWithDentalPracticeContextForEventType(
       {
-        bookingData: input.bookingData,
-        ...input.bookingMeta,
+        eventTypeId,
+        operation: "encrypt",
+        actorUserId: input.bookingMeta?.userId,
       },
-      this.deps
+      () =>
+        handler.bind(this)(
+          {
+            bookingData: input.bookingData,
+            ...input.bookingMeta,
+          },
+          this.deps
+        )
     );
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)(
+    const eventTypeId = input.bookingData.eventTypeId;
+    return runWithDentalPracticeContextForEventType(
       {
-        bookingData: input.bookingData,
-        ...input.bookingMeta,
+        eventTypeId,
+        operation: "encrypt",
+        actorUserId: input.bookingMeta?.userId,
       },
-      this.deps
+      () =>
+        handler.bind(this)(
+          {
+            bookingData: input.bookingData,
+            ...input.bookingMeta,
+          },
+          this.deps
+        )
     );
   }
 

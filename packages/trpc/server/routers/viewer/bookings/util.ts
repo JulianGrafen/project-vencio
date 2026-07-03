@@ -9,6 +9,7 @@ import type {
   User,
 } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { runWithDentalPracticeContext } from "@calcom/lib/dental/run-with-dental-context";
 
 import { TRPCError } from "@trpc/server";
 
@@ -69,7 +70,14 @@ export const bookingsProcedure = authedProcedure
     });
 
     if (!!bookingByBeingAdmin) {
-      return next({ ctx: { booking: bookingByBeingAdmin } });
+      return runWithDentalPracticeContext(
+        {
+          teamId: bookingByBeingAdmin.eventType?.team?.id,
+          operation: "decrypt",
+          actorUserId: loggedInUser.id,
+        },
+        () => next({ ctx: { booking: bookingByBeingAdmin } })
+      );
     }
 
     const bookingByBeingOrganizerOrCollectiveEventMember = await prisma.booking.findFirst({
@@ -100,7 +108,14 @@ export const bookingsProcedure = authedProcedure
 
     if (!bookingByBeingOrganizerOrCollectiveEventMember) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-    return next({ ctx: { booking: bookingByBeingOrganizerOrCollectiveEventMember } });
+    return runWithDentalPracticeContext(
+      {
+        teamId: bookingByBeingOrganizerOrCollectiveEventMember.eventType?.team?.id,
+        operation: "decrypt",
+        actorUserId: loggedInUser.id,
+      },
+      () => next({ ctx: { booking: bookingByBeingOrganizerOrCollectiveEventMember } })
+    );
   });
 
 export type BookingsProcedureContext = {

@@ -1,3 +1,4 @@
+import { isDentalThirdPartyAnalyticsDisabled } from "@calcom/lib/dental/compliance-config";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { tasker } from "../../../tasker";
@@ -19,6 +20,10 @@ export const handleAnalyticsEvents = async ({
   bookingInfo,
   isTeamEventType,
 }: HandleAnalyticsEventsProps) => {
+  if (isDentalThirdPartyAnalyticsDisabled()) {
+    return;
+  }
+
   const { dub_id } = await rawBookingData;
 
   if (!dub_id || typeof dub_id !== "string") return;

@@ -67,15 +67,6 @@ export class LocalEnvelopeKeyManagementService implements KeyManagementService {
   }
 }
 
-export function createKeyManagementService(): KeyManagementService {
-  const provider = process.env.DENTAL_KMS_PROVIDER ?? "local-envelope";
-  if (provider === "local-envelope") {
-    return new LocalEnvelopeKeyManagementService();
-  }
-
-  throw new Error(`Unsupported DENTAL_KMS_PROVIDER: ${provider}`);
-}
-
 export async function generateAndWrapPracticeDek(
   kms: KeyManagementService,
   teamId: number

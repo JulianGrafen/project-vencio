@@ -10,6 +10,7 @@
     "lint:report": "biome lint --reporter json . > ../../lint-results/lib.json"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "3.882.0",
     "@calcom/config": "workspace:*",
     "@calcom/dayjs": "workspace:*",
     "@calcom/i18n": "workspace:*",

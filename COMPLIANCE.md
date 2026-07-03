@@ -77,21 +77,67 @@
 
 ---
 
+## 2026-07-03 — Iteration 2: Integration & Infrastruktur
+
+### packages/lib/dental/compliance-config.ts
+- Zentrale Compliance-Schalter (`isDentalComplianceMode`, `isDentalTrackingDisabled`)
+- `sanitizeBookingTracking()` entfernt UTM-Tracking in Dental-Mode
+
+### packages/lib/dental/run-with-dental-context.ts
+- `runWithDentalPracticeContextForEventType()` für Booking-Flows
+
+### packages/lib/encryption/kms/aws-kms.ts
+- AWS KMS Provider (`DENTAL_KMS_PROVIDER=aws-kms`, `AWS_KMS_KEY_ARN`, `AWS_KMS_REGION=eu-central-1`)
+- EncryptionContext mit `teamId` + `purpose` für Tenant-Binding
+
+### packages/trpc/server/middlewares/dentalTenantContextMiddleware.ts
+- tRPC Middleware für AsyncLocalStorage Tenant-Kontext
+
+### packages/trpc/server/routers/viewer/bookings/util.ts
+- Decrypt-Kontext bei Booking-Zugriff via `runWithDentalPracticeContext`
+
+### packages/features/bookings/lib/service/RegularBookingService.ts
+- Health-Data-Guard auf `notes` vor Buchungserstellung
+- Tracking-Sanitisierung
+- Encrypt-Kontext in `createBooking` / `rescheduleBooking`
+
+### packages/features/bookings/lib/handleNewBooking/createBooking.ts
+- Health-Data-Guard auf `additionalNotes`
+- Tracking wird in Dental-Mode nicht persistiert
+
+### packages/features/tasker/tasks/analytics/handleAnalyticsEvents.ts
+- Dub/Third-Party Analytics deaktiviert in Dental-Mode
+
+### apps/web/pages/api/book/event.ts
+- Tenant-Kontext für öffentliche Buchungs-API
+
+### Migration 20260703230100_dental_disable_booking_denormalized
+- BookingDenormalized-Trigger deaktiviert (kein Klartext-PII-Duplikat)
+- Tabelle geleert
+
+---
+
+## Umgebungsvariablen (Erweiterung)
+
+| Variable | Zweck |
+|---|---|
+| `DENTAL_KMS_PROVIDER` | `local-envelope` (default) oder `aws-kms` |
+| `AWS_KMS_KEY_ARN` | KMS Key ARN für AWS Provider |
+| `AWS_KMS_REGION` | Default: `eu-central-1` |
+| `DENTAL_DISABLE_TRACKING` | UTM-Tracking deaktivieren (auch ohne Encryption) |
+| `DENTAL_DISABLE_THIRD_PARTY_ANALYTICS` | Dub/Analytics blockieren |
+
+---
+
 ## Offene Punkte (nächste Iterationen)
 
 | Priorität | Maßnahme | Status |
 |---|---|---|
-| Hoch | AWS KMS / HashiCorp Vault Provider implementieren | Geplant |
-| Hoch | `BookingDenormalized` Views deaktivieren oder verschlüsseln | Geplant |
-| Hoch | tRPC Middleware für `tenantContextStorage` | Geplant |
-| Mittel | Tracking-Modell (`Tracking`) deaktivieren | Geplant |
-| Mittel | US-Analytics/Fonts/Provider entfernen | Geplant |
-| Mittel | PostgreSQL TDE (Hetzner Volume / RDS) dokumentieren | Geplant |
+| Hoch | tRPC `get`-Handler: Decrypt-Kontext für Listen-Ansicht | Geplant |
+| Mittel | PostHog/Dub Frontend-Init deaktivieren | Geplant |
+| Mittel | `next/font/google` → System-Font in Dental-Mode | Geplant |
 | Niedrig | BYOK (Bring Your Own Key) pro Praxis | Phase 2 |
 
----
-
-## Infrastruktur-Empfehlung (Self-Hosted EU)
 
 ```
 Hetzner/AWS Frankfurt

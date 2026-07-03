@@ -1,3 +1,5 @@
+import { sanitizeBookingTracking } from "@calcom/lib/dental/compliance-config";
+import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -69,6 +71,12 @@ const _createBooking = async ({
   creationSource,
   tracking,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) => {
+  if (evt.additionalNotes) {
+    assertNoHealthDataInText("notes", evt.additionalNotes);
+  }
+
+  const sanitizedTracking = sanitizeBookingTracking(tracking);
+
   updateEventDetails(evt, originalRescheduledBooking);
 
   const bookingAndAssociatedData = buildNewBookingData({
@@ -80,7 +88,7 @@ const _createBooking = async ({
     evt,
     originalRescheduledBooking,
     creationSource,
-    tracking,
+    tracking: sanitizedTracking,
   });
 
   return await saveBooking(

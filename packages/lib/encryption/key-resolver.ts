@@ -1,6 +1,6 @@
 import type { PracticeKeyStore } from "./prisma-types";
 import { generateDek } from "./crypto-gcm";
-import { createKeyManagementService } from "./kms/local-envelope-kms";
+import { createKeyManagementService } from "./kms";
 import type { KeyManagementService, PracticeKeyMaterial } from "./types";
 import type { PracticeKeyStore } from "./prisma-types";
 
