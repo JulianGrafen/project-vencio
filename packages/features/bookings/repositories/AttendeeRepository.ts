@@ -7,7 +7,9 @@ const safeSelect = {
   name: true,
   locale: true,
   timeZone: true,
+  emailBlindIndex: true,
   phoneNumber: true,
+  phoneBlindIndex: true,
   bookingId: true,
   noShow: true,
 };
@@ -98,7 +100,9 @@ export class AttendeeRepository implements IAttendeeRepository {
       name: string;
       locale: string | null;
       timeZone: string;
+      emailBlindIndex: string | null;
       phoneNumber: string | null;
+      phoneBlindIndex: string | null;
       bookingId: number | null;
       noShow: boolean | null;
     }[]

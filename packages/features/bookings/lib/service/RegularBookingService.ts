@@ -206,6 +206,7 @@ export const buildDryRunBooking = ({
     metadata: {},
     idempotencyKey: null,
     userPrimaryEmail: null,
+    userPrimaryEmailBlindIndex: null,
     description: null,
     customInputs: null,
     responses: null,

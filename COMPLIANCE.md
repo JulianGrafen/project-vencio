@@ -188,6 +188,19 @@
 - **treatmentResources.listTeamSchedules / assignSchedule** — Praxis-Zeitpläne an Ressourcen zuweisen
 - **booking-encryption.integration.test.ts** — Round-Trip für verschlüsselte Buchungs-Payloads
 
+### Vercel Deployment
+
+1. **Vercel Pro** erforderlich (Serverless-Function-Limit)
+2. **Root Directory:** `apps/web`
+3. **Build Command:** `cd ../.. && yarn build` (in `apps/web/vercel.json` hinterlegt)
+4. **Pflicht-Env:** `DATABASE_URL`, `DATABASE_DIRECT_URL`, `NEXTAUTH_SECRET`, `CALENDSO_ENCRYPTION_KEY`, `CRON_API_KEY`
+5. **Dental-Env (Production EU):**
+   - `DENTAL_ENCRYPTION_ENABLED=true`
+   - `DENTAL_KMS_MASTER_KEY` — als Vercel Secret (32 Bytes)
+   - `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true`
+6. **Migrationen:** vor dem ersten Deploy `yarn db-deploy` gegen die Production-DB ausführen
+7. `NEXT_PUBLIC_WEBAPP_URL` / `NEXTAUTH_URL` auf die Vercel-Domain setzen (Preview: wird aus `VERCEL_URL` abgeleitet)
+
 ---
 
 ## Infrastruktur-Empfehlung (Self-Hosted EU)

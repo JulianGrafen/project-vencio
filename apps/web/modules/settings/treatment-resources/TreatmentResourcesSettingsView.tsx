@@ -21,8 +21,8 @@ type TreatmentResourcesSettingsViewProps = {
   teamId: number;
 };
 
-function formatScheduleLabel(schedule: { name: string; timeZone: string }) {
-  return `${schedule.name} (${schedule.timeZone})`;
+function formatScheduleLabel(schedule: { name: string; timeZone: string | null }) {
+  return schedule.timeZone ? `${schedule.name} (${schedule.timeZone})` : schedule.name;
 }
 
 export function TreatmentResourcesSettingsView({ teamId }: TreatmentResourcesSettingsViewProps) {

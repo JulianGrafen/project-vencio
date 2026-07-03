@@ -15,7 +15,9 @@ type UpdatedAttendee = {
   name: string;
   locale: string | null;
   timeZone: string;
+  emailBlindIndex: string | null;
   phoneNumber: string | null;
+  phoneBlindIndex: string | null;
   bookingId: number | null;
   noShow: boolean | null;
 };

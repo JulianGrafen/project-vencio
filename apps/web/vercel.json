@@ -1,4 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && yarn install --immutable",
+  "buildCommand": "cd ../.. && yarn build",
   "crons": [
     {
       "path": "/api/cron/calendar-subscriptions",
@@ -29,5 +33,12 @@
       "schedule": "*/5 * * * *"
     }
   ],
-  "functions": {}
+  "functions": {
+    "app/api/trpc/**": {
+      "maxDuration": 60
+    },
+    "pages/api/trpc/**": {
+      "maxDuration": 60
+    }
+  }
 }

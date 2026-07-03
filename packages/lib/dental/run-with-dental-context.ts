@@ -1,6 +1,7 @@
 import { prisma } from "@calcom/prisma";
 
-import { runWithTenantContextAsync, type TenantCryptoContext } from "../encryption/tenant-context";
+import { runWithTenantContextAsync } from "../encryption/tenant-context";
+import type { TenantCryptoContext } from "../encryption/types";
 import { resolveTeamIdFromEventTypeId } from "./practice-team-resolver";
 
 export async function runWithDentalPracticeContext<T>(

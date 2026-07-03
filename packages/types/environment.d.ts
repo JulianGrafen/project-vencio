@@ -71,5 +71,15 @@ declare namespace NodeJS {
      *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
      */
     readonly CSP_POLICY: "strict" | "non-strict";
+    readonly DENTAL_ENCRYPTION_ENABLED: string | undefined;
+    readonly DENTAL_KMS_MASTER_KEY: string | undefined;
+    readonly DENTAL_KMS_PROVIDER: string | undefined;
+    readonly DENTAL_DISABLE_TRACKING: string | undefined;
+    readonly DENTAL_DISABLE_DENORMALIZED: string | undefined;
+    readonly DENTAL_DISABLE_THIRD_PARTY_ANALYTICS: string | undefined;
+    readonly NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE: string | undefined;
+    readonly NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED: string | undefined;
+    readonly AWS_KMS_KEY_ARN: string | undefined;
+    readonly AWS_KMS_REGION: string | undefined;
   }
 }

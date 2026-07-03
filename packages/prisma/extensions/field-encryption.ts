@@ -4,11 +4,12 @@ import {
   encryptModelWriteData,
   encryptNestedWrites,
 } from "@calcom/lib/encryption/record-crypto";
+import { isPlainObject, type WritableRecord } from "@calcom/lib/encryption/crypto-utils";
 import { isDentalEncryptionEnabled } from "@calcom/lib/dental/feature-flags";
 
 import { Prisma } from "../client";
 
-const ENCRYPTED_MODELS = new Set(["Attendee", "Booking", "BookingInternalNote", "VideoCallGuest"]);
+const ENCRYPTED_MODELS = ["Attendee", "Booking", "BookingInternalNote", "VideoCallGuest"] as const;
 
 const READ_OPERATIONS = [
   "findUnique",
@@ -64,7 +65,7 @@ async function encryptWritePayload(
         deps.prismaForTeamLookup as never,
         deps.keyResolver,
         model,
-        args.create
+        args.create as WritableRecord
       );
     }
     if (isPlainObject(args.update)) {
@@ -72,7 +73,7 @@ async function encryptWritePayload(
         deps.prismaForTeamLookup as never,
         deps.keyResolver,
         model,
-        args.update
+        args.update as WritableRecord
       );
     }
     return;
@@ -108,12 +109,8 @@ async function encryptWritePayload(
     deps.prismaForTeamLookup as never,
     deps.keyResolver,
     model,
-    args.data
+    args.data as WritableRecord
   );
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function buildModelQueryHandlers(deps: FieldEncryptionExtensionDeps) {

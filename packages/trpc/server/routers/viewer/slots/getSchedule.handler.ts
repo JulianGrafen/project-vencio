@@ -18,7 +18,17 @@ export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => 
     return schedule;
   }
 
-  const eventDurationMinutes = input.duration ?? (await resolveEventTypeDurationMinutes(input.eventTypeId));
+  const parsedDuration =
+    typeof input.duration === "number"
+      ? input.duration
+      : input.duration
+        ? Number.parseInt(input.duration, 10)
+        : undefined;
+
+  const eventDurationMinutes =
+    parsedDuration && !Number.isNaN(parsedDuration)
+      ? parsedDuration
+      : await resolveEventTypeDurationMinutes(input.eventTypeId);
 
   const [busyIntervals, resourceSchedule] = await Promise.all([
     getTreatmentResourceBusyIntervals(
