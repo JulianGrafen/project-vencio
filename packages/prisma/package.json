@@ -25,6 +25,7 @@
     "seed-pbac": "ts-node --transpile-only ../../scripts/seed-pbac-organization.ts"
   },
   "dependencies": {
+    "@calcom/lib": "workspace:*",
     "@prisma/adapter-pg": "6.16.1",
     "@prisma/client": "6.16.1",
     "@prisma/extension-accelerate": "1.3.0",

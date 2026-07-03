@@ -1,10 +1,14 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
+import { PracticeKeyResolver } from "@calcom/lib/encryption/key-resolver";
+import { isDentalEncryptionEnabled } from "@calcom/lib/encryption/tenant-context";
+
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
+import { fieldEncryptionExtension } from "./extensions/field-encryption";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
@@ -47,6 +51,27 @@ if (!isNaN(loggerLevel)) {
 }
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
+const dentalKeyResolver = isDentalEncryptionEnabled() ? new PracticeKeyResolver(baseClient) : null;
+
+function withStandardExtensions(client: PrismaClient) {
+  let extended = client
+    .$extends(excludeLockedUsersExtension())
+    .$extends(excludePendingPaymentsExtension())
+    .$extends(bookingIdempotencyKeyExtension())
+    .$extends(disallowUndefinedDeleteUpdateManyExtension());
+
+  if (dentalKeyResolver) {
+    extended = extended.$extends(
+      fieldEncryptionExtension({
+        keyResolver: dentalKeyResolver,
+        prismaForTeamLookup: baseClient,
+      })
+    );
+  }
+
+  return extended as unknown as PrismaClient;
+}
+
 export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
   let finalOptions = { ...prismaOptions };
 
@@ -64,11 +89,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
     finalOptions = { ...prismaOptions, ...options };
   }
 
-  return new PrismaClient(finalOptions)
-    .$extends(excludeLockedUsersExtension())
-    .$extends(excludePendingPaymentsExtension())
-    .$extends(bookingIdempotencyKeyExtension())
-    .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
+  return withStandardExtensions(new PrismaClient(finalOptions));
 };
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
@@ -76,11 +97,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
 
 // Explanation why we cast as PrismaClient. When we leave Prisma to its devices it tries to infer logic based on the extensions, but this is not a simple extends.
 // this makes the PrismaClient export type-hint impossible and it also is a massive hit on Prisma type hinting performance.
-export const prisma: PrismaClient = baseClient
-  .$extends(excludeLockedUsersExtension())
-  .$extends(excludePendingPaymentsExtension())
-  .$extends(bookingIdempotencyKeyExtension())
-  .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
+export const prisma: PrismaClient = withStandardExtensions(baseClient);
 
 // This prisma instance is meant to be used only for READ operations.
 // If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.

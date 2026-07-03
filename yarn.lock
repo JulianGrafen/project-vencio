@@ -2973,6 +2973,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
+    "@calcom/lib": "workspace:*"
     "@prisma/adapter-pg": "npm:6.16.1"
     "@prisma/client": "npm:6.16.1"
     "@prisma/extension-accelerate": "npm:1.3.0"
