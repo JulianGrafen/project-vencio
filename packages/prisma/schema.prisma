@@ -909,71 +909,71 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                     Int                        @id @default(autoincrement())
-  uid                    String                     @unique
+  id                         Int                        @id @default(autoincrement())
+  uid                        String                     @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey         String?                    @unique
-  user                   User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                 Int?
+  idempotencyKey             String?                    @unique
+  user                       User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                     Int?
   // User's email at the time of booking
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
-  userPrimaryEmail            String?
-  userPrimaryEmailBlindIndex  String?
-  references             BookingReference[]
-  eventType              EventType?                 @relation(fields: [eventTypeId], references: [id])
-  eventTypeId            Int?
-  title                  String
-  description            String?
-  customInputs           Json?
+  userPrimaryEmail           String?
+  userPrimaryEmailBlindIndex String?
+  references                 BookingReference[]
+  eventType                  EventType?                 @relation(fields: [eventTypeId], references: [id])
+  eventTypeId                Int?
+  title                      String
+  description                String?
+  customInputs               Json?
   /// @zod.import(["import { bookingResponses } from '../../zod-utils'"]).custom.use(bookingResponses)
-  responses              Json?
-  startTime              DateTime
-  endTime                DateTime
-  attendees              Attendee[]
-  location               String?
-  createdAt              DateTime                   @default(now())
-  updatedAt              DateTime?                  @updatedAt
-  status                 BookingStatus              @default(ACCEPTED)
-  paid                   Boolean                    @default(false)
-  payment                Payment[]
-  destinationCalendar    DestinationCalendar?       @relation(fields: [destinationCalendarId], references: [id])
-  destinationCalendarId  Int?
-  cancellationReason     String?
-  rejectionReason        String?
-  reassignReason         String?
-  reassignBy             User?                      @relation("reassignByUser", fields: [reassignById], references: [id])
-  reassignById           Int?
-  dynamicEventSlugRef    String?
-  dynamicGroupSlugRef    String?
-  rescheduled            Boolean?
-  fromReschedule         String?
-  recurringEventId       String?
-  smsReminderNumber      String?
-  scheduledJobs          String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
-  seatsReferences        BookingSeat[]
+  responses                  Json?
+  startTime                  DateTime
+  endTime                    DateTime
+  attendees                  Attendee[]
+  location                   String?
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime?                  @updatedAt
+  status                     BookingStatus              @default(ACCEPTED)
+  paid                       Boolean                    @default(false)
+  payment                    Payment[]
+  destinationCalendar        DestinationCalendar?       @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendarId      Int?
+  cancellationReason         String?
+  rejectionReason            String?
+  reassignReason             String?
+  reassignBy                 User?                      @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignById               Int?
+  dynamicEventSlugRef        String?
+  dynamicGroupSlugRef        String?
+  rescheduled                Boolean?
+  fromReschedule             String?
+  recurringEventId           String?
+  smsReminderNumber          String?
+  scheduledJobs              String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
+  seatsReferences            BookingSeat[]
   /// @zod.import(["import { bookingMetadataSchema } from '../../zod-utils'"]).custom.use(bookingMetadataSchema)
-  metadata               Json?
-  isRecorded             Boolean                    @default(false)
-  iCalUID                String?                    @default("")
-  iCalSequence           Int                        @default(0)
-  instantMeetingToken    InstantMeetingToken?
-  rating                 Int?
-  ratingFeedback         String?
-  noShowHost             Boolean?                   @default(false)
-  scheduledTriggers      WebhookScheduledTriggers[]
-  oneTimePassword        String?                    @unique @default(uuid())
+  metadata                   Json?
+  isRecorded                 Boolean                    @default(false)
+  iCalUID                    String?                    @default("")
+  iCalSequence               Int                        @default(0)
+  instantMeetingToken        InstantMeetingToken?
+  rating                     Int?
+  ratingFeedback             String?
+  noShowHost                 Boolean?                   @default(false)
+  scheduledTriggers          WebhookScheduledTriggers[]
+  oneTimePassword            String?                    @unique @default(uuid())
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
-  cancelledBy            String?
+  cancelledBy                String?
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
-  rescheduledBy          String?
-  assignmentReason       AssignmentReason[]
-  internalNote           BookingInternalNote[]
-  creationSource         CreationSource?
-  tracking               Tracking?
-  expenseLogs            CreditExpenseLog[]
-  report                 BookingReport?
-  wrongAssignmentReports WrongAssignmentReport[]
-  resources              BookingResource[]
+  rescheduledBy              String?
+  assignmentReason           AssignmentReason[]
+  internalNote               BookingInternalNote[]
+  creationSource             CreationSource?
+  tracking                   Tracking?
+  expenseLogs                CreditExpenseLog[]
+  report                     BookingReport?
+  wrongAssignmentReports     WrongAssignmentReport[]
+  resources                  BookingResource[]
 
   // @@partial_index([reassignById])
 
@@ -1006,12 +1006,12 @@ model Tracking {
 }
 
 model Schedule {
-  id                   Int            @id @default(autoincrement())
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   Int                 @id @default(autoincrement())
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId               Int
   eventType            EventType[]
-  instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
-  restrictionSchedule  EventType[]    @relation("restrictionSchedule")
+  instantMeetingEvents EventType[]         @relation("InstantMeetingSchedule")
+  restrictionSchedule  EventType[]         @relation("restrictionSchedule")
   name                 String
   timeZone             String?
   availability         Availability[]

@@ -41,6 +41,81 @@ export interface FieldEncryptionExtensionDeps {
   };
 }
 
+function toModelKey(model: string): string {
+  return model.charAt(0).toLowerCase() + model.slice(1);
+}
+
+async function encryptWritePayload(
+  deps: FieldEncryptionExtensionDeps,
+  model: string,
+  operation: WriteOperation,
+  args: Record<string, unknown>
+): Promise<void> {
+  if (operation === "upsert") {
+    if (isPlainObject(args.create)) {
+      if (model === "Booking") {
+        args.create = await encryptNestedWrites(
+          deps.prismaForTeamLookup as never,
+          deps.keyResolver,
+          args.create
+        );
+      }
+      args.create = await encryptModelWriteData(
+        deps.prismaForTeamLookup as never,
+        deps.keyResolver,
+        model,
+        args.create
+      );
+    }
+    if (isPlainObject(args.update)) {
+      args.update = await encryptModelWriteData(
+        deps.prismaForTeamLookup as never,
+        deps.keyResolver,
+        model,
+        args.update
+      );
+    }
+    return;
+  }
+
+  if (operation === "createMany" && Array.isArray(args.data)) {
+    args.data = await Promise.all(
+      args.data.map((row) =>
+        encryptModelWriteData(
+          deps.prismaForTeamLookup as never,
+          deps.keyResolver,
+          model,
+          row as Record<string, unknown>
+        )
+      )
+    );
+    return;
+  }
+
+  if (!isPlainObject(args.data)) {
+    return;
+  }
+
+  if (model === "Booking" && operation === "create") {
+    args.data = await encryptNestedWrites(
+      deps.prismaForTeamLookup as never,
+      deps.keyResolver,
+      args.data
+    );
+  }
+
+  args.data = await encryptModelWriteData(
+    deps.prismaForTeamLookup as never,
+    deps.keyResolver,
+    model,
+    args.data
+  );
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function buildModelQueryHandlers(deps: FieldEncryptionExtensionDeps) {
   const handlers: Record<string, Record<string, unknown>> = {};
 
@@ -52,29 +127,14 @@ function buildModelQueryHandlers(deps: FieldEncryptionExtensionDeps) {
         args,
         query,
       }: {
-        args: { data: Record<string, unknown> };
+        args: Record<string, unknown>;
         query: (args: unknown) => Promise<unknown>;
       }) => {
         if (!isDentalEncryptionEnabled()) {
           return query(args);
         }
 
-        let data = args.data;
-        if (model === "Booking" && operation === "create") {
-          data = await encryptNestedWrites(
-            deps.prismaForTeamLookup as never,
-            deps.keyResolver,
-            data
-          );
-        }
-
-        args.data = await encryptModelWriteData(
-          deps.prismaForTeamLookup as never,
-          deps.keyResolver,
-          model,
-          data
-        );
-
+        await encryptWritePayload(deps, model, operation, args);
         return query(args);
       };
     }
@@ -102,7 +162,7 @@ function buildModelQueryHandlers(deps: FieldEncryptionExtensionDeps) {
       };
     }
 
-    handlers[model.charAt(0).toLowerCase() + model.slice(1)] = modelHandlers;
+    handlers[toModelKey(model)] = modelHandlers;
   }
 
   return handlers;

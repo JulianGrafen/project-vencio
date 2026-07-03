@@ -9,7 +9,7 @@ import {
 } from "./health-data-guard";
 import type { PracticeKeyResolver } from "./key-resolver";
 import { deserializeEncryptedField, isEncryptedValue, serializeEncryptedField } from "./serialize-encrypted";
-import { getTenantCryptoContext } from "./tenant-context";
+import { getTenantCryptoContext, isDentalEncryptionEnabled } from "./tenant-context";
 
 type WritableRecord = Record<string, unknown>;
 
@@ -144,6 +144,12 @@ export async function encryptModelWriteData(
 
   const teamId = await resolveTeamIdFromWriteData(prisma, model, data);
   if (!teamId) {
+    if (isDentalEncryptionEnabled()) {
+      throw new Error(
+        `[dental-encryption] Cannot encrypt ${model} write: practice teamId could not be resolved. ` +
+          `Ensure runWithDentalPracticeContext() wraps the operation.`
+      );
+    }
     return data;
   }
 
@@ -221,26 +227,63 @@ export async function encryptNestedWrites(
 ): Promise<WritableRecord> {
   const output: WritableRecord = { ...data };
 
-  if (isPlainObject(output.attendees) && Array.isArray(output.attendees.create)) {
-    output.attendees = {
-      ...output.attendees,
-      create: await Promise.all(
-        output.attendees.create.map((entry) =>
-          encryptModelWriteData(prisma, keyResolver, "Attendee", entry as WritableRecord)
-        )
-      ),
-    };
+  if (isPlainObject(output.attendees)) {
+    const attendees = output.attendees;
+
+    if (Array.isArray(attendees.create)) {
+      output.attendees = {
+        ...attendees,
+        create: await Promise.all(
+          attendees.create.map((entry) =>
+            encryptModelWriteData(prisma, keyResolver, "Attendee", entry as WritableRecord)
+          )
+        ),
+      };
+    }
+
+    // Cal.com createBooking uses createMany for attendees — must encrypt each row
+    if (isPlainObject(attendees.createMany) && Array.isArray(attendees.createMany.data)) {
+      output.attendees = {
+        ...attendees,
+        createMany: {
+          ...attendees.createMany,
+          data: await Promise.all(
+            attendees.createMany.data.map((entry) =>
+              encryptModelWriteData(prisma, keyResolver, "Attendee", entry as WritableRecord)
+            )
+          ),
+        },
+      };
+    }
   }
 
-  if (isPlainObject(output.internalNote) && Array.isArray(output.internalNote.create)) {
-    output.internalNote = {
-      ...output.internalNote,
-      create: await Promise.all(
-        output.internalNote.create.map((entry) =>
-          encryptModelWriteData(prisma, keyResolver, "BookingInternalNote", entry as WritableRecord)
-        )
-      ),
-    };
+  if (isPlainObject(output.internalNote)) {
+    const internalNote = output.internalNote;
+
+    if (Array.isArray(internalNote.create)) {
+      output.internalNote = {
+        ...internalNote,
+        create: await Promise.all(
+          internalNote.create.map((entry) =>
+            encryptModelWriteData(prisma, keyResolver, "BookingInternalNote", entry as WritableRecord)
+          )
+        ),
+      };
+    }
+
+    if (isPlainObject(internalNote.createMany) && Array.isArray(internalNote.createMany.data)) {
+      output.internalNote = {
+        ...internalNote,
+        createMany: {
+          ...internalNote.createMany,
+          data: await Promise.all(
+            internalNote.createMany.data.map((entry) =>
+              encryptModelWriteData(prisma, keyResolver, "BookingInternalNote", entry as WritableRecord)
+            )
+          ),
+        },
+      };
+    }
   }
 
   return output;

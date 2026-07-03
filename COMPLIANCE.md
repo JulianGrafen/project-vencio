@@ -139,6 +139,13 @@
 - **treatmentResources tRPC** — list/create für Praxis-Admins
 - **tracking/server.ts** — UTM-Cookies blockiert
 
+### 2026-07-03 — Debug-Fixes (Iteration 3b)
+
+- **record-crypto.ts** — `attendees.createMany.data` wird verschlüsselt (Cal.com nutzt createMany, nicht create)
+- **field-encryption.ts** — upsert/createMany Handler korrigiert
+- **record-crypto.ts** — Fail-closed wenn teamId fehlt und Encryption aktiv
+- **next.config.ts** — `env` vor Dental-Build-Block initialisiert (ReferenceError behoben)
+
 ---
 
 ## Offene Punkte (nächste Iterationen)
