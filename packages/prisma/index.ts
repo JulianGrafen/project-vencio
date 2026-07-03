@@ -2,7 +2,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 import { PracticeKeyResolver } from "@calcom/lib/encryption/key-resolver";
-import { isDentalEncryptionEnabled } from "@calcom/lib/encryption/tenant-context";
+import { isDentalEncryptionEnabled } from "@calcom/lib/dental/feature-flags";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";

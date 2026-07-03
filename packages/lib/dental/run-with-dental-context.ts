@@ -1,18 +1,10 @@
 import { prisma } from "@calcom/prisma";
 
 import { runWithTenantContextAsync, type TenantCryptoContext } from "../encryption/tenant-context";
+import { resolveTeamIdFromEventTypeId } from "./practice-team-resolver";
 
 export async function resolvePracticeTeamIdFromEventTypeId(eventTypeId: number): Promise<number | null> {
-  if (!eventTypeId) {
-    return null;
-  }
-
-  const eventType = await prisma.eventType.findUnique({
-    where: { id: eventTypeId },
-    select: { teamId: true },
-  });
-
-  return eventType?.teamId ?? null;
+  return resolveTeamIdFromEventTypeId(prisma, eventTypeId);
 }
 
 export async function runWithDentalPracticeContext<T>(

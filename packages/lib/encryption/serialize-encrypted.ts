@@ -50,3 +50,14 @@ export function deserializeEncryptedField(value: string, dek: Buffer): string {
 
   return decryptAes256Gcm(packed, dek);
 }
+
+/** Extract practice teamId embedded in an encrypted field value (enc:v1:{teamId}:...). */
+export function extractTeamIdFromEncryptedValue(value: string): number | null {
+  if (!value.startsWith(ENCRYPTED_VALUE_PREFIX)) {
+    return null;
+  }
+  const rest = value.slice(ENCRYPTED_VALUE_PREFIX.length);
+  const teamIdPart = rest.split(":")[0];
+  const teamId = Number(teamIdPart);
+  return Number.isNaN(teamId) ? null : teamId;
+}

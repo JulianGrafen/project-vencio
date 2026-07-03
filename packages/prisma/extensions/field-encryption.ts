@@ -4,7 +4,7 @@ import {
   encryptModelWriteData,
   encryptNestedWrites,
 } from "@calcom/lib/encryption/record-crypto";
-import { isDentalEncryptionEnabled } from "@calcom/lib/encryption/tenant-context";
+import { isDentalEncryptionEnabled } from "@calcom/lib/dental/feature-flags";
 
 import { Prisma } from "../client";
 

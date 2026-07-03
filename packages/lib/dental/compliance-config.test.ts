@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 
 import {
+  isDentalClientComplianceMode,
   isDentalComplianceMode,
   isDentalTrackingDisabled,
   sanitizeBookingTracking,
@@ -8,9 +9,11 @@ import {
 
 describe("compliance-config", () => {
   const original = process.env.DENTAL_ENCRYPTION_ENABLED;
+  const originalPublic = process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE;
 
   afterEach(() => {
     process.env.DENTAL_ENCRYPTION_ENABLED = original;
+    process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = originalPublic;
   });
 
   beforeEach(() => {
@@ -32,5 +35,10 @@ describe("compliance-config", () => {
     process.env.DENTAL_ENCRYPTION_ENABLED = "false";
     const tracking = { utm_source: "google" };
     expect(sanitizeBookingTracking(tracking)).toEqual(tracking);
+  });
+
+  it("activates client compliance mode via NEXT_PUBLIC flag", () => {
+    process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = "true";
+    expect(isDentalClientComplianceMode()).toBe(true);
   });
 });

@@ -18,7 +18,3 @@ export async function runWithTenantContextAsync<T>(
 ): Promise<T> {
   return tenantContextStorage.run(context, fn);
 }
-
-export function isDentalEncryptionEnabled(): boolean {
-  return process.env.DENTAL_ENCRYPTION_ENABLED === "true" || process.env.DENTAL_ENCRYPTION_ENABLED === "1";
-}
