@@ -1,8 +1,8 @@
 import { prisma } from "@calcom/prisma";
 
 import { decryptModelReadResult } from "../encryption/model-crypto";
-import { PracticeKeyResolver } from "../encryption/key-resolver";
-import { isDentalEncryptionEnabled } from "./feature-flags";
+import { getPracticeKeyResolver } from "../encryption/key-resolver";
+import { isDentalComplianceMode } from "./compliance-config";
 import { runWithDentalPracticeContext } from "./run-with-dental-context";
 
 type DecryptableAttendee = Record<string, unknown> & { id?: number; email?: string };
@@ -12,18 +12,9 @@ export type DecryptableKyselyBooking = Record<string, unknown> & {
   attendees: DecryptableAttendee[];
 };
 
-let keyResolver: PracticeKeyResolver | null = null;
-
-function getKeyResolver(): PracticeKeyResolver {
-  if (!keyResolver) {
-    keyResolver = new PracticeKeyResolver(prisma);
-  }
-  return keyResolver;
-}
-
 async function decryptBookingRecord<T extends DecryptableKyselyBooking>(
   booking: T,
-  resolver: PracticeKeyResolver
+  resolver: ReturnType<typeof getPracticeKeyResolver>
 ): Promise<T> {
   const teamId = booking.eventType?.teamId;
   if (!teamId) {
@@ -50,10 +41,10 @@ async function decryptBookingRecord<T extends DecryptableKyselyBooking>(
 export async function decryptKyselyBookings<T extends DecryptableKyselyBooking>(
   bookings: T[]
 ): Promise<T[]> {
-  if (!isDentalEncryptionEnabled() || bookings.length === 0) {
+  if (!isDentalComplianceMode() || bookings.length === 0) {
     return bookings;
   }
 
-  const resolver = getKeyResolver();
+  const resolver = getPracticeKeyResolver(prisma);
   return Promise.all(bookings.map((booking) => decryptBookingRecord(booking, resolver)));
 }

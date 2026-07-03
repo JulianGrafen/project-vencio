@@ -1,7 +1,9 @@
+import { DENTAL_ENV, parseBooleanEnv } from "./env";
+
 /**
- * Server-side dental feature gate.
- * Lives in the dental domain layer — encryption/compliance code imports from here.
+ * Server-side encryption gate — use for crypto read/write paths only.
+ * For product/compliance behavior prefer {@link isDentalComplianceMode}.
  */
 export function isDentalEncryptionEnabled(): boolean {
-  return process.env.DENTAL_ENCRYPTION_ENABLED === "true" || process.env.DENTAL_ENCRYPTION_ENABLED === "1";
+  return parseBooleanEnv(process.env[DENTAL_ENV.ENCRYPTION_ENABLED]);
 }

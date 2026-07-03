@@ -1,3 +1,4 @@
+import { DENTAL_ENV, parseBooleanEnv } from "./env";
 import { isDentalEncryptionEnabled } from "./feature-flags";
 
 // ---------------------------------------------------------------------------
@@ -5,7 +6,7 @@ import { isDentalEncryptionEnabled } from "./feature-flags";
 // ---------------------------------------------------------------------------
 
 /**
- * Central compliance switches for the dental fork.
+ * Central compliance switch for the dental fork.
  * Activated when DENTAL_ENCRYPTION_ENABLED=true (primary gate).
  */
 export function isDentalComplianceMode(): boolean {
@@ -14,7 +15,7 @@ export function isDentalComplianceMode(): boolean {
 
 /** UTM / marketing tracking must not store patient booking attribution in dental mode. */
 export function isDentalTrackingDisabled(): boolean {
-  return isDentalComplianceMode() || process.env.DENTAL_DISABLE_TRACKING === "true";
+  return isDentalComplianceMode() || parseBooleanEnv(process.env[DENTAL_ENV.DISABLE_TRACKING]);
 }
 
 /**
@@ -22,12 +23,14 @@ export function isDentalTrackingDisabled(): boolean {
  * Triggers are removed via migration when dental mode is the deployment target.
  */
 export function isDentalDenormalizedDisabled(): boolean {
-  return isDentalComplianceMode() || process.env.DENTAL_DISABLE_DENORMALIZED === "true";
+  return isDentalComplianceMode() || parseBooleanEnv(process.env[DENTAL_ENV.DISABLE_DENORMALIZED]);
 }
 
 /** Third-party analytics (PostHog, Dub, GA) must not receive patient-related events. */
 export function isDentalThirdPartyAnalyticsDisabled(): boolean {
-  return isDentalComplianceMode() || process.env.DENTAL_DISABLE_THIRD_PARTY_ANALYTICS === "true";
+  return (
+    isDentalComplianceMode() || parseBooleanEnv(process.env[DENTAL_ENV.DISABLE_THIRD_PARTY_ANALYTICS])
+  );
 }
 
 /** Strip tracking payload before persisting a booking. */
@@ -46,17 +49,21 @@ export function sanitizeBookingTracking<T extends Record<string, unknown> | unde
 
 export function isDentalClientComplianceMode(): boolean {
   return (
-    process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE === "true" ||
-    process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED === "true"
+    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_COMPLIANCE_MODE]) ||
+    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_ENCRYPTION_ENABLED])
   );
 }
 
 export function isDentalClientTrackingDisabled(): boolean {
-  return isDentalClientComplianceMode() || process.env.NEXT_PUBLIC_DENTAL_DISABLE_TRACKING === "true";
+  return (
+    isDentalClientComplianceMode() ||
+    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_DISABLE_TRACKING])
+  );
 }
 
 export function isDentalClientAnalyticsDisabled(): boolean {
   return (
-    isDentalClientComplianceMode() || process.env.NEXT_PUBLIC_DENTAL_DISABLE_THIRD_PARTY_ANALYTICS === "true"
+    isDentalClientComplianceMode() ||
+    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_DISABLE_THIRD_PARTY_ANALYTICS])
   );
 }

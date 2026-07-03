@@ -157,7 +157,16 @@
 | Mittel | tRPC get-Handler: Decrypt-Kontext für Listen | Implementiert (`decryptKyselyBookings`) |
 | Niedrig | BYOK pro Praxis | Phase 2 |
 
-### 2026-07-03 — Booking-Listen-Decrypt + Ressourcen-Buchung
+### 2026-07-03 — Clean Code Refactor
+
+- **env.ts** / **constants.ts** — zentralisierte Env-Parsing (`parseBooleanEnv`) und Domain-Konstanten
+- **assert-team-membership.ts** — wiederverwendbare Membership-Prüfung via `MembershipRepository`
+- **practice-team-resolver.ts** — managed Event Types (`parentId`); `getTeamIdFromEventType` delegiert hierher
+- **attendee-blind-index-filter.ts** — `prepareAttendeeEmailBlindIndexFilter` extrahiert aus `get.handler`
+- **getPracticeKeyResolver()** — gemeinsame KeyResolver-Instanz pro Prisma-Client
+- **treatmentResources/** — `_schemas.ts` + schlanker Router; `TreatmentResourceTypeSchema` aus Prisma
+- Entfernt: `client-compliance.ts` (toter Re-Export)
+
 
 - **decrypt-kysely-bookings.ts** — Entschlüsselt Kysely-Booking-Listen (Prisma-Extension-Bypass)
 - **get.handler.ts** — Decrypt-Pass nach Fetch; Attendee-E-Mail-Filter via Blind-Index

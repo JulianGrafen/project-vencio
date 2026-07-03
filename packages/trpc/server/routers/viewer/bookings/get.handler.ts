@@ -4,11 +4,10 @@ import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import {
-  resolveAttendeeEmailBlindIndexes,
+  prepareAttendeeEmailBlindIndexFilter,
   shouldUseAttendeeEmailBlindIndexFilter,
 } from "@calcom/lib/dental/attendee-blind-index-filter";
 import { decryptKyselyBookings } from "@calcom/lib/dental/decrypt-kysely-bookings";
-import { PracticeKeyResolver } from "@calcom/lib/encryption/key-resolver";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -151,23 +150,12 @@ export async function getBookings({
       : Promise.resolve([]),
   ]);
 
-  let attendeeEmailBlindIndexes: string[] | null = null;
-  if (shouldUseAttendeeEmailBlindIndexFilter(filters?.attendeeEmail)) {
-    const teamIdsForFilter = filters.teamIds?.length
-      ? filters.teamIds
-      : teamIdsWithBookingPermission?.length
-        ? teamIdsWithBookingPermission
-        : [];
-
-    if (teamIdsForFilter.length > 0) {
-      const keyResolver = new PracticeKeyResolver(prisma);
-      attendeeEmailBlindIndexes = await resolveAttendeeEmailBlindIndexes(
-        keyResolver,
-        teamIdsForFilter,
-        filters.attendeeEmail.trim()
-      );
-    }
-  }
+  const attendeeEmailBlindIndexes = await prepareAttendeeEmailBlindIndexFilter({
+    prisma,
+    attendeeEmail: filters?.attendeeEmail,
+    filterTeamIds: filters?.teamIds,
+    permissionTeamIds: teamIdsWithBookingPermission ?? [],
+  });
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 

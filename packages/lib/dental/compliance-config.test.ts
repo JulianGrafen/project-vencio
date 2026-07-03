@@ -37,6 +37,11 @@ describe("compliance-config", () => {
     expect(sanitizeBookingTracking(tracking)).toEqual(tracking);
   });
 
+  it("activates compliance mode when encryption is enabled with 1", () => {
+    process.env.DENTAL_ENCRYPTION_ENABLED = "1";
+    expect(isDentalComplianceMode()).toBe(true);
+  });
+
   it("activates client compliance mode via NEXT_PUBLIC flag", () => {
     process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = "true";
     expect(isDentalClientComplianceMode()).toBe(true);

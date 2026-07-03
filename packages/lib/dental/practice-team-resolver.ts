@@ -6,8 +6,20 @@ export type PracticeTeamLookupInput = {
   bookingId?: unknown;
 };
 
+type EventTypeTeamRecord = {
+  teamId: number | null;
+  parentId?: number | null;
+};
+
+type EventTypeWithTeamRecord = {
+  team?: { id: number | null } | null;
+  teamId?: number | null;
+  parentId?: number | null;
+};
+
 /**
  * Resolves the practice (team) ID from an event type — the primary tenant key for encryption.
+ * Handles managed event types via parentId (same logic as getTeamIdFromEventType).
  */
 export async function resolveTeamIdFromEventTypeId(
   prisma: TeamLookupStore,
@@ -17,12 +29,50 @@ export async function resolveTeamIdFromEventTypeId(
     return null;
   }
 
-  const eventType = await prisma.eventType.findUnique({
+  const eventType = (await prisma.eventType.findUnique({
     where: { id: eventTypeId },
-    select: { teamId: true },
-  });
+    select: { teamId: true, parentId: true },
+  })) as EventTypeTeamRecord | null;
 
-  return eventType?.teamId ?? null;
+  if (!eventType) {
+    return null;
+  }
+
+  if (eventType.teamId) {
+    return eventType.teamId;
+  }
+
+  if (eventType.parentId) {
+    return resolveTeamIdFromEventTypeId(prisma, eventType.parentId);
+  }
+
+  return null;
+}
+
+/**
+ * Resolves teamId from an already-loaded event type record (e.g. with nested team).
+ */
+export async function resolveTeamIdFromEventTypeRecord(
+  prisma: TeamLookupStore,
+  eventType: EventTypeWithTeamRecord | null | undefined
+): Promise<number | null> {
+  if (!eventType) {
+    return null;
+  }
+
+  if (eventType.team?.id) {
+    return eventType.team.id;
+  }
+
+  if (eventType.teamId) {
+    return eventType.teamId;
+  }
+
+  if (eventType.parentId) {
+    return resolveTeamIdFromEventTypeId(prisma, eventType.parentId);
+  }
+
+  return null;
 }
 
 /**
@@ -38,10 +88,14 @@ export async function resolveTeamIdFromBookingId(
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    select: { eventType: { select: { teamId: true } } },
+    select: { eventType: { select: { teamId: true, parentId: true } } },
   });
 
-  return booking?.eventType?.teamId ?? null;
+  if (!booking?.eventType) {
+    return null;
+  }
+
+  return resolveTeamIdFromEventTypeRecord(prisma, booking.eventType);
 }
 
 /**

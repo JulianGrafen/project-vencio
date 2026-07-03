@@ -17,7 +17,7 @@ vi.mock("../encryption/model-crypto", () => ({
 }));
 
 vi.mock("../encryption/key-resolver", () => ({
-  PracticeKeyResolver: vi.fn(),
+  getPracticeKeyResolver: vi.fn(() => ({})),
 }));
 
 vi.mock("./run-with-dental-context", () => ({

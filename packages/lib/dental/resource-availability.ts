@@ -1,15 +1,13 @@
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
 import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
-import { BookingStatus } from "@calcom/prisma/enums";
 
-type BusyInterval = { start: Date; end: Date };
+import {
+  DEFAULT_EVENT_DURATION_MINUTES,
+  TREATMENT_RESOURCE_BLOCKING_STATUSES,
+} from "./constants";
 
-const ACTIVE_BOOKING_STATUSES: BookingStatus[] = [
-  BookingStatus.ACCEPTED,
-  BookingStatus.PENDING,
-  BookingStatus.AWAITING_HOST,
-];
+export type BusyInterval = { start: Date; end: Date };
 
 export async function getTreatmentResourceBusyIntervals(
   resourceId: string,
@@ -20,7 +18,7 @@ export async function getTreatmentResourceBusyIntervals(
     where: {
       resourceId,
       booking: {
-        status: { in: ACTIVE_BOOKING_STATUSES },
+        status: { in: TREATMENT_RESOURCE_BLOCKING_STATUSES },
         startTime: { lt: rangeEnd },
         endTime: { gt: rangeStart },
       },
@@ -88,5 +86,5 @@ export async function resolveEventTypeDurationMinutes(eventTypeId: number): Prom
     select: { length: true },
   });
 
-  return eventType?.length ?? 30;
+  return eventType?.length ?? DEFAULT_EVENT_DURATION_MINUTES;
 }

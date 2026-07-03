@@ -35,13 +35,13 @@ export interface TeamLookupStore {
   eventType: {
     findUnique(args: {
       where: { id: number };
-      select: { teamId: true };
-    }): Promise<{ teamId: number | null } | null>;
+      select: { teamId: true; parentId?: true };
+    }): Promise<{ teamId: number | null; parentId?: number | null } | null>;
   };
   booking: {
     findUnique(args: {
       where: { id: number };
-      select: { eventType: { select: { teamId: true } } };
-    }): Promise<{ eventType: { teamId: number | null } | null } | null>;
+      select: { eventType: { select: { teamId: true; parentId?: true } } };
+    }): Promise<{ eventType: { teamId: number | null; parentId?: number | null } | null } | null>;
   };
 }

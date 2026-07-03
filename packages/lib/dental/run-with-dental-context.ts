@@ -3,10 +3,6 @@ import { prisma } from "@calcom/prisma";
 import { runWithTenantContextAsync, type TenantCryptoContext } from "../encryption/tenant-context";
 import { resolveTeamIdFromEventTypeId } from "./practice-team-resolver";
 
-export async function resolvePracticeTeamIdFromEventTypeId(eventTypeId: number): Promise<number | null> {
-  return resolveTeamIdFromEventTypeId(prisma, eventTypeId);
-}
-
 export async function runWithDentalPracticeContext<T>(
   params: {
     teamId: number | null | undefined;
@@ -37,7 +33,7 @@ export async function runWithDentalPracticeContextForEventType<T>(
   },
   handler: () => Promise<T>
 ): Promise<T> {
-  const teamId = await resolvePracticeTeamIdFromEventTypeId(params.eventTypeId);
+  const teamId = await resolveTeamIdFromEventTypeId(prisma, params.eventTypeId);
   return runWithDentalPracticeContext(
     {
       teamId,

@@ -2,7 +2,6 @@ import type { PracticeKeyStore } from "./prisma-types";
 import { generateDek } from "./crypto-gcm";
 import { createKeyManagementService } from "./kms";
 import type { KeyManagementService, PracticeKeyMaterial } from "./types";
-import type { PracticeKeyStore } from "./prisma-types";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -10,6 +9,8 @@ interface CachedDek {
   material: PracticeKeyMaterial;
   expiresAt: number;
 }
+
+const resolverByPrisma = new WeakMap<PracticeKeyStore, PracticeKeyResolver>();
 
 export class PracticeKeyResolver {
   private readonly cache = new Map<number, CachedDek>();
@@ -77,4 +78,14 @@ export class PracticeKeyResolver {
   invalidate(teamId: number): void {
     this.cache.delete(teamId);
   }
+}
+
+/** Returns a cached resolver instance per Prisma client (shared DEK cache). */
+export function getPracticeKeyResolver(prisma: PracticeKeyStore): PracticeKeyResolver {
+  let resolver = resolverByPrisma.get(prisma);
+  if (!resolver) {
+    resolver = new PracticeKeyResolver(prisma);
+    resolverByPrisma.set(prisma, resolver);
+  }
+  return resolver;
 }
