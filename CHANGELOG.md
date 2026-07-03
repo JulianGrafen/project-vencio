@@ -10,6 +10,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Smart-Fill AI** — cron gap scanner, patient prioritization, mock SMS, inbound webhook, dashboard KPI card.
 - Prisma models: `SmartFillTask`, `SmartFillPatient`, `SmartFillInvite`.
 - B2B landing page at `/zahnarzt` (PraxisTermin marketing).
+- **GitHub Pages landing** — standalone static site in `apps/praxistermin-landing` with deploy workflow.
 - PVS integration target structure documented (implementation pending in `packages/pvs-integration`).
 
 ### Changed
