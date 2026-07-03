@@ -1,6 +1,9 @@
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import {
-  filterAvailableSlotsByResourceBusyTimes,
+  applyTreatmentResourceConstraints,
+  loadTreatmentResourceSchedule,
+} from "@calcom/lib/dental/resource-schedule";
+import {
   getTreatmentResourceBusyIntervals,
   resolveEventTypeDurationMinutes,
 } from "@calcom/lib/dental/resource-availability";
@@ -16,11 +19,19 @@ export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => 
   }
 
   const eventDurationMinutes = input.duration ?? (await resolveEventTypeDurationMinutes(input.eventTypeId));
-  const busyIntervals = await getTreatmentResourceBusyIntervals(
-    input.treatmentResourceId,
-    new Date(input.startTime),
-    new Date(input.endTime)
-  );
 
-  return filterAvailableSlotsByResourceBusyTimes(schedule, busyIntervals, eventDurationMinutes);
+  const [busyIntervals, resourceSchedule] = await Promise.all([
+    getTreatmentResourceBusyIntervals(
+      input.treatmentResourceId,
+      new Date(input.startTime),
+      new Date(input.endTime)
+    ),
+    loadTreatmentResourceSchedule(input.treatmentResourceId),
+  ]);
+
+  return applyTreatmentResourceConstraints(schedule, {
+    resourceSchedule,
+    busyIntervals,
+    eventDurationMinutes,
+  });
 };

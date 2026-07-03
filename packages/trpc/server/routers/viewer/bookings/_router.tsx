@@ -1,5 +1,6 @@
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "../../../procedures/authedProcedure";
+import dentalAuthedProcedure from "../../../procedures/dentalAuthedProcedure";
 import { createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
@@ -20,7 +21,7 @@ import { ZUpdateWrongAssignmentReportStatusInputSchema } from "./updateWrongAssi
 import { bookingsProcedure } from "./util";
 
 export const bookingsRouter = router({
-  get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
+  get: dentalAuthedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./get.handler");
 
     return getHandler({
@@ -59,7 +60,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  confirm: authedProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
+  confirm: dentalAuthedProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
     const { confirmHandler } = await import("./confirm.handler");
 
     return confirmHandler({
@@ -79,7 +80,7 @@ export const bookingsRouter = router({
       });
     }),
 
-  getBookingDetails: authedProcedure.input(ZGetBookingDetailsInputSchema).query(async ({ input, ctx }) => {
+  getBookingDetails: dentalAuthedProcedure.input(ZGetBookingDetailsInputSchema).query(async ({ input, ctx }) => {
     const { getBookingDetailsHandler } = await import("./getBookingDetails.handler");
 
     return getBookingDetailsHandler({

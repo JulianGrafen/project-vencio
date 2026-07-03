@@ -4,6 +4,10 @@ export type PracticeTeamLookupInput = {
   teamId?: unknown;
   eventTypeId?: unknown;
   bookingId?: unknown;
+  uid?: unknown;
+  filters?: {
+    teamIds?: unknown[];
+  };
 };
 
 type EventTypeTeamRecord = {
@@ -99,6 +103,32 @@ export async function resolveTeamIdFromBookingId(
 }
 
 /**
+ * Resolves teamId from a booking UID (public or internal reference).
+ */
+export async function resolveTeamIdFromBookingUid(
+  prisma: TeamLookupStore & {
+    booking: {
+      findUnique(args: {
+        where: { uid: string };
+        select: { eventType: { select: { teamId: true; parentId?: true } } };
+      }): Promise<{ eventType: { teamId: number | null; parentId?: number | null } | null } | null>;
+    };
+  },
+  uid: string
+): Promise<number | null> {
+  if (!uid) {
+    return null;
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { uid },
+    select: { eventType: { select: { teamId: true, parentId: true } } },
+  });
+
+  return resolveTeamIdFromEventTypeRecord(prisma, booking?.eventType);
+}
+
+/**
  * Resolves teamId from common tRPC / API input shapes (direct teamId, eventTypeId, or bookingId).
  */
 export async function resolveTeamIdFromInput(
@@ -115,6 +145,15 @@ export async function resolveTeamIdFromInput(
 
   if (typeof input.bookingId === "number") {
     return resolveTeamIdFromBookingId(prisma, input.bookingId);
+  }
+
+  if (typeof input.uid === "string") {
+    return resolveTeamIdFromBookingUid(prisma as never, input.uid);
+  }
+
+  const filterTeamIds = input.filters?.teamIds;
+  if (Array.isArray(filterTeamIds) && filterTeamIds.length === 1 && typeof filterTeamIds[0] === "number") {
+    return filterTeamIds[0];
   }
 
   return null;

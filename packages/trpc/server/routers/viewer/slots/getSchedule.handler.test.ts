@@ -10,12 +10,17 @@ vi.mock("@calcom/features/di/containers/AvailableSlots", () => ({
 
 const mockGetBusyIntervals = vi.fn();
 const mockResolveDuration = vi.fn();
-const mockFilterSlots = vi.fn();
+const mockLoadSchedule = vi.fn();
+const mockApplyConstraints = vi.fn();
 
 vi.mock("@calcom/lib/dental/resource-availability", () => ({
   getTreatmentResourceBusyIntervals: (...args: unknown[]) => mockGetBusyIntervals(...args),
   resolveEventTypeDurationMinutes: (...args: unknown[]) => mockResolveDuration(...args),
-  filterAvailableSlotsByResourceBusyTimes: (...args: unknown[]) => mockFilterSlots(...args),
+}));
+
+vi.mock("@calcom/lib/dental/resource-schedule", () => ({
+  loadTreatmentResourceSchedule: (...args: unknown[]) => mockLoadSchedule(...args),
+  applyTreatmentResourceConstraints: (...args: unknown[]) => mockApplyConstraints(...args),
 }));
 
 import { getScheduleHandler } from "./getSchedule.handler";
@@ -32,8 +37,9 @@ describe("getScheduleHandler", () => {
     mockGetAvailableSlots.mockResolvedValue(baseSchedule);
     mockGetBusyIntervals.mockResolvedValue([]);
     mockResolveDuration.mockResolvedValue(30);
-    mockFilterSlots.mockImplementation((_schedule, _busy, _duration) => ({
-      slots: {},
+    mockLoadSchedule.mockResolvedValue(null);
+    mockApplyConstraints.mockImplementation((_schedule, params) => ({
+      slots: params.busyIntervals.length ? {} : baseSchedule.slots,
     }));
   });
 
@@ -48,12 +54,12 @@ describe("getScheduleHandler", () => {
     });
 
     expect(result).toEqual(baseSchedule);
-    expect(mockGetBusyIntervals).not.toHaveBeenCalled();
+    expect(mockApplyConstraints).not.toHaveBeenCalled();
   });
 
-  it("filters slots when treatmentResourceId and eventTypeId are provided", async () => {
-    const filtered = { slots: { "2026-07-10": [] } };
-    mockFilterSlots.mockReturnValue(filtered);
+  it("applies resource schedule and busy constraints when resource is selected", async () => {
+    const constrained = { slots: {} };
+    mockApplyConstraints.mockReturnValue(constrained);
 
     const result = await getScheduleHandler({
       ctx: {} as never,
@@ -66,27 +72,15 @@ describe("getScheduleHandler", () => {
       },
     });
 
-    expect(mockGetBusyIntervals).toHaveBeenCalledWith(
-      "resource-1",
-      new Date("2026-07-01T00:00:00.000Z"),
-      new Date("2026-07-31T00:00:00.000Z")
+    expect(mockLoadSchedule).toHaveBeenCalledWith("resource-1");
+    expect(mockApplyConstraints).toHaveBeenCalledWith(
+      baseSchedule,
+      expect.objectContaining({
+        eventDurationMinutes: 45,
+        resourceSchedule: null,
+        busyIntervals: [],
+      })
     );
-    expect(mockFilterSlots).toHaveBeenCalledWith(baseSchedule, [], 45);
-    expect(result).toEqual(filtered);
-  });
-
-  it("resolves duration from event type when not provided in input", async () => {
-    await getScheduleHandler({
-      ctx: {} as never,
-      input: {
-        startTime: "2026-07-01T00:00:00.000Z",
-        endTime: "2026-07-31T00:00:00.000Z",
-        eventTypeId: 99,
-        treatmentResourceId: "resource-1",
-      },
-    });
-
-    expect(mockResolveDuration).toHaveBeenCalledWith(99);
-    expect(mockFilterSlots).toHaveBeenCalledWith(baseSchedule, [], 30);
+    expect(result).toEqual(constrained);
   });
 });

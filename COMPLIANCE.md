@@ -152,9 +152,11 @@
 
 | Priorität | Maßnahme | Status |
 |---|---|---|
-| Hoch | Slot-Berechnung: Arzt + TreatmentResource | Teilweise (Busy-Filter via `treatmentResourceId`) |
-| Hoch | Booking-UI: Ressourcen-Auswahl im Booker | Implementiert (`TreatmentResourceSelector`) |
-| Mittel | tRPC get-Handler: Decrypt-Kontext für Listen | Implementiert (`decryptKyselyBookings`) |
+| Hoch | Slot-Berechnung: Arzt + TreatmentResource | Teilweise (Schedule + Busy-Filter) |
+| Hoch | Booking-UI: Ressourcen-Auswahl im Booker | Implementiert |
+| Mittel | tRPC get-Handler: Decrypt-Kontext für Listen | Implementiert |
+| Mittel | Admin-UI Behandlungsressourcen | `/settings/treatment-resources?teamId=` |
+| Mittel | dentalAuthedProcedure auf Booking-Routen | Implementiert |
 | Niedrig | BYOK pro Praxis | Phase 2 |
 
 ### 2026-07-03 — Clean Code Refactor

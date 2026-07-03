@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { resolveTeamIdFromEventTypeId, resolveTeamIdFromEventTypeRecord } from "./practice-team-resolver";
+import {
+  resolveTeamIdFromBookingUid,
+  resolveTeamIdFromEventTypeId,
+  resolveTeamIdFromEventTypeRecord,
+} from "./practice-team-resolver";
 
 const mockPrisma = {
   eventType: {
@@ -37,5 +41,13 @@ describe("practice-team-resolver", () => {
         parentId: null,
       })
     ).resolves.toBe(7);
+  });
+
+  it("resolves teamId from booking uid", async () => {
+    mockPrisma.booking.findUnique = vi.fn(async () => ({
+      eventType: { teamId: 55, parentId: null },
+    }));
+
+    await expect(resolveTeamIdFromBookingUid(mockPrisma as never, "booking-uid")).resolves.toBe(55);
   });
 });

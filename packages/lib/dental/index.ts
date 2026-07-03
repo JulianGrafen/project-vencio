@@ -8,5 +8,6 @@ export * from "./run-with-dental-context";
 export * from "./booking-fields";
 export * from "./decrypt-kysely-bookings";
 export * from "./resource-availability";
+export * from "./resource-schedule";
 export * from "./attendee-blind-index-filter";
 export * from "./infer-tenant-operation";
