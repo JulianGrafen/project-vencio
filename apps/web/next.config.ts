@@ -1,5 +1,6 @@
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
+import path from "node:path";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
@@ -46,6 +47,15 @@ function adjustEnvVariables(): void {
 }
 
 adjustEnvVariables();
+
+const isDentalComplianceBuild =
+  process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE === "true" ||
+  process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED === "true" ||
+  process.env.DENTAL_ENCRYPTION_ENABLED === "true";
+
+if (isDentalComplianceBuild) {
+  env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = "true";
+}
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
@@ -256,7 +266,22 @@ const nextConfig = (phase: string): NextConfig => {
     images: {
       unoptimized: true,
     },
-    turbopack: {},
+    turbopack: {
+      ...(isDentalComplianceBuild
+        ? {
+            resolveAlias: {
+              "posthog-js": path.join(
+                process.cwd(),
+                "../../packages/lib/dental/posthog-noop.ts"
+              ),
+              "@dub/analytics/react": path.join(
+                process.cwd(),
+                "../../packages/lib/dental/dub-analytics-noop.tsx"
+              ),
+            },
+          }
+        : {}),
+    },
     async rewrites() {
       const { orgSlug } = nextJsOrgRewriteConfig;
       const beforeFiles = [

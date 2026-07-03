@@ -646,6 +646,7 @@ model Team {
   monthlyProrations MonthlyProration[]
 
   practiceEncryptionKey PracticeEncryptionKey?
+  treatmentResources    TreatmentResource[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -665,6 +666,42 @@ model PracticeEncryptionKey {
   isActive     Boolean  @default(true)
 
   @@index([teamId, isActive])
+}
+
+enum TreatmentResourceType {
+  CHAIR
+  ROOM
+  XRAY
+}
+
+/// Behandlungszimmer / Behandlungsstuhl — muss parallel zum Zahnarzt verfügbar sein.
+model TreatmentResource {
+  id         String                @id @default(cuid())
+  teamId     Int
+  team       Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  type       TreatmentResourceType @default(CHAIR)
+  isActive   Boolean               @default(true)
+  scheduleId Int?
+  schedule   Schedule?             @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  metadata   Json?
+  bookings   BookingResource[]
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  @@unique([teamId, slug])
+  @@index([teamId, isActive])
+}
+
+model BookingResource {
+  bookingId  Int
+  booking    Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  resourceId String
+  resource   TreatmentResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+
+  @@id([bookingId, resourceId])
+  @@index([resourceId])
 }
 
 model CreditBalance {
@@ -936,6 +973,7 @@ model Booking {
   expenseLogs            CreditExpenseLog[]
   report                 BookingReport?
   wrongAssignmentReports WrongAssignmentReport[]
+  resources              BookingResource[]
 
   // @@partial_index([reassignById])
 
@@ -978,6 +1016,7 @@ model Schedule {
   timeZone             String?
   availability         Availability[]
   Host                 Host[]
+  treatmentResources   TreatmentResource[]
 
   @@index([userId])
 }

@@ -1,6 +1,7 @@
 import process from "node:process";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
+import { applyDentalBookingFieldPolicy } from "@calcom/lib/dental/booking-fields";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import type { EventType, EventTypeCustomInput } from "@calcom/prisma/client";
@@ -313,6 +314,8 @@ export const ensureBookingInputsHaveSystemFields = ({
         : null),
     };
   });
+
+  bookingFields = applyDentalBookingFieldPolicy(bookingFields);
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

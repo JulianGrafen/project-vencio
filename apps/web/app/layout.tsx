@@ -1,9 +1,9 @@
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies, headers } from "next/headers";
 import Script from "next/script";
@@ -14,7 +14,8 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
+const isDentalComplianceLayout = isDentalComplianceMode();
+
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -116,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")}, system-ui;
+            --font-sans: ${isDentalComplianceLayout ? "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" : "Inter, system-ui"};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>

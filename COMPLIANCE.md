@@ -126,6 +126,18 @@
 | `AWS_KMS_REGION` | Default: `eu-central-1` |
 | `DENTAL_DISABLE_TRACKING` | UTM-Tracking deaktivieren (auch ohne Encryption) |
 | `DENTAL_DISABLE_THIRD_PARTY_ANALYTICS` | Dub/Analytics blockieren |
+| `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE` | Client-Compliance (Analytics, Fonts) |
+
+---
+
+## 2026-07-03 — Iteration 3: Frontend, Booking-UI, TreatmentResource
+
+- **posthog-noop / dub-analytics-noop** — US-Analytics via Next.js Alias deaktiviert
+- **layout.tsx** — System-Font statt Google Inter in Dental-Mode
+- **booking-fields.ts** — Versicherungsart, Geburtsdatum, Erstpatient; Notes ausgeblendet
+- **TreatmentResource + BookingResource** — Schema + Migration für Stühle/Räume
+- **treatmentResources tRPC** — list/create für Praxis-Admins
+- **tracking/server.ts** — UTM-Cookies blockiert
 
 ---
 
@@ -133,11 +145,14 @@
 
 | Priorität | Maßnahme | Status |
 |---|---|---|
-| Hoch | tRPC `get`-Handler: Decrypt-Kontext für Listen-Ansicht | Geplant |
-| Mittel | PostHog/Dub Frontend-Init deaktivieren | Geplant |
-| Mittel | `next/font/google` → System-Font in Dental-Mode | Geplant |
-| Niedrig | BYOK (Bring Your Own Key) pro Praxis | Phase 2 |
+| Hoch | Slot-Berechnung: Arzt + TreatmentResource | Geplant |
+| Hoch | Booking-UI: Ressourcen-Auswahl im Booker | Geplant |
+| Mittel | tRPC get-Handler: Decrypt-Kontext für Listen | Geplant |
+| Niedrig | BYOK pro Praxis | Phase 2 |
 
+---
+
+## Infrastruktur-Empfehlung (Self-Hosted EU)
 
 ```
 Hetzner/AWS Frankfurt

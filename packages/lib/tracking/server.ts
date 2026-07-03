@@ -1,6 +1,8 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
+import { isDentalTrackingDisabled } from "@calcom/lib/dental/compliance-config";
+
 const utmTrackingDataSchema = z.object({
   utm_source: z.string().optional(),
   utm_medium: z.string().optional(),
@@ -34,6 +36,10 @@ export function getTrackingFromCookies(
   cookies?: NextApiRequest["cookies"],
   query?: NextApiRequest["query"]
 ): TrackingData {
+  if (isDentalTrackingDisabled()) {
+    return {};
+  }
+
   const tracking: TrackingData = {};
 
   if (process.env.GOOGLE_ADS_ENABLED === "1" && cookies?.gclid) {
