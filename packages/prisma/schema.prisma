@@ -287,6 +287,8 @@ model EventType {
   requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
   enablePerHostLocations        Boolean                        @default(false)
 
+  smartFillTasks SmartFillTask[]
+
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -424,6 +426,7 @@ model User {
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
+  smartFillTasks      SmartFillTask[]
   schedules           Schedule[]
   defaultScheduleId   Int?
   selectedCalendars   SelectedCalendar[]
@@ -647,6 +650,8 @@ model Team {
 
   practiceEncryptionKey PracticeEncryptionKey?
   treatmentResources    TreatmentResource[]
+  smartFillPatients     SmartFillPatient[]
+  smartFillTasks        SmartFillTask[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -702,6 +707,96 @@ model BookingResource {
 
   @@id([bookingId, resourceId])
   @@index([resourceId])
+}
+
+// ---------------------------------------------------------------------------
+// Smart-Fill AI — automatic gap filling via SMS/WhatsApp outreach
+// ---------------------------------------------------------------------------
+
+enum SmartFillTaskStatus {
+  PENDING
+  INVITED
+  CONFIRMED
+  DECLINED
+  EXPIRED
+  FAILED
+  CANCELLED
+}
+
+enum SmartFillInviteStatus {
+  SENT
+  DELIVERED
+  REPLIED_YES
+  REPLIED_NO
+  EXPIRED
+  FAILED
+}
+
+/// Patient pool for Smart-Fill outreach (waitlist + recall by last visit).
+model SmartFillPatient {
+  id                   String            @id @default(cuid())
+  teamId               Int
+  team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name                 String
+  email                String
+  phoneNumber          String
+  waitlistEnabled      Boolean           @default(false)
+  lastVisitAt          DateTime?
+  priorityScore        Int               @default(0)
+  preferredEventTypeId Int?
+  locale               String?           @default("de")
+  metadata             Json?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  invites              SmartFillInvite[]
+
+  @@unique([teamId, phoneNumber])
+  @@index([teamId, waitlistEnabled, lastVisitAt])
+}
+
+/// A detected free calendar gap eligible for automated patient outreach.
+model SmartFillTask {
+  id                    String              @id @default(cuid())
+  teamId                Int
+  team                  Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId                Int
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventTypeId           Int?
+  eventType             EventType?          @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
+  startTime             DateTime
+  endTime               DateTime
+  durationMinutes       Int
+  status                SmartFillTaskStatus @default(PENDING)
+  /// Estimated revenue in cents (e.g. 8000 = 80 €) for dashboard KPIs.
+  estimatedRevenueCents Int?
+  bookingUid            String?
+  scanRunId             String?
+  metadata              Json?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  invites               SmartFillInvite[]
+
+  @@unique([teamId, userId, startTime, endTime])
+  @@index([teamId, status, startTime])
+  @@index([userId, startTime])
+}
+
+/// SMS/WhatsApp invite sent to a patient for a specific SmartFillTask.
+model SmartFillInvite {
+  id         String                @id @default(cuid())
+  taskId     String
+  task       SmartFillTask         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  patientId  String
+  patient    SmartFillPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  status     SmartFillInviteStatus @default(SENT)
+  messageSid String?
+  sentAt     DateTime              @default(now())
+  repliedAt  DateTime?
+  replyBody  String?
+
+  @@index([taskId])
+  @@index([messageSid])
+  @@index([patientId, status])
 }
 
 model CreditBalance {

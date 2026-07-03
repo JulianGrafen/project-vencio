@@ -267,4 +267,49 @@ Priority for buyer remediation:
 
 | Date | Change |
 |---|---|
-| 2026-07-03 | Initial ARCHITECTURE.md — due diligence baseline, PVS target design, critical path test policy |
+| 2026-07-03 | Smart-Fill AI — cron gap scan, SMS mock, reply webhook, dashboard KPIs |
+
+---
+
+## 12. Smart-Fill AI (USP)
+
+### Flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Cron as Vercel Cron (6h)
+  participant Svc as SmartFillCronService
+  participant DB as PostgreSQL
+  participant SMS as SmsService (Mock/Twilio)
+  participant P as Patient
+  participant WH as /api/webhooks/smart-fill/sms
+  participant RH as SmartFillReplyHandler
+
+  Cron->>Svc: POST /api/cron/smart-fill
+  Svc->>DB: scan gaps ≥30min within 48h
+  Svc->>DB: INSERT SmartFillTask (PENDING)
+  Svc->>DB: select SmartFillPatient (waitlist/recall)
+  Svc->>SMS: send invite SMS
+  Svc->>DB: SmartFillInvite + task INVITED
+  SMS-->>P: "Termin frei — antworten Sie JA"
+  P->>WH: inbound SMS "JA"
+  WH->>RH: handleInboundSms
+  RH->>DB: CREATE Booking + task CONFIRMED
+```
+
+### Package layout
+
+```
+packages/lib/dental/smart-fill/
+├── constants.ts
+├── feature-flags.ts
+├── smart-fill-cron.service.ts
+├── smart-fill-patient-selection.service.ts
+├── smart-fill-slot-scanner.ts
+├── smart-fill-reply.handler.ts
+├── smart-fill-dashboard.service.ts
+└── sms/
+    ├── sms-service.interface.ts
+    └── mock-sms-service.ts
+```

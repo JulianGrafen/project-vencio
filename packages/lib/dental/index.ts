@@ -11,3 +11,4 @@ export * from "./resource-availability";
 export * from "./resource-schedule";
 export * from "./attendee-blind-index-filter";
 export * from "./infer-tenant-operation";
+export * from "./smart-fill";

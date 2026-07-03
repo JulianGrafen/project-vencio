@@ -188,6 +188,14 @@
 - **treatmentResources.listTeamSchedules / assignSchedule** — Praxis-Zeitpläne an Ressourcen zuweisen
 - **booking-encryption.integration.test.ts** — Round-Trip für verschlüsselte Buchungs-Payloads
 
+### 2026-07-03 — Smart-Fill AI
+
+- **SmartFillTask / SmartFillPatient / SmartFillInvite** — Gap-Erkennung, Patienten-Priorisierung, SMS-Bestätigung
+- **Cron** — `/api/cron/smart-fill` alle 6h (Vercel)
+- **Webhook** — `/api/webhooks/smart-fill/sms` (Twilio-kompatibel, Mock per JSON)
+- **SmsService** — Interface + MockSmsService (Twilio später via `SMART_FILL_SMS_PROVIDER`)
+- **Dashboard** — KPI-Karte auf Event-Types-Seite (gefüllte Slots, Umsatz-Potential)
+
 ### Vercel Deployment
 
 1. **Vercel Pro** erforderlich (Serverless-Function-Limit)

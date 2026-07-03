@@ -7,7 +7,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- `ARCHITECTURE.md` — system context, ADR index, PVS target design, critical path test policy, due diligence debt register.
+- **Smart-Fill AI** — cron gap scanner, patient prioritization, mock SMS, inbound webhook, dashboard KPI card.
+- Prisma models: `SmartFillTask`, `SmartFillPatient`, `SmartFillInvite`.
 - B2B landing page at `/zahnarzt` (PraxisTermin marketing).
 - PVS integration target structure documented (implementation pending in `packages/pvs-integration`).
 

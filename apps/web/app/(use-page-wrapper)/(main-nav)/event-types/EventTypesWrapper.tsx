@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 
 import EventTypes, { EventTypesCTA, SearchContext } from "~/event-types/views/event-types-listing-view";
+import { SmartFillDashboardCard } from "~/event-types/components/SmartFillDashboardCard";
 
 type GetUserEventGroupsResponse = Parameters<typeof EventTypesCTA>[0]["userEventGroupsData"];
 
@@ -32,12 +33,16 @@ export function EventTypesWrapper({
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  const primaryTeamId =
+    userEventGroupsData?.eventTypeGroups.find((group) => group.teamId)?.teamId ?? null;
+
   return (
     <SearchContext.Provider value={{ searchTerm, setSearchTerm, debouncedSearchTerm }}>
       <ShellMainAppDir
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTAWithContext userEventGroupsData={userEventGroupsData} />}>
+        <SmartFillDashboardCard teamId={primaryTeamId} />
         <EventTypes userEventGroupsData={userEventGroupsData} user={user} />
       </ShellMainAppDir>
     </SearchContext.Provider>

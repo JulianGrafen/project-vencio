@@ -1,3 +1,4 @@
+import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -10,10 +11,12 @@ const RedirectPage = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {
+    if (isDentalComplianceMode()) {
+      redirect("/zahnarzt");
+    }
     redirect("/auth/login");
   }
 
-  // Check if user needs onboarding and redirect before going to event-types
   const organizationId = session.user.profile?.organizationId ?? null;
   const onboardingPath = await checkOnboardingRedirect(session.user.id, {
     checkEmailVerification: true,
