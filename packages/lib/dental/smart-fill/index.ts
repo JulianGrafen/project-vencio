@@ -5,5 +5,7 @@ export * from "./smart-fill-patient-selection.service";
 export * from "./smart-fill-reply.handler";
 export * from "./smart-fill-dashboard.service";
 export * from "./smart-fill-slot-scanner";
+export * from "./smart-fill-slot-hold";
 export * from "./sms/sms-service.interface";
 export * from "./sms/mock-sms-service";
+export * from "./sms/twilio-sms-service";

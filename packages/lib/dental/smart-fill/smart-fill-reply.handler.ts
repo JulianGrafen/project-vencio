@@ -1,10 +1,12 @@
 import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
+import { enqueuePvsAppointmentSync } from "@calcom/lib/dental/pvs/enqueue-pvs-sync";
 import { randomUUID } from "node:crypto";
 
 import { SMART_FILL_CONFIRM_KEYWORDS } from "./constants";
 import { normalizePhoneNumber } from "./phone-utils";
+import { parseSmartFillTaskMetadata, releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
 
 export type InboundSmsPayload = {
   from: string;
@@ -66,9 +68,10 @@ export class SmartFillReplyHandler {
         where: { id: invite.id },
         data: { status: SmartFillInviteStatus.REPLIED_NO, repliedAt: new Date(), replyBody: payload.body },
       });
+      await releaseSmartFillHoldBooking(this.prisma, invite.taskId, invite.task.metadata);
       await this.prisma.smartFillTask.update({
         where: { id: invite.taskId },
-        data: { status: SmartFillTaskStatus.DECLINED },
+        data: { status: SmartFillTaskStatus.DECLINED, metadata: {} },
       });
       return { action: "declined", taskId: invite.taskId };
     }
@@ -84,6 +87,7 @@ export class SmartFillReplyHandler {
         id: string;
         email: string;
         name: string;
+        phoneNumber: string;
         locale: string | null;
       };
       task: {
@@ -93,6 +97,7 @@ export class SmartFillReplyHandler {
         eventTypeId: number | null;
         startTime: Date;
         endTime: Date;
+        metadata: unknown;
         user: { email: string; name: string | null; timeZone: string };
         eventType: { title: string } | null;
       };
@@ -100,7 +105,9 @@ export class SmartFillReplyHandler {
     replyBody: string
   ): Promise<SmartFillReplyResult> {
     const { patient } = invite;
-    const bookingUid = randomUUID();
+    const title = invite.task.eventType?.title ?? "Smart-Fill Termin";
+    const holdBookingUid = parseSmartFillTaskMetadata(invite.task.metadata).holdBookingUid;
+    const bookingUid = holdBookingUid ?? randomUUID();
 
     const result = await this.prisma.$transaction(async (tx) => {
       const locked = await tx.smartFillTask.updateMany({
@@ -116,26 +123,45 @@ export class SmartFillReplyHandler {
         throw new Error(`SmartFillTask ${invite.taskId} is no longer invitable`);
       }
 
-      await tx.booking.create({
-        data: {
-          uid: bookingUid,
-          title: invite.task.eventType?.title ?? "Smart-Fill Termin",
-          startTime: invite.task.startTime,
-          endTime: invite.task.endTime,
-          userId: invite.task.userId,
-          eventTypeId: invite.task.eventTypeId,
-          status: BookingStatus.ACCEPTED,
-          metadata: { source: "smart-fill", smartFillTaskId: invite.task.id },
-          attendees: {
-            create: {
-              email: patient.email,
-              name: patient.name,
-              timeZone: invite.task.user.timeZone,
-              locale: patient.locale ?? "de",
+      if (holdBookingUid) {
+        await tx.booking.update({
+          where: { uid: holdBookingUid },
+          data: {
+            status: BookingStatus.ACCEPTED,
+            title,
+            metadata: { source: "smart-fill", smartFillTaskId: invite.task.id },
+            attendees: {
+              create: {
+                email: patient.email,
+                name: patient.name,
+                timeZone: invite.task.user.timeZone,
+                locale: patient.locale ?? "de",
+              },
             },
           },
-        },
-      });
+        });
+      } else {
+        await tx.booking.create({
+          data: {
+            uid: bookingUid,
+            title,
+            startTime: invite.task.startTime,
+            endTime: invite.task.endTime,
+            userId: invite.task.userId,
+            eventTypeId: invite.task.eventTypeId,
+            status: BookingStatus.ACCEPTED,
+            metadata: { source: "smart-fill", smartFillTaskId: invite.task.id },
+            attendees: {
+              create: {
+                email: patient.email,
+                name: patient.name,
+                timeZone: invite.task.user.timeZone,
+                locale: patient.locale ?? "de",
+              },
+            },
+          },
+        });
+      }
 
       await tx.smartFillInvite.update({
         where: { id: invite.id },
@@ -149,6 +175,20 @@ export class SmartFillReplyHandler {
       await tx.smartFillPatient.update({
         where: { id: patient.id },
         data: { lastVisitAt: invite.task.startTime },
+      });
+
+      await enqueuePvsAppointmentSync(tx, {
+        bookingUid,
+        teamId: invite.task.teamId,
+        patientName: patient.name,
+        patientEmail: patient.email,
+        patientPhone: patient.phoneNumber,
+        startTime: invite.task.startTime.toISOString(),
+        endTime: invite.task.endTime.toISOString(),
+        title,
+        eventTypeId: invite.task.eventTypeId,
+        source: "smart-fill",
+        smartFillTaskId: invite.task.id,
       });
 
       return { alreadyConfirmed: false as const, bookingUid };

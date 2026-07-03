@@ -3330,6 +3330,7 @@ __metadata:
     "@calcom/config": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/i18n": "workspace:*"
+    "@calcom/pvs-integration": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
     "@faker-js/faker": "npm:7.6.0"
@@ -3593,6 +3594,15 @@ __metadata:
     zod-prisma-types: "npm:3.2.4"
   bin:
     prisma-enum-generator: ./run-enum-generator.js
+  languageName: unknown
+  linkType: soft
+
+"@calcom/pvs-integration@workspace:*, @calcom/pvs-integration@workspace:packages/pvs-integration":
+  version: 0.0.0-use.local
+  resolution: "@calcom/pvs-integration@workspace:packages/pvs-integration"
+  dependencies:
+    "@calcom/tsconfig": "workspace:*"
+    typescript: "npm:5.9.3"
   languageName: unknown
   linkType: soft
 

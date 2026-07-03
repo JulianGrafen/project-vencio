@@ -8,6 +8,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Smart-Fill AI** — cron gap scanner, patient prioritization, mock SMS, inbound webhook, dashboard KPI card.
+- **Twilio SMS** — `TwilioSmsService` via `SMART_FILL_SMS_PROVIDER=twilio`
+- **Slot hold** — PENDING booking blocks calendar during SMS wait
+- **PVS outbox** — `PvsSyncOutbox` model + enqueue on Smart-Fill confirm
+- **Smart-Fill admin** — patient pool CRUD at `/settings/smart-fill?teamId=`
+- **Mandatory 2FA** for practice OWNER/ADMIN in compliance mode (`DENTAL_REQUIRE_2FA`)
 - Prisma models: `SmartFillTask`, `SmartFillPatient`, `SmartFillInvite`.
 - B2B landing page at `/zahnarzt` (PraxisTermin marketing).
 - **GitHub Pages landing** — standalone static site in `apps/praxistermin-landing` with deploy workflow.

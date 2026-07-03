@@ -13,4 +13,5 @@ export * from "./attendee-blind-index-filter";
 export * from "./infer-tenant-operation";
 export * from "./two-factor-policy";
 export * from "./assert-two-factor-enabled";
+export * from "./pvs/enqueue-pvs-sync";
 export * from "./smart-fill";

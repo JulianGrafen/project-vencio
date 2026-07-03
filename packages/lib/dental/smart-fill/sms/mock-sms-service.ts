@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { SMART_FILL_ENV } from "../constants";
 import type { SmsSendParams, SmsSendResult, SmsService } from "./sms-service.interface";
+import { TwilioSmsService } from "./twilio-sms-service";
 
 /**
  * Development / staging SMS provider — logs messages instead of sending.
@@ -33,6 +34,8 @@ export function createSmsService(): SmsService {
   if (provider === "mock") {
     return new MockSmsService();
   }
-  // Future: twilio, messagebird
+  if (provider === "twilio") {
+    return new TwilioSmsService();
+  }
   throw new Error(`Unsupported SMART_FILL_SMS_PROVIDER: ${provider}`);
 }

@@ -10,6 +10,10 @@ import {
 } from "./constants";
 import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
 import {
+  createSmartFillHoldBooking,
+  releaseSmartFillHoldBooking,
+} from "./smart-fill-slot-hold";
+import {
   findSmartFillCandidateSlots,
   type WeeklyAvailabilityWindow,
 } from "./smart-fill-slot-scanner";
@@ -218,16 +222,6 @@ export class SmartFillCronService {
   }
 
   private async invitePatientsForTask(taskId: string, host: TeamHost): Promise<number> {
-    const task = await this.prisma.smartFillTask.findUniqueOrThrow({ where: { id: taskId } });
-
-    if (task.status !== SmartFillTaskStatus.PENDING) {
-      return 0;
-    }
-
-    const existingInvites = await this.prisma.smartFillInvite.count({ where: { taskId } });
-    if (existingInvites > 0) {
-      return 0;
-    }
     const patients = await this.patientSelection.selectCandidates({
       teamId: host.teamId,
       eventTypeId: host.eventTypeId,
@@ -237,34 +231,93 @@ export class SmartFillCronService {
     if (patients.length === 0) return 0;
 
     const patient = patients[0];
-    const startFormatted = dayjs(task.startTime).tz(host.timeZone).format("DD.MM. HH:mm");
+
+    const lockedInvite = await this.prisma.$transaction(async (tx) => {
+      const locked = await tx.smartFillTask.updateMany({
+        where: { id: taskId, status: SmartFillTaskStatus.PENDING },
+        data: { status: SmartFillTaskStatus.INVITED },
+      });
+
+      if (locked.count === 0) {
+        return null;
+      }
+
+      const task = await tx.smartFillTask.findUniqueOrThrow({ where: { id: taskId } });
+      const existingInvites = await tx.smartFillInvite.count({ where: { taskId } });
+
+      if (existingInvites > 0) {
+        return null;
+      }
+
+      await createSmartFillHoldBooking(tx, {
+        taskId: task.id,
+        teamId: host.teamId,
+        userId: host.userId,
+        eventTypeId: host.eventTypeId,
+        title: host.eventTypeTitle ?? "Behandlung",
+        startTime: task.startTime,
+        endTime: task.endTime,
+      });
+
+      const invite = await tx.smartFillInvite.create({
+        data: {
+          taskId: task.id,
+          patientId: patient.id,
+          status: SmartFillInviteStatus.SENT,
+        },
+      });
+
+      return { task, inviteId: invite.id };
+    });
+
+    if (!lockedInvite) {
+      return 0;
+    }
+
+    const startFormatted = dayjs(lockedInvite.task.startTime).tz(host.timeZone).format("DD.MM. HH:mm");
     const body = `Guten Tag ${patient.name}, in der Praxis ist am ${startFormatted} ein Termin frei geworden (${host.eventTypeTitle ?? "Behandlung"}). Antworten Sie mit JA zur Bestätigung.`;
 
-    const smsResult = await this.sms.send({
-      to: patient.phoneNumber,
-      body,
-      teamId: host.teamId,
-      metadata: { taskId, patientId: patient.id },
-    });
+    try {
+      const smsResult = await this.sms.send({
+        to: patient.phoneNumber,
+        body,
+        teamId: host.teamId,
+        metadata: { taskId, patientId: patient.id },
+      });
 
-    await this.prisma.smartFillInvite.create({
-      data: {
-        taskId: task.id,
-        patientId: patient.id,
-        status: SmartFillInviteStatus.SENT,
-        messageSid: smsResult.messageSid,
-      },
-    });
+      await this.prisma.smartFillInvite.update({
+        where: { id: lockedInvite.inviteId },
+        data: { messageSid: smsResult.messageSid },
+      });
 
-    await this.prisma.smartFillTask.update({
-      where: { id: task.id },
-      data: { status: SmartFillTaskStatus.INVITED },
-    });
+      return 1;
+    } catch {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.smartFillInvite.delete({ where: { id: lockedInvite.inviteId } });
+        await releaseSmartFillHoldBooking(tx, taskId, lockedInvite.task.metadata);
+        await tx.smartFillTask.update({
+          where: { id: taskId },
+          data: { status: SmartFillTaskStatus.PENDING, metadata: {} },
+        });
+      });
 
-    return 1;
+      return 0;
+    }
   }
 
   private async expireStaleTasks() {
+    const staleTasks = await this.prisma.smartFillTask.findMany({
+      where: {
+        status: { in: [SmartFillTaskStatus.PENDING, SmartFillTaskStatus.INVITED] },
+        startTime: { lt: new Date() },
+      },
+      select: { id: true, metadata: true },
+    });
+
+    for (const task of staleTasks) {
+      await releaseSmartFillHoldBooking(this.prisma, task.id, task.metadata);
+    }
+
     await this.prisma.smartFillTask.updateMany({
       where: {
         status: { in: [SmartFillTaskStatus.PENDING, SmartFillTaskStatus.INVITED] },

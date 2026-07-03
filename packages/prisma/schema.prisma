@@ -652,6 +652,7 @@ model Team {
   treatmentResources    TreatmentResource[]
   smartFillPatients     SmartFillPatient[]
   smartFillTasks        SmartFillTask[]
+  pvsSyncOutbox         PvsSyncOutbox[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -797,6 +798,42 @@ model SmartFillInvite {
   @@index([taskId])
   @@index([messageSid])
   @@index([patientId, status])
+}
+
+// ---------------------------------------------------------------------------
+// PVS Sync Outbox — async appointment sync to on-premise practice systems
+// ---------------------------------------------------------------------------
+
+enum PvsSyncOutboxStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum PvsSyncOperation {
+  CREATE_APPOINTMENT
+  UPDATE_APPOINTMENT
+  CANCEL_APPOINTMENT
+}
+
+model PvsSyncOutbox {
+  id          String              @id @default(cuid())
+  teamId      Int
+  team        Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  bookingUid  String
+  operation   PvsSyncOperation    @default(CREATE_APPOINTMENT)
+  payload     Json
+  status      PvsSyncOutboxStatus @default(PENDING)
+  attempts    Int                 @default(0)
+  lastError   String?
+  externalId  String?
+  nextRetryAt DateTime            @default(now())
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([teamId, bookingUid])
 }
 
 model CreditBalance {
