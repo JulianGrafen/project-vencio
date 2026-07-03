@@ -1722,6 +1722,7 @@ async function handler(
           user: reqBody.user,
           metadata: reqBody.metadata,
           recurringEventId: reqBody.recurringEventId,
+          treatmentResourceId: reqBody.treatmentResourceId,
         },
         eventType: {
           eventTypeData: eventType,

@@ -58,6 +58,7 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
+  const selectedTreatmentResourceId = useBookerStoreContext((state) => state.selectedTreatmentResourceId);
   const handleError = (err: unknown) => {
     const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
@@ -109,6 +110,7 @@ export const useHandleBookEvent = ({
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
         rrHostSubsetIds,
+        treatmentResourceId: selectedTreatmentResourceId,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

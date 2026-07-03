@@ -44,6 +44,7 @@ export const bookingCreateBodySchema = z.object({
       utm_content: z.string().optional(),
     })
     .optional(),
+  treatmentResourceId: z.string().optional(),
   dub_id: z.string().nullish(),
   creationSource: z.nativeEnum(CreationSource).optional(),
   verificationCode: z.string().optional(),

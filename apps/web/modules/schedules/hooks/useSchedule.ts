@@ -66,6 +66,7 @@ export const useSchedule = ({
   bookerLayout,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
+  const selectedTreatmentResourceId = useBookerStore((state) => state.selectedTreatmentResourceId);
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -108,6 +109,7 @@ export const useSchedule = ({
     skipContactOwner,
     ...(queuedFormResponseId ? { queuedFormResponseId } : {}),
     email,
+    ...(selectedTreatmentResourceId ? { treatmentResourceId: selectedTreatmentResourceId } : {}),
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,

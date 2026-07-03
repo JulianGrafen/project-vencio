@@ -43,6 +43,7 @@ import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
 import { DatePicker } from "./DatePicker";
+import { TreatmentResourceSelector } from "./TreatmentResourceSelector";
 import { DryRunMessage } from "./DryRunMessage";
 import { EventMeta } from "./EventMeta";
 import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
@@ -431,6 +432,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
+                      <TreatmentResourceSelector eventTypeId={event.data?.id} />
                       <DatePicker
                         classNames={customClassNames?.datePickerCustomClassNames}
                         event={event}
@@ -468,6 +470,7 @@ const BookerComponent = ({
                 "md:border-subtle -ml-px h-full shrink px-5 py-3  lg:w-(--booker-main-width)",
                 hideEventTypeDetails ? "" : "md:border-l"
               )}>
+              <TreatmentResourceSelector eventTypeId={event.data?.id} />
               <DatePicker
                 classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}

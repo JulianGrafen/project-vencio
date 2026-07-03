@@ -25,6 +25,7 @@ type CreateBookingParams = {
     user: ReqBodyWithEnd["user"];
     metadata: ReqBodyWithEnd["metadata"];
     recurringEventId: ReqBodyWithEnd["recurringEventId"];
+    treatmentResourceId?: string;
   };
   eventType: {
     eventTypeData: NewBookingEventType;
@@ -225,6 +226,15 @@ function buildNewBookingData(params: CreateBookingParams) {
         : undefined,
     creationSource,
     tracking: tracking ? { create: tracking } : undefined,
+    ...(reqBody.treatmentResourceId
+      ? {
+          resources: {
+            create: {
+              resourceId: reqBody.treatmentResourceId,
+            },
+          },
+        }
+      : {}),
   };
 
   if (reqBody.recurringEventId) {

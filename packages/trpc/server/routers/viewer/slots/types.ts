@@ -38,6 +38,8 @@ export const getScheduleSchemaObject = z.object({
   _silentCalendarFailures: z.boolean().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
+  /** Treatment resource (chair/room) — filters slots to resource availability. */
+  treatmentResourceId: z.string().optional(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject

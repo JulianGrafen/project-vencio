@@ -3,6 +3,12 @@ import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
+import {
+  resolveAttendeeEmailBlindIndexes,
+  shouldUseAttendeeEmailBlindIndexFilter,
+} from "@calcom/lib/dental/attendee-blind-index-filter";
+import { decryptKyselyBookings } from "@calcom/lib/dental/decrypt-kysely-bookings";
+import { PracticeKeyResolver } from "@calcom/lib/encryption/key-resolver";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -71,13 +77,15 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     sort: input.sort,
   });
 
+  const decryptedBookings = await decryptKyselyBookings(bookings);
+
   // Generate next cursor for infinite query support
   const nextOffset = skip + take;
   const hasMore = nextOffset < totalCount;
   const nextCursor = hasMore ? nextOffset.toString() : undefined;
 
   return {
-    bookings,
+    bookings: decryptedBookings,
     recurringInfo,
     totalCount,
     nextCursor,
@@ -142,6 +150,24 @@ export async function getBookings({
       ? getUserIdsFromTeamIds(prisma, teamIdsWithBookingPermission)
       : Promise.resolve([]),
   ]);
+
+  let attendeeEmailBlindIndexes: string[] | null = null;
+  if (shouldUseAttendeeEmailBlindIndexFilter(filters?.attendeeEmail)) {
+    const teamIdsForFilter = filters.teamIds?.length
+      ? filters.teamIds
+      : teamIdsWithBookingPermission?.length
+        ? teamIdsWithBookingPermission
+        : [];
+
+    if (teamIdsForFilter.length > 0) {
+      const keyResolver = new PracticeKeyResolver(prisma);
+      attendeeEmailBlindIndexes = await resolveAttendeeEmailBlindIndexes(
+        keyResolver,
+        teamIdsForFilter,
+        filters.attendeeEmail.trim()
+      );
+    }
+  }
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 
@@ -377,7 +403,19 @@ export async function getBookings({
 
     // 5. Filter by Attendee Email (if provided)
     if (filters?.attendeeEmail) {
-      if (typeof filters.attendeeEmail === "string") {
+      if (
+        shouldUseAttendeeEmailBlindIndexFilter(filters.attendeeEmail) &&
+        attendeeEmailBlindIndexes?.length
+      ) {
+        fullQuery = fullQuery
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.emailBlindIndex", "in", attendeeEmailBlindIndexes);
+      } else if (
+        shouldUseAttendeeEmailBlindIndexFilter(filters.attendeeEmail) &&
+        !attendeeEmailBlindIndexes?.length
+      ) {
+        // Encrypted emails cannot be filtered without a resolvable practice teamId.
+      } else if (typeof filters.attendeeEmail === "string") {
         // Simple string match (exact)
         fullQuery = fullQuery
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")

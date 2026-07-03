@@ -152,10 +152,20 @@
 
 | Priorität | Maßnahme | Status |
 |---|---|---|
-| Hoch | Slot-Berechnung: Arzt + TreatmentResource | Geplant |
-| Hoch | Booking-UI: Ressourcen-Auswahl im Booker | Geplant |
-| Mittel | tRPC get-Handler: Decrypt-Kontext für Listen | Geplant |
+| Hoch | Slot-Berechnung: Arzt + TreatmentResource | Teilweise (Busy-Filter via `treatmentResourceId`) |
+| Hoch | Booking-UI: Ressourcen-Auswahl im Booker | Implementiert (`TreatmentResourceSelector`) |
+| Mittel | tRPC get-Handler: Decrypt-Kontext für Listen | Implementiert (`decryptKyselyBookings`) |
 | Niedrig | BYOK pro Praxis | Phase 2 |
+
+### 2026-07-03 — Booking-Listen-Decrypt + Ressourcen-Buchung
+
+- **decrypt-kysely-bookings.ts** — Entschlüsselt Kysely-Booking-Listen (Prisma-Extension-Bypass)
+- **get.handler.ts** — Decrypt-Pass nach Fetch; Attendee-E-Mail-Filter via Blind-Index
+- **resource-availability.ts** — Slot-Filterung nach Behandlungsressourcen-Belegung
+- **getSchedule.handler.ts** — `treatmentResourceId` Input für ressourcen-aware Slots
+- **treatmentResources/_router.ts** — `listForEventType` (public), `update`, `deactivate`
+- **TreatmentResourceSelector.tsx** — Booker-UI für Stuhl/Raum-Auswahl
+- **createBooking.ts** — `BookingResource`-Zeile bei Buchung
 
 ---
 

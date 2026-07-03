@@ -30,6 +30,7 @@ export type BookingOptions = {
   isDryRunProp?: boolean;
   verificationCode?: string;
   rrHostSubsetIds?: number[];
+  treatmentResourceId?: string | null;
 };
 
 export const mapBookingToMutationInput = ({
@@ -54,6 +55,7 @@ export const mapBookingToMutationInput = ({
   isDryRunProp,
   verificationCode,
   rrHostSubsetIds,
+  treatmentResourceId,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -91,6 +93,7 @@ export const mapBookingToMutationInput = ({
     _isDryRun,
     dub_id,
     verificationCode,
+    ...(treatmentResourceId ? { treatmentResourceId } : {}),
   };
 };
 

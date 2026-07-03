@@ -366,6 +366,9 @@ export type BookerStore = {
    */
   selectedTimeslot: string | null;
   setSelectedTimeslot: (timeslot: string | null) => void;
+  /** Selected treatment resource (chair/room) for dental practice bookings. */
+  selectedTreatmentResourceId: string | null;
+  setSelectedTreatmentResourceId: (resourceId: string | null) => void;
   tentativeSelectedTimeslots: string[];
   setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
@@ -675,9 +678,16 @@ export const createBookerStore = () =>
     bookingData: null,
     bookingUid: null,
     selectedTimeslot: getQueryParam("slot") || null,
+    selectedTreatmentResourceId: getQueryParam("resource") || null,
     tentativeSelectedTimeslots: [],
     setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
       set({ tentativeSelectedTimeslots });
+    },
+    setSelectedTreatmentResourceId: (selectedTreatmentResourceId: string | null) => {
+      set({ selectedTreatmentResourceId, selectedTimeslot: null });
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("resource", selectedTreatmentResourceId ?? "", false);
+      }
     },
     setSelectedTimeslot: (selectedTimeslot: string | null) => {
       set({ selectedTimeslot });
