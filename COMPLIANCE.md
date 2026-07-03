@@ -196,6 +196,14 @@
 - **SmsService** — Interface + MockSmsService (Twilio später via `SMART_FILL_SMS_PROVIDER`)
 - **Dashboard** — KPI-Karte auf Event-Types-Seite (gefüllte Slots, Umsatz-Potential)
 
+### 2026-07-03 — Pflicht-2FA für Praxis-Administratoren
+
+- **DENTAL_REQUIRE_2FA** — Standard: aktiv wenn `DENTAL_ENCRYPTION_ENABLED=true`
+- **Scope:** Nutzer mit Rolle OWNER/ADMIN in mindestens einem Team (CAL-Login mit Passwort)
+- **Enforcement:** tRPC `dentalAdminProcedure` blockiert Mutationen; Banner + Settings-Hinweis
+- **Deaktivierung:** 2FA kann im Compliance-Modus für Admins nicht abgeschaltet werden
+- **DSGVO:** Art. 32 Abs. 1 lit. b (Zugangskontrolle), Art. 25 (Privacy by Design)
+
 ### Vercel Deployment
 
 1. **Vercel Pro** erforderlich (Serverless-Function-Limit)

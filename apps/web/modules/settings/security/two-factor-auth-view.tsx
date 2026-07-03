@@ -38,18 +38,38 @@ const TwoFactorAuthView = () => {
 
   const isCalProvider = user?.identityProvider === "CAL";
   const canSetupTwoFactor = !isCalProvider && !user?.twoFactorEnabled && !user?.passwordAdded;
+  const dentalMandatory = user?.dentalTwoFactorSetupRequired;
+  const dentalDisableBlocked = user?.dentalTwoFactorDisableBlocked;
+
   return (
     <>
-      {canSetupTwoFactor && <Alert severity="neutral" message={t("2fa_disabled")} />}
+      {dentalMandatory ? (
+        <Alert
+          severity="warning"
+          title="2FA erforderlich"
+          message="Als Praxisinhaber oder Administrator müssen Sie Zwei-Faktor-Authentifizierung aktivieren, bevor Sie sensible Praxisdaten verwalten können."
+        />
+      ) : null}
+      {canSetupTwoFactor && !dentalMandatory ? <Alert severity="neutral" message={t("2fa_disabled")} /> : null}
+      {dentalDisableBlocked && user?.twoFactorEnabled ? (
+        <Alert
+          severity="neutral"
+          message="2FA ist im Compliance-Modus für Praxis-Administratoren verpflichtend und kann nicht deaktiviert werden."
+        />
+      ) : null}
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         data-testid="two-factor-switch"
         title={t("two_factor_auth")}
         description={t("add_an_extra_layer_of_security")}
         checked={user?.twoFactorEnabled ?? false}
-        onCheckedChange={() =>
-          user?.twoFactorEnabled ? setDisableModalOpen(true) : setEnableModalOpen(true)
-        }
+        disabled={dentalDisableBlocked && (user?.twoFactorEnabled ?? false)}
+        onCheckedChange={() => {
+          if (dentalDisableBlocked && user?.twoFactorEnabled) {
+            return;
+          }
+          user?.twoFactorEnabled ? setDisableModalOpen(true) : setEnableModalOpen(true);
+        }}
         Badge={
           <Badge className="mx-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
             {user?.twoFactorEnabled ? t("enabled") : t("disabled")}

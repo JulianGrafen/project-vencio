@@ -11,4 +11,6 @@ export * from "./resource-availability";
 export * from "./resource-schedule";
 export * from "./attendee-blind-index-filter";
 export * from "./infer-tenant-operation";
+export * from "./two-factor-policy";
+export * from "./assert-two-factor-enabled";
 export * from "./smart-fill";

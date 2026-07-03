@@ -11,6 +11,7 @@ import { resolveTeamIdFromEventTypeId } from "@calcom/lib/dental/practice-team-r
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
+import { dentalAdminProcedure } from "../../../procedures/dentalAuthedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import {
@@ -56,7 +57,7 @@ export const treatmentResourcesRouter = router({
     });
   }),
 
-  create: authedProcedure.input(ZTreatmentResourceCreateInput).mutation(async ({ ctx, input }) => {
+  create: dentalAdminProcedure.input(ZTreatmentResourceCreateInput).mutation(async ({ ctx, input }) => {
     await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
 
     return prisma.treatmentResource.create({
@@ -71,7 +72,7 @@ export const treatmentResourcesRouter = router({
     });
   }),
 
-  update: authedProcedure.input(ZTreatmentResourceUpdateInput).mutation(async ({ ctx, input }) => {
+  update: dentalAdminProcedure.input(ZTreatmentResourceUpdateInput).mutation(async ({ ctx, input }) => {
     await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
 
     const resource = await findTeamResource(input.resourceId, input.teamId);
@@ -91,7 +92,7 @@ export const treatmentResourcesRouter = router({
     });
   }),
 
-  deactivate: authedProcedure.input(ZTreatmentResourceDeactivateInput).mutation(async ({ ctx, input }) => {
+  deactivate: dentalAdminProcedure.input(ZTreatmentResourceDeactivateInput).mutation(async ({ ctx, input }) => {
     await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
 
     const resource = await findTeamResource(input.resourceId, input.teamId);
@@ -134,7 +135,7 @@ export const treatmentResourcesRouter = router({
       });
     }),
 
-  assignSchedule: authedProcedure
+  assignSchedule: dentalAdminProcedure
     .input(ZTreatmentResourceAssignScheduleInput)
     .mutation(async ({ ctx, input }) => {
       await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);

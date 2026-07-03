@@ -7,6 +7,7 @@ import type { NextRequest } from "next/server";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { isDentalTwoFactorDisableBlockedForUser } from "@calcom/lib/dental/two-factor-policy";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
@@ -46,6 +47,22 @@ async function handler(req: NextRequest) {
 
   if (!user.twoFactorEnabled) {
     return NextResponse.json({ message: "Two factor disabled" });
+  }
+
+  if (
+    await isDentalTwoFactorDisableBlockedForUser({
+      userId: user.id,
+      identityProvider: user.identityProvider,
+    })
+  ) {
+    return NextResponse.json(
+      {
+        error: ErrorCode.TwoFactorSetupRequired,
+        message:
+          "2FA kann für Praxis-Administratoren im Compliance-Modus nicht deaktiviert werden.",
+      },
+      { status: 403 }
+    );
   }
 
   if (user.password?.hash && user.identityProvider === IdentityProvider.CAL) {

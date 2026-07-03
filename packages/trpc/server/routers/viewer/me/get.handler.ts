@@ -1,5 +1,9 @@
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import {
+  isDentalTwoFactorDisableBlockedForUser,
+  isDentalTwoFactorSetupRequiredForUser,
+} from "@calcom/lib/dental/two-factor-policy";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -115,6 +119,18 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
   });
   const canUpdateTeams = teamsWithWritePermission.length > 0;
 
+  const [dentalTwoFactorSetupRequired, dentalTwoFactorDisableBlocked] = await Promise.all([
+    isDentalTwoFactorSetupRequiredForUser({
+      userId: user.id,
+      twoFactorEnabled: user.twoFactorEnabled,
+      identityProvider: user.identityProvider,
+    }),
+    isDentalTwoFactorDisableBlockedForUser({
+      userId: user.id,
+      identityProvider: user.identityProvider,
+    }),
+  ]);
+
   return {
     id: user.id,
     name: user.name,
@@ -152,5 +168,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     canUpdateTeams,
+    dentalTwoFactorSetupRequired,
+    dentalTwoFactorDisableBlocked,
   };
 };

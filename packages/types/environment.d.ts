@@ -72,6 +72,7 @@ declare namespace NodeJS {
      */
     readonly CSP_POLICY: "strict" | "non-strict";
     readonly DENTAL_ENCRYPTION_ENABLED: string | undefined;
+    readonly DENTAL_REQUIRE_2FA: string | undefined;
     readonly DENTAL_KMS_MASTER_KEY: string | undefined;
     readonly DENTAL_KMS_PROVIDER: string | undefined;
     readonly DENTAL_DISABLE_TRACKING: string | undefined;

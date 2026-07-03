@@ -8,6 +8,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { checkInvalidAppCredentials } from "./checkForInvalidAppCredentials";
 import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
+import { isDentalTwoFactorSetupRequiredForUser } from "@calcom/lib/dental/two-factor-policy";
 
 const getUpgradeableHandler = async (..._args: unknown[]) => null;
 const checkIfOrgNeedsUpgradeHandler = async (..._args: unknown[]) => false;
@@ -51,11 +52,17 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     orgUpgradeBanner,
     verifyEmailBanner,
     invalidAppCredentialBanners,
+    dentalTwoFactorBanner,
   ] = await Promise.allSettled([
     upgradeableTeamMememberships,
     upgradeableOrgMememberships,
     shouldEmailVerify,
     appsWithInavlidCredentials,
+    isDentalTwoFactorSetupRequiredForUser({
+      userId: ctx.user.id,
+      twoFactorEnabled: ctx.user.twoFactorEnabled,
+      identityProvider: ctx.user.identityProvider,
+    }),
   ]);
 
   return {
@@ -66,5 +73,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     invalidAppCredentialBanners:
       invalidAppCredentialBanners.status === "fulfilled" ? invalidAppCredentialBanners.value : [],
     dueInvoiceBanner: null,
+    dentalTwoFactorBanner:
+      dentalTwoFactorBanner.status === "fulfilled" && dentalTwoFactorBanner.value ? true : null,
   };
 };
