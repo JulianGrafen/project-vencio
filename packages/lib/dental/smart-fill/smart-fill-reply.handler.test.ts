@@ -3,11 +3,15 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { SmartFillReplyHandler } from "./smart-fill-reply.handler";
 
 describe("SmartFillReplyHandler", () => {
-  const mockTransaction = vi.fn(async (fn: (tx: unknown) => Promise<void>) => {
-    await fn({
+  const mockTransaction = vi.fn(async (fn: (tx: unknown) => Promise<{ alreadyConfirmed: boolean; bookingUid: string }>) => {
+    return fn({
       booking: { create: vi.fn(async () => ({})) },
       smartFillInvite: { update: vi.fn(async () => ({})) },
-      smartFillTask: { update: vi.fn(async () => ({})) },
+      smartFillTask: {
+        update: vi.fn(async () => ({})),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findUnique: vi.fn(async () => null),
+      },
       smartFillPatient: { update: vi.fn(async () => ({})) },
     });
   });

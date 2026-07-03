@@ -15,6 +15,7 @@ import {
 } from "./smart-fill-slot-scanner";
 import type { SmsService } from "./sms/sms-service.interface";
 import { createSmsService } from "./sms/mock-sms-service";
+import { timeToMinutesUtc } from "./time-utils";
 
 export type SmartFillCronResult = {
   scanRunId: string;
@@ -65,7 +66,7 @@ export class SmartFillCronService {
           const task = await this.upsertTask(host, slot, scanRunId);
           if (task.created) tasksCreated++;
 
-          if (task.task.status === SmartFillTaskStatus.PENDING) {
+          if (await this.shouldSendInvite(task.task.id, task.task.status)) {
             const sent = await this.invitePatientsForTask(task.task.id, host);
             invitesSent += sent;
           }
@@ -128,11 +129,13 @@ export class SmartFillCronService {
     });
 
     const availability: WeeklyAvailabilityWindow[] =
-      schedule?.availability.map((a) => ({
-        dayOfWeek: a.days[0] ?? 1,
-        startMinutes: dayjs(a.startTime).hour() * 60 + dayjs(a.startTime).minute(),
-        endMinutes: dayjs(a.endTime).hour() * 60 + dayjs(a.endTime).minute(),
-      })) ?? this.defaultAvailability();
+      schedule?.availability.flatMap((a) =>
+        a.days.map((dayOfWeek) => ({
+          dayOfWeek,
+          startMinutes: timeToMinutesUtc(a.startTime),
+          endMinutes: timeToMinutesUtc(a.endTime),
+        }))
+      ) ?? this.defaultAvailability();
 
     const bookings = await this.prisma.booking.findMany({
       where: {
@@ -201,8 +204,30 @@ export class SmartFillCronService {
     return { task, created: true };
   }
 
+  /** Only invite once per task — prevents duplicate SMS on every cron run. */
+  private async shouldSendInvite(taskId: string, status: SmartFillTaskStatus): Promise<boolean> {
+    if (status !== SmartFillTaskStatus.PENDING) {
+      return false;
+    }
+
+    const existingInvites = await this.prisma.smartFillInvite.count({
+      where: { taskId },
+    });
+
+    return existingInvites === 0;
+  }
+
   private async invitePatientsForTask(taskId: string, host: TeamHost): Promise<number> {
     const task = await this.prisma.smartFillTask.findUniqueOrThrow({ where: { id: taskId } });
+
+    if (task.status !== SmartFillTaskStatus.PENDING) {
+      return 0;
+    }
+
+    const existingInvites = await this.prisma.smartFillInvite.count({ where: { taskId } });
+    if (existingInvites > 0) {
+      return 0;
+    }
     const patients = await this.patientSelection.selectCandidates({
       teamId: host.teamId,
       eventTypeId: host.eventTypeId,

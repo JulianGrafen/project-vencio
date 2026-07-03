@@ -4,6 +4,7 @@ import { BookingStatus, SmartFillInviteStatus, SmartFillTaskStatus } from "@calc
 import { randomUUID } from "node:crypto";
 
 import { SMART_FILL_CONFIRM_KEYWORDS } from "./constants";
+import { normalizePhoneNumber } from "./phone-utils";
 
 export type InboundSmsPayload = {
   from: string;
@@ -23,11 +24,13 @@ export class SmartFillReplyHandler {
   constructor(private readonly prisma: PrismaClient) {}
 
   async handleInboundSms(payload: InboundSmsPayload): Promise<SmartFillReplyResult> {
-    const normalizedPhone = normalizePhone(payload.from);
+    const normalizedPhone = normalizePhoneNumber(payload.from);
     const normalizedBody = payload.body.trim().toUpperCase();
 
     const patient = await this.prisma.smartFillPatient.findFirst({
-      where: { phoneNumber: normalizedPhone },
+      where: {
+        OR: [{ phoneNumber: normalizedPhone }, { phoneNumber: payload.from.replace(/\s+/g, "") }],
+      },
     });
 
     if (!patient) {
@@ -99,7 +102,20 @@ export class SmartFillReplyHandler {
     const { patient } = invite;
     const bookingUid = randomUUID();
 
-    await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
+      const locked = await tx.smartFillTask.updateMany({
+        where: { id: invite.taskId, status: SmartFillTaskStatus.INVITED },
+        data: { status: SmartFillTaskStatus.CONFIRMED, bookingUid },
+      });
+
+      if (locked.count === 0) {
+        const existing = await tx.smartFillTask.findUnique({ where: { id: invite.taskId } });
+        if (existing?.status === SmartFillTaskStatus.CONFIRMED && existing.bookingUid) {
+          return { alreadyConfirmed: true as const, bookingUid: existing.bookingUid };
+        }
+        throw new Error(`SmartFillTask ${invite.taskId} is no longer invitable`);
+      }
+
       await tx.booking.create({
         data: {
           uid: bookingUid,
@@ -130,24 +146,14 @@ export class SmartFillReplyHandler {
         },
       });
 
-      await tx.smartFillTask.update({
-        where: { id: invite.taskId },
-        data: {
-          status: SmartFillTaskStatus.CONFIRMED,
-          bookingUid,
-        },
-      });
-
       await tx.smartFillPatient.update({
         where: { id: patient.id },
         data: { lastVisitAt: invite.task.startTime },
       });
+
+      return { alreadyConfirmed: false as const, bookingUid };
     });
 
-    return { action: "confirmed", bookingUid, taskId: invite.taskId };
+    return { action: "confirmed", bookingUid: result.bookingUid, taskId: invite.taskId };
   }
-}
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/\s+/g, "").replace(/^00/, "+");
 }

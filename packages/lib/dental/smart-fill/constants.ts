@@ -10,8 +10,8 @@ export const SMART_FILL_CRON_INTERVAL_HOURS = 6;
 /** Default estimated revenue per filled slot (cents) for dashboard KPI. */
 export const SMART_FILL_DEFAULT_REVENUE_CENTS = 8000;
 
-/** SMS keywords accepted as confirmation (case-insensitive). */
-export const SMART_FILL_CONFIRM_KEYWORDS = ["JA", "J", "YES", "OK"] as const;
+/** SMS keywords accepted as confirmation (exact match, case-insensitive). */
+export const SMART_FILL_CONFIRM_KEYWORDS = ["JA", "YES", "OK", "JAWOHL"] as const;
 
 export const SMART_FILL_ENV = {
   ENABLED: "SMART_FILL_ENABLED",
