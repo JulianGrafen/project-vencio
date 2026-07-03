@@ -1,4 +1,5 @@
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
+import { decryptKyselyBookings } from "@calcom/lib/dental/decrypt-kysely-bookings";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Kysely } from "kysely";
@@ -6,6 +7,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getBookings, getHandler } from "./get.handler";
 
 vi.mock("@calcom/features/bookings/lib/getAllUserBookings");
+vi.mock("@calcom/lib/dental/decrypt-kysely-bookings", () => ({
+  decryptKyselyBookings: vi.fn(async (bookings) => bookings),
+}));
 vi.mock("@calcom/kysely", () => ({
   default: {
     selectFrom: vi.fn(),
@@ -91,6 +95,26 @@ describe("getHandler", () => {
         bookingListingByStatus: ["upcoming"],
       })
     );
+    expect(decryptKyselyBookings).toHaveBeenCalledWith(mockBookings);
+  });
+
+  it("returns decrypted bookings from decryptKyselyBookings", async () => {
+    const mockBookings = [{ id: 1, uid: "booking-1", attendees: [] }] as any;
+    const decryptedBookings = [{ id: 1, uid: "booking-1", attendees: [], description: "plain" }] as any;
+
+    vi.mocked(getAllUserBookings).mockResolvedValue({
+      bookings: mockBookings,
+      recurringInfo: [],
+      totalCount: 1,
+    });
+    vi.mocked(decryptKyselyBookings).mockResolvedValue(decryptedBookings);
+
+    const result = await getHandler({
+      ctx: { user: mockUser as any, prisma: mockPrisma },
+      input: { filters: {}, limit: 10, offset: 0 },
+    });
+
+    expect(result.bookings).toEqual(decryptedBookings);
   });
 });
 

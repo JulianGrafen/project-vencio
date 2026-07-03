@@ -1,6 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { filterAvailableSlotsByResourceBusyTimes } from "./resource-availability";
+import { DEFAULT_EVENT_DURATION_MINUTES } from "./constants";
+import { filterAvailableSlotsByResourceBusyTimes, resolveEventTypeDurationMinutes } from "./resource-availability";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma: {
+    eventType: {
+      findUnique: vi.fn(),
+    },
+    bookingResource: {
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+import { prisma } from "@calcom/prisma";
 
 describe("filterAvailableSlotsByResourceBusyTimes", () => {
   it("removes slots overlapping resource busy intervals", () => {
@@ -34,5 +48,17 @@ describe("filterAvailableSlotsByResourceBusyTimes", () => {
     };
 
     expect(filterAvailableSlotsByResourceBusyTimes(schedule, [], 30)).toEqual(schedule);
+  });
+});
+
+describe("resolveEventTypeDurationMinutes", () => {
+  it("returns event type length when available", async () => {
+    vi.mocked(prisma.eventType.findUnique).mockResolvedValue({ length: 60 } as never);
+    await expect(resolveEventTypeDurationMinutes(1)).resolves.toBe(60);
+  });
+
+  it("falls back to default duration when event type is missing", async () => {
+    vi.mocked(prisma.eventType.findUnique).mockResolvedValue(null);
+    await expect(resolveEventTypeDurationMinutes(999)).resolves.toBe(DEFAULT_EVENT_DURATION_MINUTES);
   });
 });

@@ -1,10 +1,18 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   prepareAttendeeEmailBlindIndexFilter,
   resolveTeamIdsForAttendeeEmailFilter,
   shouldUseAttendeeEmailBlindIndexFilter,
 } from "./attendee-blind-index-filter";
+
+const mockResolve = vi.fn(async () => ({ dek: Buffer.alloc(32, "a") }));
+
+vi.mock("../encryption/key-resolver", () => ({
+  getPracticeKeyResolver: vi.fn(() => ({
+    resolve: mockResolve,
+  })),
+}));
 
 describe("attendee-blind-index-filter", () => {
   const original = process.env.DENTAL_ENCRYPTION_ENABLED;
@@ -43,6 +51,10 @@ describe("attendee-blind-index-filter", () => {
   });
 
   describe("prepareAttendeeEmailBlindIndexFilter", () => {
+    beforeEach(() => {
+      mockResolve.mockClear();
+    });
+
     it("returns null when encryption is disabled", async () => {
       process.env.DENTAL_ENCRYPTION_ENABLED = "false";
 
@@ -54,6 +66,21 @@ describe("attendee-blind-index-filter", () => {
       });
 
       expect(result).toBeNull();
+    });
+
+    it("returns blind indexes for configured teams when encryption is enabled", async () => {
+      process.env.DENTAL_ENCRYPTION_ENABLED = "true";
+
+      const result = await prepareAttendeeEmailBlindIndexFilter({
+        prisma: {} as never,
+        attendeeEmail: "patient@example.com",
+        filterTeamIds: [42],
+        permissionTeamIds: [],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(typeof result?.[0]).toBe("string");
+      expect(mockResolve).toHaveBeenCalledWith(42);
     });
   });
 });

@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
 import { prisma } from "@calcom/prisma";
+import { inferTenantOperationFromPath } from "@calcom/lib/dental/infer-tenant-operation";
 import { isDentalEncryptionEnabled } from "@calcom/lib/dental/feature-flags";
 import {
   resolveTeamIdFromInput,
@@ -9,11 +10,6 @@ import {
 import { runWithTenantContextAsync } from "@calcom/lib/encryption/tenant-context";
 
 import { middleware } from "../trpc";
-
-function inferOperationFromPath(path: string): "encrypt" | "decrypt" {
-  const isWrite = path.includes("create") || path.includes("update") || path.includes("confirm");
-  return isWrite ? "encrypt" : "decrypt";
-}
 
 async function resolveDentalTenantContext({
   input,
@@ -35,7 +31,7 @@ async function resolveDentalTenantContext({
 
   return {
     teamId,
-    operation: inferOperationFromPath(path),
+    operation: inferTenantOperationFromPath(path),
     actorUserId: userId,
   };
 }
