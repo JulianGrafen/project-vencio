@@ -30,3 +30,13 @@ export const ZTreatmentResourceDeactivateInput = z.object({
   resourceId: z.string(),
   teamId: z.number(),
 });
+
+export const ZTreatmentResourceListTeamSchedulesInput = z.object({
+  teamId: z.number(),
+});
+
+export const ZTreatmentResourceAssignScheduleInput = z.object({
+  resourceId: z.string(),
+  teamId: z.number(),
+  scheduleId: z.number().nullable(),
+});

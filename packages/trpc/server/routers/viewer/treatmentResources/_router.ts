@@ -14,10 +14,12 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import {
+  ZTreatmentResourceAssignScheduleInput,
   ZTreatmentResourceCreateInput,
   ZTreatmentResourceDeactivateInput,
   ZTreatmentResourceListForEventTypeInput,
   ZTreatmentResourceListInput,
+  ZTreatmentResourceListTeamSchedulesInput,
   ZTreatmentResourceUpdateInput,
 } from "./_schemas";
 
@@ -103,4 +105,69 @@ export const treatmentResourcesRouter = router({
       select: { id: true, isActive: true },
     });
   }),
+
+  /** Schedules from team members — for assigning availability to a treatment resource. */
+  listTeamSchedules: authedProcedure
+    .input(ZTreatmentResourceListTeamSchedulesInput)
+    .query(async ({ ctx, input }) => {
+      await assertAcceptedTeamMembership(ctx.user.id, input.teamId);
+
+      const memberships = await prisma.membership.findMany({
+        where: { teamId: input.teamId, accepted: true },
+        select: { userId: true },
+      });
+
+      const userIds = memberships.map((membership) => membership.userId);
+      if (userIds.length === 0) {
+        return [];
+      }
+
+      return prisma.schedule.findMany({
+        where: { userId: { in: userIds } },
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          timeZone: true,
+          userId: true,
+        },
+      });
+    }),
+
+  assignSchedule: authedProcedure
+    .input(ZTreatmentResourceAssignScheduleInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
+
+      const resource = await findTeamResource(input.resourceId, input.teamId);
+      if (!resource) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (input.scheduleId !== null) {
+        const schedule = await prisma.schedule.findFirst({
+          where: {
+            id: input.scheduleId,
+            user: {
+              teams: {
+                some: { teamId: input.teamId, accepted: true },
+              },
+            },
+          },
+        });
+
+        if (!schedule) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Schedule does not belong to this practice.",
+          });
+        }
+      }
+
+      return prisma.treatmentResource.update({
+        where: { id: input.resourceId },
+        data: { scheduleId: input.scheduleId },
+        select: TREATMENT_RESOURCE_ADMIN_LIST_SELECT,
+      });
+    }),
 });

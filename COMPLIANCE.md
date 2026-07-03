@@ -178,6 +178,16 @@
 - **TreatmentResourceSelector.tsx** — Booker-UI für Stuhl/Raum-Auswahl
 - **createBooking.ts** — `BookingResource`-Zeile bei Buchung
 
+### 2026-07-03 — Schedule-Intersection + Middleware + Admin-UI
+
+- **resource-schedule.ts** — Arbeitszeiten-Filter für TreatmentResource (`scheduleId`)
+- **getSchedule.handler.ts** — kombiniert Schedule + Busy-Intervalle
+- **dentalAuthedProcedure** — Tenant-Middleware auf `bookings.get`, `confirm`, `getBookingDetails`
+- **resolveTeamIdFromBookingUid** — UID-basierte Tenant-Auflösung
+- **TreatmentResourcesSettingsView** — Admin-UI unter `/settings/treatment-resources?teamId=`
+- **treatmentResources.listTeamSchedules / assignSchedule** — Praxis-Zeitpläne an Ressourcen zuweisen
+- **booking-encryption.integration.test.ts** — Round-Trip für verschlüsselte Buchungs-Payloads
+
 ---
 
 ## Infrastruktur-Empfehlung (Self-Hosted EU)
