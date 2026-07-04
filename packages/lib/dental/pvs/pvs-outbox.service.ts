@@ -8,6 +8,7 @@ import type {
   PvsOutboxPollResult,
 } from "@calcom/pvs-integration";
 
+import { createDentalLogger } from "../resilience/dental-logger";
 import {
   PVS_OUTBOX_ERROR_MAX_LENGTH,
   PVS_OUTBOX_MAX_ATTEMPTS,
@@ -16,6 +17,8 @@ import {
   PVS_OUTBOX_RETRY_BASE_MS,
 } from "./pvs-outbox.constants";
 import { PVS_OUTBOX_JOB_POLL_SELECT, type PvsOutboxJobPollRow } from "./pvs-outbox.select";
+
+const log = createDentalLogger({ module: "pvs-outbox" });
 
 function computeNextRetryAt(attempts: number): Date {
   const exponent = Math.max(0, attempts - 1);
@@ -54,44 +57,51 @@ export class PvsOutboxService {
     const now = new Date();
     const safeLimit = Math.min(Math.max(1, limit), PVS_OUTBOX_POLL_MAX_LIMIT);
 
-    const candidates = await this.prisma.pvsSyncOutbox.findMany({
-      where: {
-        teamId,
-        status: PvsSyncOutboxStatus.PENDING,
-        nextRetryAt: { lte: now },
-      },
-      orderBy: { createdAt: "asc" },
-      take: safeLimit,
-      select: PVS_OUTBOX_JOB_POLL_SELECT,
+    return this.prisma.$transaction(async (tx) => {
+      const candidates = await tx.pvsSyncOutbox.findMany({
+        where: {
+          teamId,
+          status: PvsSyncOutboxStatus.PENDING,
+          nextRetryAt: { lte: now },
+        },
+        orderBy: { createdAt: "asc" },
+        take: safeLimit,
+        select: PVS_OUTBOX_JOB_POLL_SELECT,
+      });
+
+      if (candidates.length === 0) {
+        return { jobs: [] };
+      }
+
+      const candidateIds = candidates.map((row) => row.id);
+
+      const updated = await tx.pvsSyncOutbox.updateMany({
+        where: {
+          id: { in: candidateIds },
+          status: PvsSyncOutboxStatus.PENDING,
+        },
+        data: {
+          status: PvsSyncOutboxStatus.PROCESSING,
+          attempts: { increment: 1 },
+        },
+      });
+
+      if (updated.count === 0) {
+        log.warn("PVS poll race: no jobs claimed", { teamId, candidateCount: candidateIds.length });
+        return { jobs: [] };
+      }
+
+      const claimed = await tx.pvsSyncOutbox.findMany({
+        where: {
+          id: { in: candidateIds },
+          teamId,
+          status: PvsSyncOutboxStatus.PROCESSING,
+        },
+        select: PVS_OUTBOX_JOB_POLL_SELECT,
+      });
+
+      return { jobs: claimed.map(toJobDto) };
     });
-
-    if (candidates.length === 0) {
-      return { jobs: [] };
-    }
-
-    const candidateIds = candidates.map((row) => row.id);
-
-    await this.prisma.pvsSyncOutbox.updateMany({
-      where: {
-        id: { in: candidateIds },
-        status: PvsSyncOutboxStatus.PENDING,
-      },
-      data: {
-        status: PvsSyncOutboxStatus.PROCESSING,
-        attempts: { increment: 1 },
-      },
-    });
-
-    const claimed = await this.prisma.pvsSyncOutbox.findMany({
-      where: {
-        id: { in: candidateIds },
-        teamId,
-        status: PvsSyncOutboxStatus.PROCESSING,
-      },
-      select: PVS_OUTBOX_JOB_POLL_SELECT,
-    });
-
-    return { jobs: claimed.map(toJobDto) };
   }
 
   async acknowledgeCompleted(
@@ -110,6 +120,8 @@ export class PvsOutboxService {
       },
       select: { id: true, status: true, attempts: true },
     });
+
+    log.info("PVS outbox job completed", { teamId, jobId: outboxId, externalId });
 
     return {
       outboxId: updated.id,
@@ -136,6 +148,21 @@ export class PvsOutboxService {
       },
       select: { id: true, status: true, attempts: true, nextRetryAt: true },
     });
+
+    if (isFinalFailure) {
+      log.error("PVS outbox job permanently failed", new Error(error), {
+        teamId,
+        jobId: outboxId,
+        attempts: updated.attempts,
+      });
+    } else {
+      log.warn("PVS outbox job scheduled for retry", {
+        teamId,
+        jobId: outboxId,
+        attempts: updated.attempts,
+        nextRetryAt: updated.nextRetryAt.toISOString(),
+      });
+    }
 
     return {
       outboxId: updated.id,

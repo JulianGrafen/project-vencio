@@ -28,15 +28,18 @@ describe("RecallCandidateService", () => {
     };
 
     const service = new RecallCandidateService(prisma as never);
-    const candidates = await service.findDueCandidates({
+    const result = await service.findDueCandidates({
       teamId: 1,
       intervalMonths: 6,
       toleranceDays: 3,
       referenceDate: dayjs("2026-07-04").toDate(),
     });
 
-    expect(candidates).toHaveLength(1);
-    expect(candidates[0].patientId).toBe("pat-1");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].patientId).toBe("pat-1");
+    }
   });
 
   it("excludes patients with upcoming bookings", async () => {
@@ -59,14 +62,17 @@ describe("RecallCandidateService", () => {
     };
 
     const service = new RecallCandidateService(prisma as never);
-    const candidates = await service.findDueCandidates({
+    const result = await service.findDueCandidates({
       teamId: 1,
       intervalMonths: 6,
       toleranceDays: 3,
       referenceDate: dayjs("2026-07-04").toDate(),
     });
 
-    expect(candidates).toHaveLength(0);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(0);
+    }
     expect(prisma.booking.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -96,13 +102,30 @@ describe("RecallCandidateService", () => {
     };
 
     const service = new RecallCandidateService(prisma as never);
-    const candidates = await service.findDueCandidates({
+    const result = await service.findDueCandidates({
       teamId: 1,
       intervalMonths: 6,
       toleranceDays: 3,
       referenceDate: dayjs("2026-07-04").toDate(),
     });
 
-    expect(candidates).toHaveLength(0);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(0);
+    }
+  });
+
+  it("returns error for invalid query params", async () => {
+    const service = new RecallCandidateService({} as never);
+    const result = await service.findDueCandidates({
+      teamId: -1,
+      intervalMonths: 6,
+      toleranceDays: 3,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBeTruthy();
+    }
   });
 });

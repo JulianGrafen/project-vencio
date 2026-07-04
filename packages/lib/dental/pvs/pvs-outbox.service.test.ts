@@ -17,7 +17,14 @@ describe("PvsOutboxService", () => {
     vi.useRealTimers();
   });
 
-  it("claims pending jobs and marks them PROCESSING", async () => {
+  function createTransactionPrisma(txMocks: Record<string, unknown>, outerMocks: Record<string, unknown> = {}) {
+    return {
+      ...outerMocks,
+      $transaction: vi.fn(async (fn: (tx: Record<string, unknown>) => Promise<unknown>) => fn(txMocks)),
+    };
+  }
+
+  it("claims pending jobs atomically and marks them PROCESSING", async () => {
     const findMany = vi
       .fn()
       .mockResolvedValueOnce([
@@ -44,13 +51,14 @@ describe("PvsOutboxService", () => {
       ]);
 
     const updateMany = vi.fn().mockResolvedValue({ count: 1 });
-    const prisma = {
-      pvsSyncOutbox: { findMany, updateMany, findFirst: vi.fn(), update: vi.fn() },
-    };
+    const prisma = createTransactionPrisma({
+      pvsSyncOutbox: { findMany, updateMany },
+    });
 
     const service = new PvsOutboxService(prisma as never);
     const result = await service.pollPending(7, 5);
 
+    expect(prisma.$transaction).toHaveBeenCalledOnce();
     expect(updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ status: PvsSyncOutboxStatus.PENDING }),

@@ -1,5 +1,7 @@
 import type { PvsOutboxJobDTO } from "@calcom/pvs-integration";
 
+import { retryWithBackoff } from "./resilience";
+
 export type PvsConnectorPollResponse = {
   jobs: PvsOutboxJobDTO[];
 };
@@ -23,38 +25,42 @@ export class PvsConnectorClient {
   constructor(private readonly config: PvsConnectorClientConfig) {}
 
   async poll(): Promise<PvsOutboxJobDTO[]> {
-    const response = await fetch(`${this.config.baseUrl}/api/pvs/outbox/poll`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.config.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        teamId: this.config.teamId,
-        limit: this.config.pollLimit ?? 10,
-      }),
-    });
+    return retryWithBackoff(async () => {
+      const response = await fetch(`${this.config.baseUrl}/api/pvs/outbox/poll`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.config.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          teamId: this.config.teamId,
+          limit: this.config.pollLimit ?? 10,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Poll failed: ${response.status} ${await response.text()}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Poll failed: ${response.status} ${await response.text()}`);
+      }
 
-    const body = (await response.json()) as PvsConnectorPollResponse;
-    return body.jobs;
+      const body = (await response.json()) as PvsConnectorPollResponse;
+      return body.jobs ?? [];
+    }, { maxAttempts: 3, baseDelayMs: 1000 });
   }
 
   async ack(payload: PvsConnectorAckPayload): Promise<void> {
-    const response = await fetch(`${this.config.baseUrl}/api/pvs/outbox/ack`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.config.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    await retryWithBackoff(async () => {
+      const response = await fetch(`${this.config.baseUrl}/api/pvs/outbox/ack`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.config.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Ack failed: ${response.status} ${await response.text()}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Ack failed: ${response.status} ${await response.text()}`);
+      }
+    }, { maxAttempts: 3, baseDelayMs: 500 });
   }
 }

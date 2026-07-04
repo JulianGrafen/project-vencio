@@ -1,8 +1,10 @@
 import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, RecallHistoryStatus } from "@calcom/prisma/enums";
 
 import { DENTAL_BLOCKING_BOOKING_STATUSES } from "../constants";
+import { err, ok, type Result } from "../resilience/result";
+import { ZRecallCandidate, ZRecallCandidateQuery } from "./recall.schemas";
 
 export type RecallCandidate = {
   patientId: string;
@@ -14,25 +16,31 @@ export type RecallCandidate = {
   recallDueDate: Date;
 };
 
-type FindDueCandidatesParams = {
-  teamId: number;
-  intervalMonths: number;
-  toleranceDays: number;
-  referenceDate?: Date;
-};
-
 /**
  * Finds patients due for prophylaxis recall and applies exclusion rules.
  */
 export class RecallCandidateService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async findDueCandidates(params: FindDueCandidatesParams): Promise<RecallCandidate[]> {
-    const reference = dayjs(params.referenceDate ?? new Date()).startOf("day");
+  async findDueCandidates(
+    params: {
+      teamId: number;
+      intervalMonths: number;
+      toleranceDays: number;
+      referenceDate?: Date;
+    }
+  ): Promise<Result<RecallCandidate[], string>> {
+    const parsed = ZRecallCandidateQuery.safeParse(params);
+    if (!parsed.success) {
+      return err(parsed.error.message);
+    }
+
+    const { teamId, intervalMonths, toleranceDays, referenceDate } = parsed.data;
+    const reference = dayjs(referenceDate ?? new Date()).startOf("day");
 
     const patients = await this.prisma.smartFillPatient.findMany({
       where: {
-        teamId: params.teamId,
+        teamId,
         recallEnabled: true,
         lastVisitAt: { not: null },
       },
@@ -49,15 +57,14 @@ export class RecallCandidateService {
     const due: RecallCandidate[] = [];
 
     for (const patient of patients) {
-      if (!patient.lastVisitAt) continue;
+      if (!patient.lastVisitAt || !patient.email?.trim()) {
+        continue;
+      }
 
-      const recallDueDate = dayjs(patient.lastVisitAt)
-        .add(params.intervalMonths, "month")
-        .startOf("day");
-
+      const recallDueDate = dayjs(patient.lastVisitAt).add(intervalMonths, "month").startOf("day");
       const daysPastDue = reference.diff(recallDueDate, "day");
 
-      if (daysPastDue < 0 || daysPastDue > params.toleranceDays) {
+      if (daysPastDue < 0 || daysPastDue > toleranceDays) {
         continue;
       }
 
@@ -65,7 +72,7 @@ export class RecallCandidateService {
         continue;
       }
 
-      due.push({
+      const candidate = {
         patientId: patient.id,
         teamId: patient.teamId,
         name: patient.name,
@@ -73,21 +80,29 @@ export class RecallCandidateService {
         phoneNumber: patient.phoneNumber,
         lastVisitAt: patient.lastVisitAt,
         recallDueDate: recallDueDate.toDate(),
-      });
+      };
+
+      const validated = ZRecallCandidate.safeParse(candidate);
+      if (!validated.success) {
+        continue;
+      }
+
+      due.push(validated.data);
     }
 
-    return due;
+    return ok(due);
   }
 
-  /**
-   * Patients due within the next N days who have not yet received a recall this cycle.
-   */
   async findPendingForWeek(
     teamId: number,
     intervalMonths: number,
     lookaheadDays: number,
     referenceDate?: Date
   ): Promise<RecallCandidate[]> {
+    if (teamId <= 0 || intervalMonths < 1 || lookaheadDays < 0) {
+      return [];
+    }
+
     const reference = dayjs(referenceDate ?? new Date()).startOf("day");
     const windowEnd = reference.add(lookaheadDays, "day");
 
@@ -110,7 +125,7 @@ export class RecallCandidateService {
     const pending: RecallCandidate[] = [];
 
     for (const patient of patients) {
-      if (!patient.lastVisitAt) continue;
+      if (!patient.lastVisitAt || !patient.email?.trim()) continue;
 
       const recallDueDate = dayjs(patient.lastVisitAt).add(intervalMonths, "month").startOf("day");
 
@@ -126,7 +141,7 @@ export class RecallCandidateService {
         where: {
           patientId: patient.id,
           recallDueDate: recallDueDate.toDate(),
-          status: { in: ["SENT", "PENDING"] },
+          status: { in: [RecallHistoryStatus.SENT, RecallHistoryStatus.PENDING] },
         },
         select: { id: true },
       });
@@ -150,6 +165,10 @@ export class RecallCandidateService {
   }
 
   private async hasUpcomingBooking(teamId: number, patientEmail: string): Promise<boolean> {
+    if (!patientEmail?.trim()) {
+      return false;
+    }
+
     const booking = await this.prisma.booking.findFirst({
       where: {
         startTime: { gt: new Date() },

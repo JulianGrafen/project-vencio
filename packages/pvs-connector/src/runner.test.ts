@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { MockPvsAdapter } from "@calcom/pvs-integration";
 
 import { PvsConnectorClient } from "./client";
+import { resetPvsCircuitBreakerForTests } from "./resilience";
 import { processPvsOutboxJob, runPvsConnectorOnce } from "./runner";
+
+beforeEach(() => {
+  resetPvsCircuitBreakerForTests();
+});
 
 describe("processPvsOutboxJob", () => {
   it("creates appointment for CREATE operation", async () => {
@@ -64,6 +69,67 @@ describe("processPvsOutboxJob", () => {
 
     expect(result.status).toBe("COMPLETED");
     expect(result.externalId).toContain("cancel-");
+  });
+
+  it("rejects invalid job payload", async () => {
+    const adapter = new MockPvsAdapter();
+
+    const result = await processPvsOutboxJob(
+      {
+        id: "job-bad",
+        teamId: 1,
+        bookingUid: "uid-bad",
+        operation: "CREATE_APPOINTMENT",
+        payload: {
+          bookingUid: "uid-bad",
+          teamId: 1,
+          patientName: "Max",
+          patientEmail: "",
+          startTime: "",
+          endTime: "",
+          title: "Kontrolle",
+          source: "booker",
+        },
+        attempts: 1,
+        createdAt: new Date().toISOString(),
+      },
+      adapter as never
+    );
+
+    expect(result.status).toBe("FAILED");
+    expect(result.error).toContain("patientEmail");
+  });
+
+  it("opens circuit breaker after repeated adapter failures", async () => {
+    const adapter = new MockPvsAdapter();
+    vi.spyOn(adapter, "createAppointment").mockRejectedValue(new Error("PVS unreachable"));
+
+    const job = {
+      id: "job-cb",
+      teamId: 1,
+      bookingUid: "uid-cb",
+      operation: "CREATE_APPOINTMENT" as const,
+      payload: {
+        bookingUid: "uid-cb",
+        teamId: 1,
+        patientName: "Max",
+        patientEmail: "max@test.de",
+        startTime: "2026-07-12T10:00:00.000Z",
+        endTime: "2026-07-12T10:30:00.000Z",
+        title: "Kontrolle",
+        source: "booker" as const,
+      },
+      attempts: 1,
+      createdAt: new Date().toISOString(),
+    };
+
+    await processPvsOutboxJob(job, adapter as never);
+    await processPvsOutboxJob(job, adapter as never);
+    await processPvsOutboxJob(job, adapter as never);
+
+    const blocked = await processPvsOutboxJob(job, adapter as never);
+    expect(blocked.status).toBe("FAILED");
+    expect(blocked.error).toBe("circuit_open");
   });
 });
 

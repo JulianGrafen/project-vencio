@@ -3,6 +3,7 @@
 import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { useState } from "react";
@@ -55,7 +56,8 @@ export function SmartFillPatientPoolView({ teamId }: SmartFillPatientPoolViewPro
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <ErrorBoundary message="Smart-Fill Patientenpool konnte nicht geladen werden. Bitte Seite neu laden.">
+      <div className="max-w-3xl space-y-8">
       <div>
         <h2 className="text-emphasis text-lg font-semibold">Smart-Fill Patientenpool</h2>
         <p className="text-subtle text-sm">
@@ -169,5 +171,6 @@ export function SmartFillPatientPoolView({ teamId }: SmartFillPatientPoolViewPro
 
       <DentalSettingsCrossLinks teamId={teamId} current="smart-fill" />
     </div>
+    </ErrorBoundary>
   );
 }
