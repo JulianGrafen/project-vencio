@@ -9,9 +9,6 @@ export const DENTAL_BLOCKING_BOOKING_STATUSES: BookingStatus[] = [
   BookingStatus.AWAITING_HOST,
 ];
 
-/** @deprecated Use DENTAL_BLOCKING_BOOKING_STATUSES */
-export const TREATMENT_RESOURCE_BLOCKING_STATUSES = DENTAL_BLOCKING_BOOKING_STATUSES;
-
 export const TREATMENT_RESOURCE_LIST_SELECT = {
   id: true,
   name: true,

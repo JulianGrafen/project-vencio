@@ -4,7 +4,7 @@ import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/
 
 import {
   DEFAULT_EVENT_DURATION_MINUTES,
-  TREATMENT_RESOURCE_BLOCKING_STATUSES,
+  DENTAL_BLOCKING_BOOKING_STATUSES,
 } from "./constants";
 
 export type BusyInterval = { start: Date; end: Date };
@@ -18,7 +18,7 @@ export async function getTreatmentResourceBusyIntervals(
     where: {
       resourceId,
       booking: {
-        status: { in: TREATMENT_RESOURCE_BLOCKING_STATUSES },
+        status: { in: DENTAL_BLOCKING_BOOKING_STATUSES },
         startTime: { lt: rangeEnd },
         endTime: { gt: rangeStart },
       },

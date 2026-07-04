@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 
+import { createDentalLogger } from "../resilience/dental-logger";
 import type { RecallEmailPayload, RecallEmailTransport } from "./recall-email-transport.interface";
+import { NodemailerRecallEmailTransport } from "./nodemailer-recall-email-transport";
+
+const mockLog = createDentalLogger({ module: "recall-mock-email" });
 
 /**
  * Development transport — logs recall emails instead of sending.
@@ -10,7 +14,7 @@ export class MockRecallEmailTransport implements RecallEmailTransport {
     const messageId = `mock_recall_${randomUUID()}`;
 
     if (process.env.RECALL_MOCK_EMAIL_LOG !== "false") {
-      console.info("[Recall MockEmail]", {
+      mockLog.info("Mock recall email", {
         to: payload.to,
         subject: payload.subject,
         messageId,
@@ -29,10 +33,6 @@ export function createRecallEmailTransport(): RecallEmailTransport {
   }
 
   if (provider === "nodemailer") {
-    // Lazy import to keep unit tests free of SMTP deps when mocked
-    const { NodemailerRecallEmailTransport } = require("./nodemailer-recall-email-transport") as {
-      NodemailerRecallEmailTransport: new () => RecallEmailTransport;
-    };
     return new NodemailerRecallEmailTransport();
   }
 

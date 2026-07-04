@@ -22,6 +22,7 @@ export * from "./pvs/enqueue-confirmed-booking-pvs-sync";
 export * from "./pvs/pvs-outbox-dashboard.service";
 export * from "./pvs/enqueue-pvs-sync";
 export * from "./pvs/pvs-outbox.constants";
+export * from "./pvs/pvs-job.schemas";
 export * from "./pvs/pvs-connector-key";
 export * from "./pvs/pvs-connector-credential.select";
 export * from "./pvs/outbox-api.schemas";

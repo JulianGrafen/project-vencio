@@ -48,7 +48,7 @@ export async function resolveTeamIdFromEventTypeId(
   }
 
   if (eventType.parentId) {
-    return resolveTeamIdFromEventTypeId(prisma, eventType.parentId);
+    return await resolveTeamIdFromEventTypeId(prisma, eventType.parentId);
   }
 
   return null;
@@ -74,7 +74,7 @@ export async function resolveTeamIdFromEventTypeRecord(
   }
 
   if (eventType.parentId) {
-    return resolveTeamIdFromEventTypeId(prisma, eventType.parentId);
+    return await resolveTeamIdFromEventTypeId(prisma, eventType.parentId);
   }
 
   return null;
@@ -100,7 +100,7 @@ export async function resolveTeamIdFromBookingId(
     return null;
   }
 
-  return resolveTeamIdFromEventTypeRecord(prisma, booking.eventType);
+  return await resolveTeamIdFromEventTypeRecord(prisma, booking.eventType);
 }
 
 /**
@@ -119,7 +119,7 @@ export async function resolveTeamIdFromBookingUid(
     select: { eventType: { select: { teamId: true, parentId: true } } },
   });
 
-  return resolveTeamIdFromEventTypeRecord(prisma, booking?.eventType);
+  return await resolveTeamIdFromEventTypeRecord(prisma, booking?.eventType);
 }
 
 /**
@@ -134,19 +134,19 @@ export async function resolveTeamIdFromInput(
   }
 
   if (typeof input.eventTypeId === "number") {
-    return resolveTeamIdFromEventTypeId(prisma, input.eventTypeId);
+    return await resolveTeamIdFromEventTypeId(prisma, input.eventTypeId);
   }
 
   if (typeof input.bookingId === "number") {
-    return resolveTeamIdFromBookingId(prisma, input.bookingId);
+    return await resolveTeamIdFromBookingId(prisma, input.bookingId);
   }
 
   if (typeof input.uid === "string") {
-    return resolveTeamIdFromBookingUid(prisma, input.uid);
+    return await resolveTeamIdFromBookingUid(prisma, input.uid);
   }
 
   if (typeof input.bookingUid === "string") {
-    return resolveTeamIdFromBookingUid(prisma, input.bookingUid);
+    return await resolveTeamIdFromBookingUid(prisma, input.bookingUid);
   }
 
   const filterTeamIds = input.filters?.teamIds;

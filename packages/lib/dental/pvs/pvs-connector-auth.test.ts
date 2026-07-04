@@ -1,11 +1,23 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
+import { extractBearerToken, hashPvsConnectorApiKey } from "./pvs-connector-key";
 import {
   PvsConnectorAuthError,
-  assertPvsConnectorAuthorized,
   assertPvsConnectorAuthorizedForTeam,
+  resolvePvsConnectorApiKey,
 } from "./pvs-connector-auth";
-import { hashPvsConnectorApiKey } from "./pvs-connector-key";
+
+function assertLegacyGlobalPvsConnectorAuthorized(authHeader: string | null): void {
+  const expected = resolvePvsConnectorApiKey();
+  if (!expected) {
+    throw new PvsConnectorAuthError("PVS connector API is not configured");
+  }
+
+  const token = extractBearerToken(authHeader ?? null);
+  if (!token || token !== expected) {
+    throw new PvsConnectorAuthError();
+  }
+}
 
 describe("pvs-connector-auth", () => {
   const originalKey = process.env.PVS_CONNECTOR_API_KEY;
@@ -23,11 +35,11 @@ describe("pvs-connector-auth", () => {
   });
 
   it("accepts legacy global bearer token", () => {
-    expect(() => assertPvsConnectorAuthorized("Bearer secret-connector-key")).not.toThrow();
+    expect(() => assertLegacyGlobalPvsConnectorAuthorized("Bearer secret-connector-key")).not.toThrow();
   });
 
   it("rejects invalid legacy token", () => {
-    expect(() => assertPvsConnectorAuthorized("Bearer wrong")).toThrow(PvsConnectorAuthError);
+    expect(() => assertLegacyGlobalPvsConnectorAuthorized("Bearer wrong")).toThrow(PvsConnectorAuthError);
   });
 
   it("accepts per-team credential token", async () => {

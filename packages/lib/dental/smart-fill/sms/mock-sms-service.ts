@@ -1,8 +1,11 @@
 import { randomUUID } from "node:crypto";
 
+import { createDentalLogger } from "../../resilience/dental-logger";
 import { SMART_FILL_ENV } from "../constants";
 import type { SmsSendParams, SmsSendResult, SmsService } from "./sms-service.interface";
 import { TwilioSmsService } from "./twilio-sms-service";
+
+const mockLog = createDentalLogger({ module: "smart-fill-mock-sms" });
 
 /**
  * Development / staging SMS provider — logs messages instead of sending.
@@ -13,7 +16,7 @@ export class MockSmsService implements SmsService {
     const messageSid = `mock_${randomUUID()}`;
 
     if (process.env[SMART_FILL_ENV.MOCK_SMS_LOG] !== "false") {
-      console.info("[SmartFill MockSms]", {
+      mockLog.info("Mock Smart-Fill SMS", {
         to: params.to,
         teamId: params.teamId,
         body: params.body,

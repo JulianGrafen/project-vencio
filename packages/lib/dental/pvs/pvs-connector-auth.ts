@@ -16,20 +16,7 @@ export class PvsConnectorAuthError extends Error {
 }
 
 export function resolvePvsConnectorApiKey(): string | undefined {
-  return process.env[PVS_CONNECTOR_ENV.API_KEY];
-}
-
-/** @deprecated Use assertPvsConnectorAuthorizedForTeam — kept for tests */
-export function assertPvsConnectorAuthorized(authHeader: string | null): void {
-  const expected = resolvePvsConnectorApiKey();
-  if (!expected) {
-    throw new PvsConnectorAuthError("PVS connector API is not configured");
-  }
-
-  const token = extractBearerToken(authHeader ?? null);
-  if (!token || token !== expected) {
-    throw new PvsConnectorAuthError();
-  }
+  return process.env[PVS_CONNECTOR_ENV.CONNECTOR_BEARER_ENV];
 }
 
 /**

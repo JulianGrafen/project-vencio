@@ -115,5 +115,9 @@ specs/**/_drafts/
 .trigger
 agents/devin-knowledge.json
 
+# desloppify local scan state (skill doc in .cursor/rules/ is tracked)
+.desloppify/
+scorecard.png
+
 # pagefind
 _pagefind/

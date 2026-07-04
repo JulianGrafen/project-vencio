@@ -17,6 +17,7 @@ import {
   PVS_OUTBOX_RETRY_BASE_MS,
 } from "./pvs-outbox.constants";
 import { PVS_OUTBOX_JOB_POLL_SELECT, type PvsOutboxJobPollRow } from "./pvs-outbox.select";
+import { ZPvsOutboxJobDto } from "./pvs-job.schemas";
 
 const log = createDentalLogger({ module: "pvs-outbox" });
 
@@ -27,7 +28,7 @@ function computeNextRetryAt(attempts: number): Date {
 }
 
 function toJobDto(row: PvsOutboxJobPollRow): PvsOutboxJobDTO {
-  return {
+  const dto = {
     id: row.id,
     teamId: row.teamId,
     bookingUid: row.bookingUid,
@@ -36,6 +37,16 @@ function toJobDto(row: PvsOutboxJobPollRow): PvsOutboxJobDTO {
     attempts: row.attempts,
     createdAt: row.createdAt.toISOString(),
   };
+
+  const parsed = ZPvsOutboxJobDto.safeParse(dto);
+  if (!parsed.success) {
+    log.warn("Outbox job failed schema validation", {
+      jobId: row.id,
+      issues: parsed.error.flatten(),
+    });
+  }
+
+  return dto;
 }
 
 export class PvsOutboxNotFoundError extends Error {

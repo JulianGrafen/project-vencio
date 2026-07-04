@@ -16,7 +16,8 @@ export const PVS_OUTBOX_POLL_MAX_LIMIT = 50;
 export const PVS_OUTBOX_ERROR_MAX_LENGTH = 2000;
 
 export const PVS_CONNECTOR_ENV = {
-  API_KEY: "PVS_CONNECTOR_API_KEY",
+  /** Env var holding the legacy global connector bearer token. */
+  CONNECTOR_BEARER_ENV: "PVS_CONNECTOR_API_KEY",
   /** Dev-only escape hatch; must not be set in production. */
   ALLOW_GLOBAL_KEY: "PVS_CONNECTOR_ALLOW_GLOBAL_KEY",
 } as const;
