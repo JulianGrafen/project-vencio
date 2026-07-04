@@ -81,6 +81,30 @@ EMAIL_SERVER_PASSWORD=
 # Per-team API keys via Settings → PVS Connector — no global key in production
 ```
 
+### Calendar OAuth (required for “Kalender verbinden”)
+
+Without calendar credentials, the connect UI is empty or OAuth fails after redirect.
+
+1. **Google Calendar** — [Google Cloud Console](https://console.cloud.google.com/):
+   - Create OAuth 2.0 Client (Web application)
+   - Authorized redirect URI: `https://your-domain.example/api/integrations/googlecalendar/callback`
+   - Set in Vercel:
+
+```bash
+GOOGLE_API_CREDENTIALS={"web":{"client_id":"…","client_secret":"…","redirect_uris":["https://your-domain.example/api/integrations/googlecalendar/callback"]}}
+```
+
+2. **Microsoft 365 / Outlook** (optional):
+
+```bash
+MS_GRAPH_CLIENT_ID=
+MS_GRAPH_CLIENT_SECRET=
+```
+
+Authorized redirect URI: `https://your-domain.example/api/integrations/office365calendar/callback`
+
+On server startup, calendar apps are synced from these env vars into the `App` table (no manual `yarn seed-app-store` required on Vercel). After deploy, open **Settings → Calendars** — Google/Outlook should appear and **Verbinden** should complete OAuth and return to the same page.
+
 ### Cron jobs (configured in `vercel.json` / `apps/web/vercel.json`)
 
 Vercel **Hobby** allows only cron expressions that run **at most once per day**. The checked-in config uses daily schedules only:

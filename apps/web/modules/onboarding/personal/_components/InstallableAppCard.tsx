@@ -52,7 +52,7 @@ export const InstallableAppCard = ({
             loading={isInstalling || buttonProps?.loading}
             className="mt-auto w-full items-center justify-center rounded-[10px]"
             onClick={(event) => {
-              // Save cookie to return to this page after OAuth
+              // Cookie fallback for /apps/installed redirect; returnTo is passed in OAuth state
               document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
               onInstallClick(app.slug);
               buttonProps?.onClick?.(event);
