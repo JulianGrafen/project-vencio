@@ -36,6 +36,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { isCancellationReasonRequired } from "@calcom/features/bookings/lib/cancellationReason";
 import { enqueuePvsSyncForCancelledBooking } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import { resolveTeamIdFromEventTypeRecord } from "@calcom/lib/dental/practice-team-resolver";
+import { triggerSmartFillForCancelledBooking } from "@calcom/lib/dental/smart-fill/smart-fill-cancellation-trigger";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -533,9 +534,21 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         },
         cancellationReason
       );
+
+      if (bookingToDelete.userId) {
+        // Smart-Fill: offer short-notice cancellations (< 48h) to waitlist patients immediately.
+        await triggerSmartFillForCancelledBooking(prismaClient, {
+          bookingUid: bookingToDelete.uid,
+          teamId,
+          userId: bookingToDelete.userId,
+          eventTypeId: bookingToDelete.eventTypeId,
+          startTime: bookingToDelete.startTime,
+          endTime: bookingToDelete.endTime,
+        });
+      }
     }
   } catch (error) {
-    log.error("PVS cancel enqueue failed", safeStringify({ error }));
+    log.error("Dental cancellation hooks failed", safeStringify({ error }));
   }
 
   return {
