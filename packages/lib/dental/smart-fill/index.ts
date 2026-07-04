@@ -9,6 +9,8 @@ export * from "./smart-fill-slot-hold";
 export * from "./smart-fill-sms-message";
 export * from "./smart-fill-booking-finalizer";
 export * from "./smart-fill-invite-lifecycle";
+export * from "./smart-fill-invite-confirm";
+export * from "./smart-fill-action-messages";
 export * from "./smart-fill-patient.service";
 export * from "./smart-fill-invite-action.service";
 export * from "./smart-fill-invite-email";

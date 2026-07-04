@@ -5,6 +5,7 @@ import { resolveTeamIdFromEventTypeId } from "../practice-team-resolver";
 import {
   bookingToPvsSyncInput,
   enqueueBookingPvsSyncIfEnabled,
+  runPvsBookingSyncInTransaction,
   type BookingRecordForPvsSync,
 } from "./enqueue-booking-pvs-sync";
 
@@ -31,7 +32,5 @@ export async function enqueuePvsSyncForConfirmedBooking(
     return;
   }
 
-  await prisma.$transaction(async (tx) => {
-    await enqueueBookingPvsSyncIfEnabled(tx, input);
-  });
+  await runPvsBookingSyncInTransaction(prisma, input, enqueueBookingPvsSyncIfEnabled);
 }

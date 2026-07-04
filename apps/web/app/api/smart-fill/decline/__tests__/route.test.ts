@@ -1,4 +1,3 @@
-import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockDeclineByToken } = vi.hoisted(() => ({
@@ -13,17 +12,8 @@ vi.mock("@calcom/lib/dental/smart-fill/smart-fill-invite-action.service", () => 
 
 vi.mock("@calcom/prisma", () => ({ prisma: {} }));
 
+import { createSmartFillTokenRequest } from "../../__tests__/test-helpers";
 import { GET } from "../route";
-
-function createRequest(token?: string): NextRequest {
-  const url = token
-    ? `https://app.example.com/api/smart-fill/decline?token=${token}`
-    : "https://app.example.com/api/smart-fill/decline";
-  const urlObj = new URL(url);
-  return {
-    nextUrl: { searchParams: urlObj.searchParams },
-  } as unknown as NextRequest;
-}
 
 describe("GET /api/smart-fill/decline", () => {
   beforeEach(() => {
@@ -31,7 +21,7 @@ describe("GET /api/smart-fill/decline", () => {
   });
 
   it("returns 400 HTML when token is missing", async () => {
-    const res = await GET(createRequest());
+    const res = await GET(createSmartFillTokenRequest("decline"));
     expect(res.status).toBe(400);
     const html = await res.text();
     expect(html).toContain("Der Link ist ungültig");
@@ -44,7 +34,7 @@ describe("GET /api/smart-fill/decline", () => {
       patientName: "Anna Test",
     });
 
-    const res = await GET(createRequest("token-decline"));
+    const res = await GET(createSmartFillTokenRequest("decline", "token-decline"));
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Termin abgelehnt");
@@ -55,7 +45,7 @@ describe("GET /api/smart-fill/decline", () => {
   it("returns already-handled message when invite was processed", async () => {
     mockDeclineByToken.mockResolvedValue({ success: false, reason: "already_handled" });
 
-    const res = await GET(createRequest("token-used"));
+    const res = await GET(createSmartFillTokenRequest("decline", "token-used"));
     const html = await res.text();
     expect(html).toContain("bereits abgelehnt");
   });

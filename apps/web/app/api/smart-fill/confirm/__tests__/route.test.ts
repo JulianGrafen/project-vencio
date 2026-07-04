@@ -13,17 +13,8 @@ vi.mock("@calcom/lib/dental/smart-fill/smart-fill-invite-action.service", () => 
 
 vi.mock("@calcom/prisma", () => ({ prisma: {} }));
 
+import { createSmartFillTokenRequest } from "../../__tests__/test-helpers";
 import { GET } from "../route";
-
-function createRequest(token?: string): NextRequest {
-  const url = token
-    ? `https://app.example.com/api/smart-fill/confirm?token=${token}`
-    : "https://app.example.com/api/smart-fill/confirm";
-  const urlObj = new URL(url);
-  return {
-    nextUrl: { searchParams: urlObj.searchParams },
-  } as unknown as NextRequest;
-}
 
 describe("GET /api/smart-fill/confirm", () => {
   beforeEach(() => {
@@ -31,7 +22,7 @@ describe("GET /api/smart-fill/confirm", () => {
   });
 
   it("returns 400 HTML when token is missing", async () => {
-    const res = await GET(createRequest());
+    const res = await GET(createSmartFillTokenRequest("confirm"));
     expect(res.status).toBe(400);
     const html = await res.text();
     expect(html).toContain("Der Link ist ungültig");
@@ -45,7 +36,7 @@ describe("GET /api/smart-fill/confirm", () => {
       patientName: "Anna Test",
     });
 
-    const res = await GET(createRequest("token-abc"));
+    const res = await GET(createSmartFillTokenRequest("confirm", "token-abc"));
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Termin bestätigt");
@@ -56,7 +47,7 @@ describe("GET /api/smart-fill/confirm", () => {
   it("returns expired message when slot is no longer available", async () => {
     mockConfirmByToken.mockResolvedValue({ success: false, reason: "expired" });
 
-    const res = await GET(createRequest("token-expired"));
+    const res = await GET(createSmartFillTokenRequest("confirm", "token-expired"));
     const html = await res.text();
     expect(html).toContain("nicht mehr verfügbar");
   });
@@ -69,7 +60,7 @@ describe("GET /api/smart-fill/confirm", () => {
       patientName: '<script>alert("xss")</script>',
     });
 
-    const res = await GET(createRequest("token-xss"));
+    const res = await GET(createSmartFillTokenRequest("confirm", "token-xss"));
     const html = await res.text();
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");

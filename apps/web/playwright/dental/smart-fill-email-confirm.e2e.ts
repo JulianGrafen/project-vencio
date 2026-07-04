@@ -2,9 +2,10 @@ import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
-import { PvsSyncOperation } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
+import { expectPvsCreateOutbox } from "./helpers/assert-pvs-outbox";
+import { createDentalTeamOrganizer } from "./helpers/create-dental-team-organizer";
 import { seedSmartFillInvite } from "./helpers/seed-smart-fill";
 
 test.describe("Dental Smart-Fill email confirm", () => {
@@ -13,9 +14,10 @@ test.describe("Dental Smart-Fill email confirm", () => {
   });
 
   test("confirms Nachrücktermin via GET /api/smart-fill/confirm", async ({ page, users }) => {
-    const organizer = await users.create({}, { hasTeam: true, teamEventSlug: "dental-smart-fill-e2e" });
-    const { team } = await organizer.getFirstTeamMembership();
-    const teamEvent = await organizer.getFirstTeamEvent(team.id);
+    const { organizer, team, teamEvent } = await createDentalTeamOrganizer(
+      users,
+      "dental-smart-fill-e2e"
+    );
 
     const { confirmToken, task, holdBookingUid } = await seedSmartFillInvite({
       teamId: team.id,
@@ -43,25 +45,18 @@ test.describe("Dental Smart-Fill email confirm", () => {
       expect(holdBooking.status).toBe(BookingStatus.ACCEPTED);
     }
 
-    const outbox = await prisma.pvsSyncOutbox.findFirst({
-      where: {
-        teamId: team.id,
-        bookingUid: updatedTask.bookingUid ?? undefined,
-        operation: PvsSyncOperation.CREATE_APPOINTMENT,
-      },
-    });
-
-    expect(outbox).not.toBeNull();
-    expect(outbox?.payload).toMatchObject({
-      source: "smart-fill",
-      patientEmail: "e2e-patient@example.com",
+    await expectPvsCreateOutbox({
+      teamId: team.id,
+      bookingUid: updatedTask.bookingUid!,
+      payload: { source: "smart-fill", patientEmail: "e2e-patient@example.com" },
     });
   });
 
   test("declines Nachrücktermin via GET /api/smart-fill/decline", async ({ page, users }) => {
-    const organizer = await users.create({}, { hasTeam: true, teamEventSlug: "dental-smart-fill-decline" });
-    const { team } = await organizer.getFirstTeamMembership();
-    const teamEvent = await organizer.getFirstTeamEvent(team.id);
+    const { organizer, team, teamEvent } = await createDentalTeamOrganizer(
+      users,
+      "dental-smart-fill-decline"
+    );
 
     const { confirmToken, task } = await seedSmartFillInvite({
       teamId: team.id,

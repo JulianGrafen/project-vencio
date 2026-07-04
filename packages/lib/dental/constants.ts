@@ -1,5 +1,8 @@
 import { BookingStatus } from "@calcom/prisma/enums";
 
+/** PraxisTermin / dental UI brand accent (teal). */
+export const DENTAL_BRAND_TEAL = "#0d9488";
+
 export const DEFAULT_EVENT_DURATION_MINUTES = 30;
 
 /** Booking statuses that block calendar/resource slots from being re-booked. */

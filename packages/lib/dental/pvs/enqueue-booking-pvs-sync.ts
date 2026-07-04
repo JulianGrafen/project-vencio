@@ -169,18 +169,12 @@ export function bookingToPvsSyncInput(
   };
 }
 
-export async function enqueuePvsSyncForCancelledBooking(
-  prisma: PrismaClient,
-  teamId: number,
-  booking: BookingRecordForPvsSync,
-  cancellationReason?: string | null
+export async function runPvsBookingSyncInTransaction(
+  prisma: Pick<PrismaClient, "$transaction">,
+  input: BookingPvsSyncInput,
+  enqueueFn: (tx: PrismaTx, input: BookingPvsSyncInput) => Promise<{ outboxId: string } | null>
 ): Promise<void> {
-  const input = bookingToPvsSyncInput(teamId, booking, { cancellationReason });
-  if (!input) {
-    return;
-  }
-
   await prisma.$transaction(async (tx) => {
-    await enqueueBookingPvsCancelIfEnabled(tx, input);
+    await enqueueFn(tx, input);
   });
 }

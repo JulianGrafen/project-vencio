@@ -1,10 +1,11 @@
 import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
-import { PvsSyncOperation } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth, testEmail } from "../lib/testUtils";
+import { expectPvsCreateOutbox } from "./helpers/assert-pvs-outbox";
+import { createDentalTeamOrganizer } from "./helpers/create-dental-team-organizer";
 
 test.describe("Dental booker → PVS outbox", () => {
   test.afterEach(async ({ users }) => {
@@ -12,9 +13,7 @@ test.describe("Dental booker → PVS outbox", () => {
   });
 
   test("enqueues CREATE_APPOINTMENT outbox row for team booking", async ({ page, users }) => {
-    const organizer = await users.create({}, { hasTeam: true, teamEventSlug: "dental-pvs-booker-e2e" });
-    const { team } = await organizer.getFirstTeamMembership();
-    const teamEvent = await organizer.getFirstTeamEvent(team.id);
+    const { team, teamEvent } = await createDentalTeamOrganizer(users, "dental-pvs-booker-e2e");
 
     await page.goto(`/${team.slug}/${teamEvent.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -30,19 +29,10 @@ test.describe("Dental booker → PVS outbox", () => {
 
     expect(booking).not.toBeNull();
 
-    const outbox = await prisma.pvsSyncOutbox.findFirst({
-      where: {
-        teamId: team.id,
-        bookingUid: booking!.uid,
-        operation: PvsSyncOperation.CREATE_APPOINTMENT,
-      },
-    });
-
-    expect(outbox).not.toBeNull();
-    expect(outbox?.payload).toMatchObject({
-      source: "booker",
-      patientEmail: testEmail,
+    await expectPvsCreateOutbox({
       teamId: team.id,
+      bookingUid: booking!.uid,
+      payload: { source: "booker", patientEmail: testEmail, teamId: team.id },
     });
   });
 });
