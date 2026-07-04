@@ -73,14 +73,28 @@ Lokal (einmalig oder bei jedem Schema-Update):
 cp scripts/supabase/env.example .env
 # → Passwörter und Project Ref eintragen
 
-# 2. Migrationen anwenden (~600 SQL-Dateien)
+# 2. Bootstrap + alle Migrationen (~600 SQL-Dateien)
 yarn db:supabase-deploy
-
-# 3. Optional: Demo-/Basisdaten
-yarn db-seed
 ```
 
-Das Script [`scripts/supabase/deploy-migrations.sh`](../../scripts/supabase/deploy-migrations.sh) führt `yarn db-deploy` (= `prisma migrate deploy`) aus.
+Ablauf von `yarn db:supabase-deploy`:
+
+1. **`000_bootstrap.sql`** — `pgcrypto` Extension (für `gen_random_uuid()` in Migrationen)
+2. **`prisma migrate deploy`** — alle Dateien unter `packages/prisma/migrations/`
+3. **`prisma migrate status`** — Verifikation
+
+Dental-Migrationen (Auszug):
+
+| Migration | Inhalt |
+|-----------|--------|
+| `20260703230000_dental_practice_encryption` | Practice encryption keys |
+| `20260703240000_smart_fill_ai` | Smart-Fill |
+| `20260703260000_pvs_sync_outbox` | PVS Outbox |
+| `20260703280000_dental_recall` | Recall |
+| `20260704110000_practice_trial` | Practice trial |
+| `20260704120000_smart_fill_email_invites` | E-Mail invites |
+
+Das Script [`scripts/supabase/deploy-migrations.sh`](../../scripts/supabase/deploy-migrations.sh) orchestriert den gesamten Ablauf.
 
 ---
 
@@ -134,6 +148,7 @@ Repository Secrets setzen:
 | `P1001: Can't reach database` | IP-Allowlist in Supabase prüfen; „Allow all“ für Serverless |
 | Migration hängt / timeout | `DATABASE_DIRECT_URL` auf Direct (5432) stellen |
 | `prepared statement` Fehler | `DATABASE_URL` muss `?pgbouncer=true` haben |
+| `gen_random_uuid does not exist` | `yarn db:supabase-deploy` erneut (bootstrap `pgcrypto`) |
 | App zeigt `/deploy` | Env in Vercel Production prüfen + Redeploy |
 | 500 nach Login | Migrationen fehlen → `yarn db:supabase-deploy` |
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply all Prisma migrations to a Supabase Postgres database.
+# Apply Supabase bootstrap SQL + all Prisma migrations.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -39,13 +39,24 @@ if [[ "${DATABASE_URL}" == "${DATABASE_DIRECT_URL}" ]]; then
   echo "For Supabase, use port 6543 (pooler) for DATABASE_URL and port 5432 for DATABASE_DIRECT_URL."
 fi
 
-echo "→ Applying Prisma migrations (packages/prisma/migrations) …"
+echo "→ Step 1/3: Supabase bootstrap (extensions via direct connection) …"
+(
+  cd packages/prisma
+  DATABASE_URL="${DATABASE_DIRECT_URL}" yarn prisma db execute \
+    --file ../../scripts/supabase/000_bootstrap.sql \
+    --schema ./schema.prisma
+)
+
+echo "→ Step 2/3: Prisma migrations (packages/prisma/migrations, ~600 files) …"
 yarn db-deploy
 
+echo "→ Step 3/3: Migration status …"
+yarn workspace @calcom/prisma db:migrate-status
+
 echo ""
-echo "✓ Database schema is up to date on Supabase."
+echo "✓ Supabase database schema is up to date."
 echo "  Next steps:"
-echo "  - Set the same DATABASE_URL / DATABASE_DIRECT_URL in Vercel → Environment Variables"
-echo "  - Redeploy Vercel (migrations also run automatically on build when env is set)"
+echo "  - Set DATABASE_URL + DATABASE_DIRECT_URL in Vercel → Environment Variables"
+echo "  - Redeploy Vercel"
 echo "  - Optional seed: yarn db-seed"
 echo "  - Health: GET /api/health/deployment"
