@@ -12,7 +12,7 @@ import type {
   WatchlistOperationsScope,
 } from "./WatchlistOperationsService";
 import { WatchlistOperationsService } from "./WatchlistOperationsService";
-import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
+import { PermissionCheckService, type PermissionString } from "@calcom/lib/dental/permission-check.service";
 
 type Deps = {
   watchlistRepo: WatchlistRepository;

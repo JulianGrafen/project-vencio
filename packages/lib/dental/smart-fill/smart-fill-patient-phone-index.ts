@@ -56,7 +56,7 @@ export async function buildSmartFillPatientPhoneLookupConditions(
     select: { task: { select: { teamId: true } } },
   });
 
-  const teamIds = [...new Set(activeInvites.map((invite) => invite.task.teamId))];
+  const teamIds = Array.from(new Set(activeInvites.map((invite) => invite.task.teamId)));
   if (teamIds.length === 0) {
     return [];
   }

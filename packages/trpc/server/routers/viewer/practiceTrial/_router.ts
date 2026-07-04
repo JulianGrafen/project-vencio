@@ -4,8 +4,8 @@ import { PracticeTrialService } from "@calcom/lib/dental/trial/trial.service";
 import { isPracticeTrialEnabled } from "@calcom/lib/dental/trial/trial-feature-flags";
 import { prisma } from "@calcom/prisma";
 
-import authedProcedure from "../../procedures/authedProcedure";
-import { router } from "../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 
 const ZTrialStatusInput = z.object({
   teamId: z.number().int().positive().optional(),

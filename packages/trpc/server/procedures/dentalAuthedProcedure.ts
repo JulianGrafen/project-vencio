@@ -15,4 +15,5 @@ const dentalAuthedProcedure = withDentalComplianceMiddleware(authedProcedure);
 /** Semantic alias for admin mutations — same middleware stack as dentalAuthedProcedure. */
 export const dentalAdminProcedure = dentalAuthedProcedure;
 
+export { dentalAuthedProcedure };
 export default dentalAuthedProcedure;

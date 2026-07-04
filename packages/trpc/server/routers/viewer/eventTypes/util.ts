@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
-import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
+import { PermissionCheckService, type PermissionString } from "@calcom/lib/dental/permission-check.service";
 
 type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
 
