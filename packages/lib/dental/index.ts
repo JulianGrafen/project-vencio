@@ -27,3 +27,4 @@ export * from "./pvs/pvs-connector-credential.service";
 export * from "./pvs/pvs-connector-auth";
 export * from "./pvs/pvs-outbox.service";
 export * from "./smart-fill";
+export * from "./recall";

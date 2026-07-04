@@ -7,7 +7,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **Smart-Fill AI** — cron gap scanner, patient prioritization, mock SMS, inbound webhook, dashboard KPI card.
+- **Prophylaxe Recall** — daily cron, `RecallSettings` / `RecallHistory`, email templates with DSGVO opt-out, tRPC `recall.pending`, SMS optional.
 - **Twilio SMS** — `TwilioSmsService` via `SMART_FILL_SMS_PROVIDER=twilio`
 - **Slot hold** — PENDING booking blocks calendar during SMS wait
 - **PVS outbox** — `PvsSyncOutbox` model + enqueue on Smart-Fill confirm

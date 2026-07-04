@@ -288,6 +288,7 @@ model EventType {
   enablePerHostLocations        Boolean                        @default(false)
 
   smartFillTasks SmartFillTask[]
+  recallSettings RecallSettings[]
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -654,6 +655,8 @@ model Team {
   smartFillTasks          SmartFillTask[]
   pvsSyncOutbox           PvsSyncOutbox[]
   pvsConnectorCredentials PvsConnectorCredential[]
+  recallSettings          RecallSettings?
+  recallHistory           RecallHistory[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -743,6 +746,7 @@ model SmartFillPatient {
   email                String
   phoneNumber          String
   waitlistEnabled      Boolean           @default(false)
+  recallEnabled        Boolean           @default(true)
   lastVisitAt          DateTime?
   priorityScore        Int               @default(0)
   preferredEventTypeId Int?
@@ -751,9 +755,11 @@ model SmartFillPatient {
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
   invites              SmartFillInvite[]
+  recallHistory        RecallHistory[]
 
   @@unique([teamId, phoneNumber])
   @@index([teamId, waitlistEnabled, lastVisitAt])
+  @@index([teamId, recallEnabled, lastVisitAt])
 }
 
 /// A detected free calendar gap eligible for automated patient outreach.
@@ -799,6 +805,69 @@ model SmartFillInvite {
   @@index([taskId])
   @@index([messageSid])
   @@index([patientId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Prophylaxe Recall — automated patient reminders after last visit
+// ---------------------------------------------------------------------------
+
+enum RecallChannel {
+  EMAIL
+  SMS
+}
+
+enum RecallHistoryStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+/// Per-practice recall configuration (interval, templates, booking link).
+model RecallSettings {
+  id                String     @id @default(cuid())
+  teamId            Int        @unique
+  team              Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  enabled           Boolean    @default(true)
+  /// Months after last visit before a recall is triggered (default: prophylaxis 6).
+  intervalMonths    Int        @default(6)
+  /// Grace window in days after exact due date (daily cron may miss exact day).
+  toleranceDays     Int        @default(3)
+  /// Event type slug path segment for [TerminLink] (e.g. prophylaxe).
+  bookingSlug       String?
+  /// Optional dedicated event type for recall booking links.
+  eventTypeId       Int?
+  eventType         EventType? @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
+  practiceName      String?
+  emailSubject      String     @default("Zeit für Ihre Prophylaxe")
+  emailHtmlTemplate String     @db.Text
+  emailTextTemplate String?    @db.Text
+  smsEnabled        Boolean    @default(false)
+  smsTemplate       String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+/// Audit log for each recall outreach attempt (DSGVO accountability).
+model RecallHistory {
+  id            String              @id @default(cuid())
+  teamId        Int
+  team          Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  patientId     String
+  patient       SmartFillPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  channel       RecallChannel
+  status        RecallHistoryStatus @default(PENDING)
+  /// Calculated due date for this recall cycle (dedup key).
+  recallDueDate DateTime
+  sentAt        DateTime?
+  error         String?
+  optOutToken   String?             @unique
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([patientId, recallDueDate, channel])
+  @@index([teamId, status, recallDueDate])
+  @@index([teamId, createdAt])
 }
 
 // ---------------------------------------------------------------------------

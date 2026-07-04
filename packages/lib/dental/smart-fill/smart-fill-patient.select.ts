@@ -7,6 +7,7 @@ export const SMART_FILL_PATIENT_SELECT = {
   phoneNumber: true,
   waitlistEnabled: true,
   lastVisitAt: true,
+  recallEnabled: true,
   priorityScore: true,
   preferredEventTypeId: true,
   createdAt: true,

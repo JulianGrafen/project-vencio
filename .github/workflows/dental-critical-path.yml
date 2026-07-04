@@ -9,8 +9,11 @@ on:
       - "packages/trpc/server/procedures/dentalAuthedProcedure.ts"
       - "packages/trpc/server/routers/viewer/bookings/**"
       - "packages/trpc/server/routers/viewer/smartFill/**"
+      - "packages/trpc/server/routers/viewer/recall/**"
       - "apps/web/app/api/pvs/**"
       - "apps/web/app/api/webhooks/smart-fill/**"
+      - "apps/web/app/api/cron/recall/**"
+      - "apps/web/app/api/recall/**"
   push:
     branches:
       - master

@@ -12,6 +12,7 @@ type CreatePatientInput = {
   email: string;
   phoneNumber: string;
   waitlistEnabled: boolean;
+  recallEnabled?: boolean;
   priorityScore: number;
   preferredEventTypeId?: number | null;
 };
@@ -23,6 +24,7 @@ type UpdatePatientInput = {
   email?: string;
   phoneNumber?: string;
   waitlistEnabled?: boolean;
+  recallEnabled?: boolean;
   priorityScore?: number;
   preferredEventTypeId?: number | null;
 };
@@ -59,6 +61,7 @@ export class SmartFillPatientService {
         email: input.email,
         phoneNumber: normalizePhoneNumber(input.phoneNumber),
         waitlistEnabled: input.waitlistEnabled,
+        recallEnabled: input.recallEnabled ?? true,
         priorityScore: input.priorityScore,
         preferredEventTypeId: input.preferredEventTypeId ?? null,
       },
@@ -79,6 +82,7 @@ export class SmartFillPatientService {
         email: input.email,
         phoneNumber,
         waitlistEnabled: input.waitlistEnabled,
+        recallEnabled: input.recallEnabled,
         priorityScore: input.priorityScore,
         preferredEventTypeId: input.preferredEventTypeId,
       },

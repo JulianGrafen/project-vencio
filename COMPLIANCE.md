@@ -219,6 +219,20 @@
 
 ---
 
+## 2026-07-04 — Prophylaxe Recall
+
+| Komponente | Maßnahme | DSGVO |
+|---|---|---|
+| `RecallSettings` | Pro-Praxis Intervall + E-Mail-Vorlagen | Art. 6 Abs. 1 lit. b (Vertragspflege) |
+| `RecallHistory` | Audit-Log je Versand (Kanal, Status, Zeitpunkt) | Art. 5 Abs. 2 (Rechenschaftspflicht) |
+| `SmartFillPatient.recallEnabled` | Opt-out via One-Click-Link in jeder E-Mail | Art. 7, Art. 21 (Widerspruch) |
+| `/api/recall/opt-out` | Setzt `recallEnabled=false` ohne Login | Art. 21 |
+| Cron `/api/cron/recall` | Täglich 07:00 UTC, CRON_API_KEY geschützt | Art. 32 |
+
+**Env:** `RECALL_ENABLED=true`, `RECALL_EMAIL_PROVIDER=mock|nodemailer`
+
+---
+
 ## Infrastruktur-Empfehlung (Self-Hosted EU)
 
 ```
