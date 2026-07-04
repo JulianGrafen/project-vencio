@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
+import { shouldHideAppStoreNavigation } from "@calcom/lib/dental/compliance-config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -212,7 +213,10 @@ const KBAR_ACTION_CONFIGS: ActionConfig[] = [
 ];
 
 function buildKbarActions(push: (href: string) => void): Action[] {
-  const staticActions: Action[] = KBAR_ACTION_CONFIGS.map((config) => ({
+  const hideAppStore = shouldHideAppStoreNavigation();
+  const staticActions: Action[] = KBAR_ACTION_CONFIGS.filter(
+    (config) => !(hideAppStore && (config.id === "app-store" || config.section === "apps"))
+  ).map((config) => ({
     id: config.id,
     name: config.name,
     section: config.section,
@@ -221,10 +225,12 @@ function buildKbarActions(push: (href: string) => void): Action[] {
     perform: () => push(config.href),
   }));
 
-  const appStoreActions: Action[] = getApps.map((item) => ({
-    ...item,
-    perform: () => push(`/apps/${item.id}`),
-  }));
+  const appStoreActions: Action[] = hideAppStore
+    ? []
+    : getApps.map((item) => ({
+        ...item,
+        perform: () => push(`/apps/${item.id}`),
+      }));
 
   return [...staticActions, ...appStoreActions];
 }

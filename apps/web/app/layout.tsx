@@ -1,5 +1,5 @@
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { isDentalComplianceMode, isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -14,7 +14,8 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
 
-const isDentalComplianceLayout = isDentalComplianceMode();
+const isDentalComplianceLayout =
+  isDentalComplianceMode() || isDentalClientComplianceMode();
 
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
@@ -64,7 +65,7 @@ export const metadata = {
       },
     ],
   },
-  manifest: "/site.webmanifest",
+  manifest: "/manifest.webmanifest",
   other: {
     "application-TileColor": "#ff0000",
   },
@@ -111,6 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       translate="no"
       lang={locale}
       dir={direction}
+      {...(isDentalComplianceLayout ? { "data-teeth-al": "true" } : {})}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       suppressHydrationWarning
       data-nextjs-router="app">

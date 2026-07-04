@@ -5,6 +5,12 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
+import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import {
+  isDentalVideoBookingLocation,
+  resolveDentalBookingLocation,
+  resolveDentalPracticeAddressForBooking,
+} from "@calcom/lib/dental/booking-location-policy";
 import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
@@ -281,7 +287,7 @@ export default class EventManager {
    *
    * @param event
    * @param options.skipCalendarEvent - When true, skips calendar event creation but still creates video meetings.
-   *   This is useful for platform customers who manage their own calendar events but still want Cal.diy to create
+   *   This is useful for platform customers who manage their own calendar events but still want teeth.al to create
    *   video meetings for third-party video apps like Daily.co.
    */
   public async create(
@@ -294,28 +300,39 @@ export default class EventManager {
 
     // Fallback to cal video if no location is set
     if (!evt.location) {
-      // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findUnique({
-        where: {
-          slug: "daily-video",
-        },
-        select: {
-          keys: true,
-          enabled: true,
-        },
-      });
+      if (isDentalComplianceMode()) {
+        const practiceAddress = resolveDentalPracticeAddressForBooking({
+          userMetadata: evt.organizer?.metadata,
+        });
+        evt.location = practiceAddress || resolveDentalBookingLocation({ location: null, practiceAddress });
+      } else {
+        // See if cal video is enabled & has keys
+        const calVideo = await prisma.app.findUnique({
+          where: {
+            slug: "daily-video",
+          },
+          select: {
+            keys: true,
+            enabled: true,
+          },
+        });
 
-      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+        const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
-      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
-      log.warn("Falling back to cal video as no location is set");
+        if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+        log.warn("Falling back to cal video as no location is set");
+      }
     }
 
     const [mainHostDestinationCalendar] =
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
+    if (
+      !isDentalComplianceMode() &&
+      evt.location === MeetLocationType &&
+      mainHostDestinationCalendar?.integration !== "google_calendar"
+    ) {
       const [googleCalendarCredential] = this.calendarCredentials.filter(
         (cred) => cred.type === "google_calendar"
       );

@@ -1,6 +1,7 @@
 "use client";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { resolveDentalBrandName } from "@calcom/lib/dental/brand";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -183,7 +184,7 @@ export default function Login({
         <div className="w-full rounded-xl border border-subtle bg-default p-10 shadow-sm">
           {/* Logo */}
           <div className="mb-2 text-center">
-            <h1 className="font-cal text-xl font-bold text-emphasis">Cal.diy</h1>
+            <h1 className="font-cal text-xl font-bold text-emphasis">{resolveDentalBrandName()}</h1>
           </div>
 
           {/* Heading */}

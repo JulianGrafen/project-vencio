@@ -86,6 +86,24 @@ describe("production-config", () => {
     expect(result.checks.some((item) => item.id === "recall-email-provider" && !item.ok)).toBe(true);
   });
 
+  it("fails when Recall SMS is enabled without Twilio credentials", () => {
+    setProductionDentalEnv({ RECALL_SMS_ENABLED: "true", TWILIO_SID: "" });
+    const result = validateDentalProductionConfig();
+    expect(result.ready).toBe(false);
+    expect(result.checks.some((item) => item.id === "recall-twilio" && !item.ok)).toBe(true);
+  });
+
+  it("passes when Recall SMS is enabled with Twilio credentials", () => {
+    setProductionDentalEnv({
+      RECALL_SMS_ENABLED: "true",
+      TWILIO_SID: "ACtest",
+      TWILIO_TOKEN: "secret",
+      TWILIO_PHONE_NUMBER: "+491701234567",
+    });
+    const result = validateDentalProductionConfig();
+    expect(result.checks.some((item) => item.id === "recall-twilio" && item.ok)).toBe(true);
+  });
+
   it("assertDentalProductionConfig throws on invalid config", () => {
     setProductionDentalEnv({ CRON_API_KEY: "" });
     expect(() => assertDentalProductionConfig()).toThrow(/Dental production configuration invalid/);

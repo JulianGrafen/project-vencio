@@ -77,8 +77,16 @@ EMAIL_SERVER_PORT=
 EMAIL_SERVER_USER=
 EMAIL_SERVER_PASSWORD=
 
-# PVS sync (auto-enabled when DENTAL_ENCRYPTION_ENABLED=true)
-# Per-team API keys via Settings → PVS Connector — no global key in production
+# Recall (auto-enabled when DENTAL_ENCRYPTION_ENABLED=true)
+RECALL_EMAIL_PROVIDER=nodemailer
+# Optional SMS channel — requires Twilio when enabled
+# RECALL_SMS_ENABLED=true
+# TWILIO_SID=
+# TWILIO_TOKEN=
+# TWILIO_PHONE_NUMBER=
+
+# Branding (optional — defaults to teeth.al in compliance mode)
+# NEXT_PUBLIC_APP_NAME=teeth.al
 ```
 
 ### Cron jobs (configured in `vercel.json` / `apps/web/vercel.json`)
@@ -92,7 +100,9 @@ Vercel **Hobby** allows only cron expressions that run **at most once per day**.
 | `/api/cron/calendar-subscriptions-cleanup` | Daily 03:00 UTC | Subscription cleanup |
 | `/api/tasks/cleanup` | Daily 00:00 UTC | Task queue cleanup |
 
-On **Pro**, you can add higher-frequency jobs (e.g. calendar sync every 5 minutes, smart-fill every 6 hours) — see upstream Cal.com `vercel.json` history or external schedulers (GitHub Actions, cron on a VPS).
+On **Pro**, you can add higher-frequency jobs (e.g. Smart-Fill every 6 hours) — see `docs/dental/vercel-pro-crons.example.json` or external schedulers (GitHub Actions, cron on a VPS).
+
+`SMART_FILL_CRON_INTERVAL_HOURS` in code is **6**; the checked-in Hobby schedule runs **once daily** at 08:00 UTC. Recall remains daily (07:00 UTC) because prophylaxis reminders tolerate a one-day window via `toleranceDays`.
 
 Vercel sends `Authorization: Bearer $CRON_SECRET` when `CRON_SECRET` is set; otherwise configure `CRON_API_KEY`.
 

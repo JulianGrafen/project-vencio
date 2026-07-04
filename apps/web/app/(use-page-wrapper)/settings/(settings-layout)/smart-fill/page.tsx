@@ -14,7 +14,7 @@ import { SmartFillPatientPoolView } from "~/settings/smart-fill/SmartFillPatient
 export const generateMetadata = async () =>
   await _generateMetadata(
     () => "Smart-Fill Patientenpool",
-    () => "Warteliste und Recall für automatische Termin-Einladungen per SMS",
+    () => "Warteliste und Recall für automatische Termin-Einladungen per E-Mail",
     undefined,
     undefined,
     "/settings/smart-fill"

@@ -33,14 +33,14 @@ export function LandingNav() {
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex" aria-label="Hauptnavigation">
           {NAV_ITEMS.map((item) => (
-            <a key={item.href} href={item.href} className="transition hover:text-teal-700">
+            <a key={item.href} href={item.href} className="transition hover:text-[#0F4C81]">
               {item.label}
             </a>
           ))}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/auth/login" className="hidden text-sm font-medium text-slate-600 hover:text-teal-700 sm:inline">
+          <Link href="/auth/login" className="hidden text-sm font-medium text-slate-600 hover:text-[#0F4C81] sm:inline">
             Anmelden
           </Link>
           <Link href="/auth/login" className={`${landingDesign.btnPrimary} hidden px-4 py-2 text-sm sm:inline-flex`}>

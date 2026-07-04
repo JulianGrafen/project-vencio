@@ -31,7 +31,7 @@ export function DentalSettingsShell({
 
   return (
     <SettingsHeader title={title} description={description} CTA={headerAction}>
-      <div className={dentalDesign.pageStack}>
+      <div className={dentalDesign.pageStack} data-teeth-al-app="true">
         <div className={classNames(dentalDesign.card, "p-4 sm:p-5")}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <nav
@@ -46,14 +46,14 @@ export function DentalSettingsShell({
                     className={classNames(
                       "shrink-0 rounded-lg px-3 py-2.5 text-sm transition",
                       isActive
-                        ? "bg-teal-700 font-medium text-white shadow-sm"
+                        ? "bg-[#0F4C81] font-medium text-white shadow-sm"
                         : "text-subtle hover:bg-subtle hover:text-emphasis"
                     )}>
                     <span className="block">{tab.label}</span>
                     <span
                       className={classNames(
                         "mt-0.5 block text-[11px] leading-tight",
-                        isActive ? "text-teal-100" : "text-subtle"
+                        isActive ? "text-[#E8F1F8]" : "text-subtle"
                       )}>
                       {tab.description}
                     </span>

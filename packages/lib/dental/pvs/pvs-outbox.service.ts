@@ -34,6 +34,8 @@ function toJobDto(row: PvsOutboxJobPollRow): PvsOutboxJobDTO {
     bookingUid: row.bookingUid,
     operation: row.operation,
     payload: row.payload as AppointmentSyncDTO,
+    encryptedPayload: row.encryptedPayload ?? undefined,
+    payloadVersion: row.payloadVersion,
     attempts: row.attempts,
     createdAt: row.createdAt.toISOString(),
   };

@@ -1,4 +1,5 @@
 import process from "node:process";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
@@ -227,7 +228,14 @@ const BookerComponent = ({
     if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
       return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event.isPending, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout]);
+  }, [
+    event.isPending,
+    selectedDate,
+    selectedTimeslot,
+    setBookerState,
+    skipConfirmStep,
+    layout,
+  ]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
@@ -377,7 +385,7 @@ const BookerComponent = ({
                   isMobile={isMobile}
                   nextSlots={nextSlots}
                   renderOverlay={() => {
-                    if (isEmbed) return null;
+                    if (isEmbed || isDentalClientComplianceMode()) return null;
                     return (
                       <OverlayCalendar
                         isOverlayCalendarEnabled={isOverlayCalendarEnabled}
@@ -434,18 +442,18 @@ const BookerComponent = ({
                     <div className="mt-auto px-5 py-3">
                       <TreatmentResourceSelector eventTypeId={event.data?.id} />
                       <DatePicker
-                        classNames={customClassNames?.datePickerCustomClassNames}
-                        event={event}
-                        slots={schedule?.data?.slots}
-                        isLoading={schedule.isPending}
-                        scrollToTimeSlots={scrollToTimeSlots}
-                        showNoAvailabilityDialog={showNoAvailabilityDialog}
-                        onDateChange={() => {
-                          if (slotsViewOnSmallScreen) {
-                            setIsSlotSelectionModalVisible(true);
-                          }
-                        }}
-                      />
+                            classNames={customClassNames?.datePickerCustomClassNames}
+                            event={event}
+                            slots={schedule?.data?.slots}
+                            isLoading={schedule.isPending}
+                            scrollToTimeSlots={scrollToTimeSlots}
+                            showNoAvailabilityDialog={showNoAvailabilityDialog}
+                            onDateChange={() => {
+                              if (slotsViewOnSmallScreen) {
+                                setIsSlotSelectionModalVisible(true);
+                              }
+                            }}
+                          />
                     </div>
                   )}
               </BookerSection>
@@ -470,15 +478,17 @@ const BookerComponent = ({
                 "md:border-subtle -ml-px h-full shrink px-5 py-3  lg:w-(--booker-main-width)",
                 hideEventTypeDetails ? "" : "md:border-l"
               )}>
-              <TreatmentResourceSelector eventTypeId={event.data?.id} />
-              <DatePicker
-                classNames={customClassNames?.datePickerCustomClassNames}
-                event={event}
-                slots={schedule?.data?.slots}
-                isLoading={schedule.isPending}
-                scrollToTimeSlots={scrollToTimeSlots}
-                showNoAvailabilityDialog={showNoAvailabilityDialog}
-              />
+              <>
+                <TreatmentResourceSelector eventTypeId={event.data?.id} />
+                <DatePicker
+                    classNames={customClassNames?.datePickerCustomClassNames}
+                    event={event}
+                    slots={schedule?.data?.slots}
+                    isLoading={schedule.isPending}
+                    scrollToTimeSlots={scrollToTimeSlots}
+                    showNoAvailabilityDialog={showNoAvailabilityDialog}
+                  />
+              </>
             </BookerSection>
 
             <BookerSection

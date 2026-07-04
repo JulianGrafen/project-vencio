@@ -1,18 +1,19 @@
-/** Shared Tailwind class bundles for dental B2B UI. */
+/** Shared Tailwind class bundles for dental B2B UI — Medical Trust palette. */
 export const dentalDesign = {
-  /** Primary brand accent */
-  accentText: "text-teal-700 dark:text-teal-400",
-  accentBg: "bg-teal-700",
-  accentBgSoft: "bg-teal-50 dark:bg-teal-950/30",
-  accentBorder: "border-teal-200 dark:border-teal-800",
+  /** Primary brand accent (#0F4C81) */
+  accentText: "text-[#0F4C81] dark:text-[#7EB8E8]",
+  accentBg: "bg-[#0F4C81]",
+  accentBgSoft: "bg-[#E8F1F8] dark:bg-[#0F4C81]/10",
+  accentBorder: "border-[#BFDBFE] dark:border-[#0F4C81]/40",
 
   /** Surfaces */
   card: "rounded-xl border border-subtle bg-default shadow-sm",
-  cardMuted: "rounded-xl border border-subtle bg-subtle/30",
-  cardInteractive: "rounded-xl border border-subtle bg-default shadow-sm transition hover:border-teal-200 hover:shadow-md",
+  cardMuted: "rounded-xl border border-subtle bg-[#F8FAFC] dark:bg-subtle/30",
+  cardInteractive:
+    "rounded-xl border border-subtle bg-default shadow-sm transition hover:border-[#BFDBFE] hover:shadow-md",
 
   /** Typography */
-  eyebrow: "text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400",
+  eyebrow: "text-xs font-semibold uppercase tracking-wider text-[#0F4C81] dark:text-[#7EB8E8]",
   pageSectionTitle: "text-base font-semibold text-emphasis",
   pageSectionDesc: "text-subtle mt-1 text-sm leading-relaxed",
 
@@ -26,7 +27,7 @@ export const dentalDesign = {
 
   /** Avatar */
   avatar:
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-800 dark:bg-teal-900/50 dark:text-teal-200",
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E8F1F8] text-sm font-semibold text-[#0F4C81] dark:bg-[#0F4C81]/20 dark:text-[#7EB8E8]",
 } as const;
 
 export function getInitials(name: string): string {

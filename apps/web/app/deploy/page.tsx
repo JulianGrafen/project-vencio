@@ -2,7 +2,7 @@ import { validateDeploymentReadiness } from "@calcom/lib/deployment/readiness";
 
 export const metadata = {
   title: "Deployment Setup",
-  description: "Configure environment variables to finish deploying PraxisTermin.",
+  description: "Configure environment variables to finish deploying teeth.al.",
 };
 
 export default function DeploySetupPage() {

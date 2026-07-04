@@ -21,3 +21,12 @@ export function resolveTwilioCredentials(config?: Partial<TwilioCredentials>): T
 export function buildTwilioBasicAuthHeader(accountSid: string, authToken: string): string {
   return `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`;
 }
+
+/** Returns true when all Twilio env vars required for SMS are present. */
+export function hasTwilioConfigured(): boolean {
+  return Boolean(
+    process.env.TWILIO_SID?.trim() &&
+      process.env.TWILIO_TOKEN?.trim() &&
+      process.env.TWILIO_PHONE_NUMBER?.trim()
+  );
+}

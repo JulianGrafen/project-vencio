@@ -116,6 +116,7 @@ model HostLocation {
   @@index([eventTypeId])
 }
 
+/// @deprecated teeth.al: video conferencing is not used in dental compliance mode.
 model CalVideoSettings {
   eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
@@ -132,6 +133,7 @@ model CalVideoSettings {
   updatedAt                            DateTime @updatedAt
 }
 
+/// @deprecated teeth.al: video guests are not used in dental compliance mode.
 model VideoCallGuest {
   id         String    @id @default(uuid())
   bookingUid String
@@ -657,6 +659,8 @@ model Team {
   pvsConnectorCredentials PvsConnectorCredential[]
   recallSettings          RecallSettings?
   recallHistory           RecallHistory[]
+  tokenBookingPayloads    TokenBookingPayload[]
+  practiceBookings        Booking[]                @relation("PracticeBookings")
 
   /// Dental beta trial — 30 days or 10 accepted bookings, then conversion wall.
   trialStartedAt     DateTime?
@@ -670,18 +674,39 @@ model Team {
 
 /// Per-practice data encryption key (DEK), wrapped by external KMS — never stored in plaintext.
 model PracticeEncryptionKey {
-  id           String   @id @default(cuid())
-  teamId       Int      @unique
-  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  keyVersion   Int      @default(1)
-  encryptedDek String
-  kmsKeyId     String?
-  algorithm    String   @default("AES-256-GCM")
-  rotatedAt    DateTime @default(now())
-  createdAt    DateTime @default(now())
-  isActive     Boolean  @default(true)
+  id                   String    @id @default(cuid())
+  teamId               Int       @unique
+  team                 Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  keyVersion           Int       @default(1)
+  encryptedDek         String
+  kmsKeyId             String?
+  algorithm            String    @default("AES-256-GCM")
+  rotatedAt            DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  isActive             Boolean   @default(true)
+  /// RSA public key for token-booking (hybrid encryption). Private key stays on-premise.
+  bookingPublicKeyPem  String?   @db.Text
+  publicKeyFingerprint String?
+  publicKeyRotatedAt   DateTime?
 
   @@index([teamId, isActive])
+}
+
+/// First-class storage for asymmetrically sealed booking payloads (Art. 9 DSGVO).
+model TokenBookingPayload {
+  id            String   @id @default(cuid())
+  bookingUid    String   @unique
+  booking       Booking  @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  teamId        Int
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  keyVersion    Int
+  algorithm     String
+  encryptedBlob String   @db.Text
+  referenceHash String
+  sealedAt      DateTime @default(now())
+
+  @@index([teamId, sealedAt])
+  @@index([referenceHash])
 }
 
 enum TreatmentResourceType {
@@ -760,6 +785,9 @@ model SmartFillPatient {
   preferredEventTypeId Int?
   locale               String?           @default("de")
   metadata             Json?
+  /// Extended patient data sealed with practice public key (optional).
+  encryptedPayload     String?           @db.Text
+  payloadKeyVersion    Int?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
   invites              SmartFillInvite[]
@@ -899,19 +927,23 @@ enum PvsSyncOperation {
 }
 
 model PvsSyncOutbox {
-  id          String              @id @default(cuid())
-  teamId      Int
-  team        Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  bookingUid  String
-  operation   PvsSyncOperation    @default(CREATE_APPOINTMENT)
-  payload     Json
-  status      PvsSyncOutboxStatus @default(PENDING)
-  attempts    Int                 @default(0)
-  lastError   String?
-  externalId  String?
-  nextRetryAt DateTime            @default(now())
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id               String              @id @default(cuid())
+  teamId           Int
+  team             Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  bookingUid       String
+  operation        PvsSyncOperation    @default(CREATE_APPOINTMENT)
+  /// Operational stub when encryptedPayload is set; legacy rows keep full AppointmentSyncDTO.
+  payload          Json
+  /// Hybrid-encrypted AppointmentSyncDTO — decryptable only with practice private key.
+  encryptedPayload String?             @db.Text
+  payloadVersion   Int                 @default(1)
+  status           PvsSyncOutboxStatus @default(PENDING)
+  attempts         Int                 @default(0)
+  lastError        String?
+  externalId       String?
+  nextRetryAt      DateTime            @default(now())
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@index([status, nextRetryAt])
   @@index([teamId, bookingUid])
@@ -1107,6 +1139,11 @@ model BookingReference {
   @@index([uid])
 }
 
+enum AttendeeRole {
+  PATIENT
+  ESCORT
+}
+
 model Attendee {
   id              Int          @id @default(autoincrement())
   email           String
@@ -1114,6 +1151,8 @@ model Attendee {
   timeZone        String
   phoneNumber     String?
   locale          String?      @default("en")
+  /// teeth.al: booker is typically PATIENT; ESCORT for accompanying persons.
+  role            AttendeeRole @default(PATIENT)
   booking         Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId       Int?
   bookingSeat     BookingSeat?
@@ -1203,9 +1242,16 @@ model Booking {
   report                     BookingReport?
   wrongAssignmentReports     WrongAssignmentReport[]
   resources                  BookingResource[]
+  /// Denormalized practice reference for encryption context (avoids EventType join).
+  teamId                     Int?
+  team                       Team?                      @relation("PracticeBookings", fields: [teamId], references: [id], onDelete: SetNull)
+  isTokenBookingSealed       Boolean                    @default(false)
+  tokenBookingKeyVersion     Int?
+  tokenBookingPayload        TokenBookingPayload?
 
   // @@partial_index([reassignById])
 
+  @@index([teamId])
   @@index([eventTypeId])
   @@index([userId])
   @@index([destinationCalendarId])
@@ -1221,6 +1267,7 @@ model Booking {
   @@index([userPrimaryEmailBlindIndex])
 }
 
+/// @deprecated teeth.al: UTM tracking is disabled in dental compliance mode.
 model Tracking {
   id           Int     @id @default(autoincrement())
   bookingId    Int
@@ -1385,6 +1432,7 @@ model ReminderMail {
   @@index([reminderType])
 }
 
+/// @deprecated teeth.al: Stripe booking payments are disabled in dental compliance mode.
 model Payment {
   id            Int            @id @default(autoincrement())
   uid           String         @unique
@@ -1817,6 +1865,7 @@ view BookingTimeStatus {
   isTeamBooking  Boolean
 }
 
+/// @deprecated teeth.al: plaintext PII duplicate — triggers disabled in dental deployments.
 model BookingDenormalized {
   id             Int           @id @unique
   uid            String

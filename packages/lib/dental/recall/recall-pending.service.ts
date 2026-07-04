@@ -28,6 +28,10 @@ export class RecallPendingService {
   async listPendingForTeam(teamId: number): Promise<PendingRecallItem[]> {
     const settings = await this.settingsService.getOrCreateForTeam(teamId);
 
+    if (!settings.enabled) {
+      return [];
+    }
+
     const candidates = await this.candidateService.findPendingForWeek(
       teamId,
       settings.intervalMonths,

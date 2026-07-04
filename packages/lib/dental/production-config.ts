@@ -6,6 +6,7 @@ import { RECALL_ENV } from "./recall/constants";
 import { isRecallEnabled } from "./recall/feature-flags";
 import { SMART_FILL_ENV } from "./smart-fill/constants";
 import { isSmartFillEnabled } from "./smart-fill/feature-flags";
+import { hasTwilioConfigured } from "./smart-fill/sms/twilio-config";
 
 export type DentalProductionCheck = {
   id: string;
@@ -166,6 +167,16 @@ export function validateDentalProductionConfig(): DentalProductionReadiness {
         "EMAIL_FROM, EMAIL_SERVER_HOST, and EMAIL_SERVER_PORT are required for Recall emails"
       )
     );
+
+    if (parseBooleanEnv(process.env[RECALL_ENV.SMS_ENABLED])) {
+      checks.push(
+        check(
+          "recall-twilio",
+          hasTwilioConfigured(),
+          "TWILIO_SID, TWILIO_TOKEN, and TWILIO_PHONE_NUMBER are required when RECALL_SMS_ENABLED=true"
+        )
+      );
+    }
   }
 
   if (isPvsSyncEnabled()) {

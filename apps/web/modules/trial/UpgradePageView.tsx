@@ -42,7 +42,7 @@ export function UpgradePageView() {
     <div className="bg-subtle min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
         <div className="text-center">
-          <p className="text-teal-700 text-sm font-semibold uppercase tracking-wide">PraxisTermin Vollversion</p>
+          <p className="text-[#0F4C81] text-sm font-semibold uppercase tracking-wide">teeth.al Vollversion</p>
           <h1 className="text-emphasis font-cal mt-3 text-3xl font-bold sm:text-4xl">
             Ihre Testphase ist beendet
           </h1>

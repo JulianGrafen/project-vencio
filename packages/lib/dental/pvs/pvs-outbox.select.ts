@@ -6,6 +6,8 @@ export const PVS_OUTBOX_JOB_POLL_SELECT = {
   bookingUid: true,
   operation: true,
   payload: true,
+  encryptedPayload: true,
+  payloadVersion: true,
   attempts: true,
   createdAt: true,
 } as const satisfies Prisma.PvsSyncOutboxSelect;
