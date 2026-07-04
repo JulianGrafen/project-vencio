@@ -46,7 +46,7 @@ NEXT_PUBLIC_WEBAPP_URL=https://your-project.vercel.app
 NEXTAUTH_URL=https://your-project.vercel.app/api/auth
 ```
 
-Then run migrations: `DATABASE_URL=... yarn db-deploy`
+Then run migrations: `DATABASE_URL=... yarn db:supabase-deploy` (see [SUPABASE.md](./SUPABASE.md))
 
 Health check: `GET /api/health/deployment`
 

@@ -29,6 +29,32 @@ export default function DeploySetupPage() {
         </ul>
 
         <div className="bg-muted mt-8 rounded-lg p-4">
+          <p className="text-emphasis text-sm font-medium">Supabase (empfohlen)</p>
+          <ol className="text-default mt-3 list-decimal space-y-2 pl-5 text-sm leading-6">
+            <li>
+              Projekt auf{" "}
+              <a className="text-blue-600 underline" href="https://supabase.com/dashboard">
+                supabase.com
+              </a>{" "}
+              anlegen (Region EU Frankfurt)
+            </li>
+            <li>
+              <strong>DATABASE_URL</strong> = Transaction pooler (Port 6543,{" "}
+              <code className="text-xs">?pgbouncer=true</code>)
+            </li>
+            <li>
+              <strong>DATABASE_DIRECT_URL</strong> = Session/Direct (Port 5432)
+            </li>
+            <li>
+              Schema deployen: <code className="text-xs">yarn db:supabase-deploy</code> (lokal mit .env)
+            </li>
+          </ol>
+          <p className="text-default mt-3 text-xs">
+            Ausführliche Anleitung: docs/dental/SUPABASE.md
+          </p>
+        </div>
+
+        <div className="bg-muted mt-6 rounded-lg p-4">
           <p className="text-emphasis text-sm font-medium">Mindest-Konfiguration (Production)</p>
           <pre className="text-default mt-3 overflow-x-auto text-xs leading-6">
 {`DATABASE_URL=postgresql://...
@@ -42,7 +68,8 @@ NEXTAUTH_URL=https://your-app.vercel.app/api/auth`}
 
         <p className="text-default mt-6 text-sm">
           Nach dem Setzen der Variablen: Datenbank migrieren mit{" "}
-          <code className="text-xs">yarn db-deploy</code> (lokal gegen Production-DB oder CI).
+          <code className="text-xs">yarn db:supabase-deploy</code> oder{" "}
+          <code className="text-xs">yarn db-deploy</code> (lokal gegen Production-DB).
           Status prüfen: <code className="text-xs">/api/health/deployment</code>
         </p>
       </div>
