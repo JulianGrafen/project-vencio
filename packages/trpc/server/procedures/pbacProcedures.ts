@@ -23,7 +23,7 @@ function createTeamPbacProcedure(
       })
     )
     .use(async ({ ctx, input, next }) => {
-      const permissionCheckService: PermissionCheckService = new PermissionCheckService();
+      const permissionCheckService: PermissionCheckService = new PermissionCheckService(ctx.prisma);
       const hasPermission: boolean = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: input.teamId,
@@ -64,7 +64,7 @@ function createOrgPbacProcedure(
       });
     }
 
-    const permissionCheckService = new PermissionCheckService();
+    const permissionCheckService = new PermissionCheckService(ctx.prisma);
     const hasPermission = await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: organizationId,

@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipRole as Role } from "@calcom/prisma/enums";
@@ -10,12 +10,14 @@ type CheckPermissionParams = {
   fallbackRoles?: MembershipRole[];
 };
 
+type MembershipDb = Pick<PrismaClient, "membership">;
+
 /**
  * Role-based permission checks for the dental fork.
  * Replaces upstream PBAC stubs that always returned true (critical auth bypass).
  */
 export class PermissionCheckService {
-  constructor(_prisma?: unknown) {}
+  constructor(private readonly db: MembershipDb = prisma) {}
 
   async checkPermission({
     userId,
@@ -28,11 +30,14 @@ export class PermissionCheckService {
     }
 
     if (fallbackRoles.length === 0) {
-      const repository = new MembershipRepository();
-      return repository.hasMembership({ userId, teamId });
+      const membership = await this.db.membership.findFirst({
+        where: { userId, teamId, accepted: true },
+        select: { id: true },
+      });
+      return membership !== null;
     }
 
-    const membership = await prisma.membership.findFirst({
+    const membership = await this.db.membership.findFirst({
       where: {
         userId,
         teamId,
@@ -57,8 +62,9 @@ export class PermissionCheckService {
     userId: number;
     permission: string;
     fallbackRoles?: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]> {
-    const memberships = await prisma.membership.findMany({
+    const memberships = await this.db.membership.findMany({
       where: {
         userId,
         accepted: true,

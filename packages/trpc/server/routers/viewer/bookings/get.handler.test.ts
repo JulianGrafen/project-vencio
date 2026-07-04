@@ -118,7 +118,7 @@ describe("getHandler", () => {
   });
 });
 
-describe("getBookings - stub PermissionCheckService behavior", () => {
+describe("getBookings - PermissionCheckService behavior", () => {
   const mockUser = {
     id: 1,
     email: "user@example.com",
@@ -127,7 +127,7 @@ describe("getBookings - stub PermissionCheckService behavior", () => {
 
   const mockPrisma = {
     membership: {
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     user: {
       findMany: vi.fn(),

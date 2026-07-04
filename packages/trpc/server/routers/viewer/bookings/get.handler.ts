@@ -115,7 +115,7 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
   const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
 
   const teamIdsWithBookingPermission = await permissionCheckService.getTeamIdsWithPermission({

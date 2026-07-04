@@ -10,7 +10,7 @@ export class BookingAccessService {
   private permissionCheckService: PermissionCheckService;
 
   constructor(private prismaClient: PrismaClient) {
-    this.permissionCheckService = new PermissionCheckService();
+    this.permissionCheckService = new PermissionCheckService(this.prismaClient);
   }
 
   private isUserAHost(userId: number, booking: BookingForAccessCheck): boolean {
