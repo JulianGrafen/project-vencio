@@ -29,7 +29,7 @@ Startup validation runs automatically via `apps/web/instrumentation.ts`. Invalid
 | Root directory | `apps/web` (recommended) or repo root (supported via root `vercel.json`) |
 | Build command | `cd ../.. && yarn build` when Root Directory is `apps/web`; `yarn build` at repo root |
 | Node.js | 20.x |
-| Plan | Pro (cron + function limits) |
+| Plan | Hobby (daily crons only) or Pro (full cron frequency) |
 
 If the Vercel project was imported without a Root Directory, the repository root `vercel.json` sets `framework: nextjs` and `outputDirectory: apps/web/.next` so the build is packaged correctly. For new projects, prefer **Root Directory = `apps/web`** and use `apps/web/vercel.json` (Cal.com upstream convention).
 
@@ -64,12 +64,18 @@ EMAIL_SERVER_PASSWORD=
 # Per-team API keys via Settings → PVS Connector — no global key in production
 ```
 
-### Cron jobs (configured in `apps/web/vercel.json`)
+### Cron jobs (configured in `vercel.json` / `apps/web/vercel.json`)
+
+Vercel **Hobby** allows only cron expressions that run **at most once per day**. The checked-in config uses daily schedules only:
 
 | Path | Schedule | Purpose |
 |------|----------|---------|
-| `/api/cron/smart-fill` | Every 6 hours | Scan gaps, send email invites |
 | `/api/cron/recall` | Daily 07:00 UTC | Prophylaxis recall emails |
+| `/api/cron/smart-fill` | Daily 08:00 UTC | Scan gaps, send email invites |
+| `/api/cron/calendar-subscriptions-cleanup` | Daily 03:00 UTC | Subscription cleanup |
+| `/api/tasks/cleanup` | Daily 00:00 UTC | Task queue cleanup |
+
+On **Pro**, you can add higher-frequency jobs (e.g. calendar sync every 5 minutes, smart-fill every 6 hours) — see upstream Cal.com `vercel.json` history or external schedulers (GitHub Actions, cron on a VPS).
 
 Vercel sends `Authorization: Bearer $CRON_SECRET` when `CRON_SECRET` is set; otherwise configure `CRON_API_KEY`.
 
