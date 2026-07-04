@@ -1,0 +1,53 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "yarn install --immutable",
+  "buildCommand": "yarn build",
+  "outputDirectory": "apps/web/.next",
+  "crons": [
+    {
+      "path": "/api/cron/calendar-subscriptions",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/calendar-subscriptions-cleanup",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/queuedFormResponseCleanup",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/tasks/cron",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/tasks/cleanup",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/credentials",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/selected-calendars",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/smart-fill",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/recall",
+      "schedule": "0 7 * * *"
+    }
+  ],
+  "functions": {
+    "apps/web/app/api/trpc/**": {
+      "maxDuration": 60
+    },
+    "apps/web/pages/api/trpc/**": {
+      "maxDuration": 60
+    }
+  }
+}
