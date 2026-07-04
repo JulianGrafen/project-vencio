@@ -13,11 +13,19 @@ if [[ -f .env ]]; then
 fi
 
 missing=()
-for var in DATABASE_URL DATABASE_DIRECT_URL; do
-  if [[ -z "${!var:-}" ]]; then
-    missing+=("$var")
+if [[ -z "${DATABASE_DIRECT_URL:-}" ]]; then
+  missing+=("DATABASE_DIRECT_URL")
+fi
+
+# Runtime pooler optional for migration-only runs — fall back to direct URL
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  if [[ -n "${DATABASE_DIRECT_URL:-}" ]]; then
+    export DATABASE_URL="${DATABASE_DIRECT_URL}"
+    echo "Note: DATABASE_URL not set — using DATABASE_DIRECT_URL for this migration run."
+  else
+    missing+=("DATABASE_URL")
   fi
-done
+fi
 
 if [[ ${#missing[@]} -gt 0 ]]; then
   echo "Error: Missing required environment variables: ${missing[*]}"
