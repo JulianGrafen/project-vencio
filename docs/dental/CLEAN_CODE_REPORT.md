@@ -168,13 +168,50 @@ packages/pvs-connector/src/
 
 **New modules (round 2):** `dentalTeamMemberProcedure.ts`, `smart-fill-cron-task-upsert.ts`, `smart-fill-cron-invite.ts`, `smart-fill-reply.types.ts`, `smart-fill-patient.select.ts`, `pvs-outbox.select.ts`, `format-pvs-operation-label.ts`
 
-**Deferred:** Settings UI splits (Smart-Fill patient pool, treatment-resources), Playwright E2E.
+**Deferred:** Playwright E2E.
 
 ---
 
-## 8. Files Changed
+## 10. Round 3 Refactors (2026-07-04)
 
-**New (8):**
+| Area | Change |
+|------|--------|
+| **Recall candidate** | `RECALL_CANDIDATE_PATIENT_SELECT` + shared `toCandidateIfDue()` — DRY between `findDueCandidates` / `findPendingForWeek` |
+| **Recall history** | `RecallHistoryService` — dedup, create pending, mark sent/failed (used by cron, mailer, candidate) |
+| **Recall cron** | `loadTeamConfigs()` + `RECALL_DEFAULT_*` constants instead of magic `6`/`3` |
+| **Recall mailer** | Uses `RecallTemplateContext` from `constants.ts`; history persistence via repository |
+| **Team resolver** | Extended `TeamLookupStore.booking` for UID lookup — removed `as never` casts |
+| **Settings UI** | Split Smart-Fill pool → hook + form/list/dialog; Recall → settings form + pending/history lists |
+| **Shared UI** | `formatDeDate()` for German date formatting across dental settings |
+| **Landing** | `#automation` section wired to `SMART_AUTOMATION` content (nav link fix) |
+
+**New modules (round 3):** `recall-candidate.select.ts`, `recall-history.service.ts`, `format-de-date.ts`, `useSmartFillPatientPool.ts`, `SmartFillPatientForm/List/DeleteDialog.tsx`, `RecallSettingsForm/PendingList/HistoryList.tsx`
+
+**Test count after round 3:** 127 passing.
+
+---
+
+## 11. Files Changed (Round 3)
+
+**New (11):**
+
+- `packages/lib/dental/recall/recall-candidate.select.ts`
+- `packages/lib/dental/recall/recall-history.service.ts`
+- `packages/lib/dental/recall/recall-history.service.test.ts`
+- `apps/web/modules/settings/dental/format-de-date.ts`
+- `apps/web/modules/settings/smart-fill/useSmartFillPatientPool.ts`
+- `apps/web/modules/settings/smart-fill/SmartFillPatientForm.tsx`
+- `apps/web/modules/settings/smart-fill/SmartFillPatientList.tsx`
+- `apps/web/modules/settings/smart-fill/SmartFillDeleteDialog.tsx`
+- `apps/web/modules/settings/recall/RecallSettingsForm.tsx`
+- `apps/web/modules/settings/recall/RecallPendingList.tsx`
+- `apps/web/modules/settings/recall/RecallHistoryList.tsx`
+
+**Refactored:** `recall-candidate.service.ts`, `recall-cron.service.ts`, `recall-mailer.service.ts`, `practice-team-resolver.ts`, `prisma-types.ts` (TeamLookupStore), Smart-Fill/Recall views, `DentalLandingPage.tsx`
+
+---
+
+## 8. Files Changed (Round 1–2)
 
 - `docs/dental/CLEAN_CODE_REPORT.md`
 - `packages/lib/dental/pvs/outbox-api.schemas.ts`

@@ -107,14 +107,7 @@ export async function resolveTeamIdFromBookingId(
  * Resolves teamId from a booking UID (public or internal reference).
  */
 export async function resolveTeamIdFromBookingUid(
-  prisma: TeamLookupStore & {
-    booking: {
-      findUnique(args: {
-        where: { uid: string };
-        select: { eventType: { select: { teamId: true; parentId?: true } } };
-      }): Promise<{ eventType: { teamId: number | null; parentId?: number | null } | null } | null>;
-    };
-  },
+  prisma: TeamLookupStore,
   uid: string
 ): Promise<number | null> {
   if (!uid) {
@@ -149,11 +142,11 @@ export async function resolveTeamIdFromInput(
   }
 
   if (typeof input.uid === "string") {
-    return resolveTeamIdFromBookingUid(prisma as never, input.uid);
+    return resolveTeamIdFromBookingUid(prisma, input.uid);
   }
 
   if (typeof input.bookingUid === "string") {
-    return resolveTeamIdFromBookingUid(prisma as never, input.bookingUid);
+    return resolveTeamIdFromBookingUid(prisma, input.bookingUid);
   }
 
   const filterTeamIds = input.filters?.teamIds;

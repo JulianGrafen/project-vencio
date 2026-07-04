@@ -131,6 +131,25 @@ export function DentalLandingPage() {
         </div>
       </section>
 
+      {/* Smart-Fill & Recall */}
+      <section id="automation" className="border-t border-slate-100 py-20">
+        <div className={landingDesign.container}>
+          <SectionHeading
+            eyebrow={SMART_AUTOMATION.eyebrow}
+            title={SMART_AUTOMATION.title}
+            description={SMART_AUTOMATION.description}
+          />
+          <ul className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
+            {SMART_AUTOMATION.bullets.map((bullet) => (
+              <li key={bullet} className={`${landingDesign.card} flex gap-3 p-5 text-sm text-slate-700`}>
+                <CheckIcon />
+                <span>{bullet}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       {/* Compliance */}
       <section id="compliance" className="py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-6">

@@ -39,9 +39,16 @@ export interface TeamLookupStore {
     }): Promise<{ teamId: number | null; parentId?: number | null } | null>;
   };
   booking: {
-    findUnique(args: {
-      where: { id: number };
-      select: { eventType: { select: { teamId: true; parentId?: true } } };
-    }): Promise<{ eventType: { teamId: number | null; parentId?: number | null } | null } | null>;
+    findUnique(
+      args:
+        | {
+            where: { id: number };
+            select: { eventType: { select: { teamId: true; parentId?: true } } };
+          }
+        | {
+            where: { uid: string };
+            select: { eventType: { select: { teamId: true; parentId?: true } } };
+          }
+    ): Promise<{ eventType: { teamId: number | null; parentId?: number | null } | null } | null>;
   };
 }

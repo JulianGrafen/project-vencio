@@ -2,7 +2,12 @@ import type { PrismaClient } from "@calcom/prisma";
 import { RecallChannel, RecallHistoryStatus } from "@calcom/prisma/enums";
 
 import { createDentalLogger } from "../resilience/dental-logger";
+import {
+  RECALL_DEFAULT_INTERVAL_MONTHS,
+  RECALL_DEFAULT_TOLERANCE_DAYS,
+} from "./constants";
 import { RecallCandidateService } from "./recall-candidate.service";
+import { RecallHistoryService } from "./recall-history.service";
 import { RecallMailerService } from "./recall-mailer.service";
 import { RecallSettingsService } from "./recall-settings.service";
 
@@ -22,11 +27,13 @@ export class RecallCronService {
   private readonly settingsService: RecallSettingsService;
   private readonly candidateService: RecallCandidateService;
   private readonly mailerService: RecallMailerService;
+  private readonly historyService: RecallHistoryService;
 
   constructor(private readonly prisma: PrismaClient) {
     this.settingsService = new RecallSettingsService(prisma);
     this.candidateService = new RecallCandidateService(prisma);
     this.mailerService = new RecallMailerService(prisma);
+    this.historyService = new RecallHistoryService(prisma);
   }
 
   async run(referenceDate?: Date): Promise<RecallCronResult> {
@@ -36,26 +43,9 @@ export class RecallCronService {
     let recallsFailed = 0;
     let skipped = 0;
 
-    const teamSettings = await this.prisma.recallSettings.findMany({
-      where: { enabled: true },
-      select: { teamId: true, intervalMonths: true, toleranceDays: true },
-    });
+    const teamConfigs = await this.loadTeamConfigs();
 
-    const teamIds =
-      teamSettings.length > 0
-        ? teamSettings
-        : (
-            await this.prisma.team.findMany({
-              where: { smartFillPatients: { some: { recallEnabled: true, lastVisitAt: { not: null } } } },
-              select: { id: true },
-            })
-          ).map((team) => ({
-            teamId: team.id,
-            intervalMonths: 6,
-            toleranceDays: 3,
-          }));
-
-    for (const config of teamIds) {
+    for (const config of teamConfigs) {
       try {
         teamsProcessed += 1;
 
@@ -82,16 +72,13 @@ export class RecallCronService {
         }
 
         for (const candidate of candidatesResult.data) {
-          const existing = await this.prisma.recallHistory.findFirst({
-            where: {
-              patientId: candidate.patientId,
-              recallDueDate: candidate.recallDueDate,
-              channel: RecallChannel.EMAIL,
-              status: { in: [RecallHistoryStatus.SENT, RecallHistoryStatus.PENDING] },
-            },
+          const alreadySent = await this.historyService.hasActiveRecall({
+            patientId: candidate.patientId,
+            recallDueDate: candidate.recallDueDate,
+            channel: RecallChannel.EMAIL,
           });
 
-          if (existing) {
+          if (alreadySent) {
             skipped += 1;
             continue;
           }
@@ -130,5 +117,29 @@ export class RecallCronService {
     });
 
     return { teamsProcessed, recallsSent, recallsFailed, skipped, errors };
+  }
+
+  private async loadTeamConfigs(): Promise<
+    Array<{ teamId: number; intervalMonths: number; toleranceDays: number }>
+  > {
+    const teamSettings = await this.prisma.recallSettings.findMany({
+      where: { enabled: true },
+      select: { teamId: true, intervalMonths: true, toleranceDays: true },
+    });
+
+    if (teamSettings.length > 0) {
+      return teamSettings;
+    }
+
+    const teams = await this.prisma.team.findMany({
+      where: { smartFillPatients: { some: { recallEnabled: true, lastVisitAt: { not: null } } } },
+      select: { id: true },
+    });
+
+    return teams.map((team) => ({
+      teamId: team.id,
+      intervalMonths: RECALL_DEFAULT_INTERVAL_MONTHS,
+      toleranceDays: RECALL_DEFAULT_TOLERANCE_DAYS,
+    }));
   }
 }

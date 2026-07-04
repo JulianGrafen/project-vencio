@@ -10,6 +10,8 @@ import { err, ok } from "../resilience/result";
 import { createSmsService } from "../smart-fill/sms/mock-sms-service";
 import type { SmsService } from "../smart-fill/sms/sms-service.interface";
 import type { RecallCandidate } from "./recall-candidate.service";
+import type { RecallTemplateContext } from "./constants";
+import { RecallHistoryService } from "./recall-history.service";
 import { ZRecallCandidate } from "./recall.schemas";
 import { createRecallEmailTransport } from "./mock-recall-email-transport";
 import type { RecallEmailTransport } from "./recall-email-transport.interface";
@@ -22,12 +24,7 @@ export type RecallMailerResult = {
   channel: RecallChannel;
 };
 
-type TemplateContext = {
-  patientName: string;
-  bookingLink: string;
-  practiceName: string;
-  optOutLink: string;
-};
+type RecallSettings = Awaited<ReturnType<RecallSettingsService["getOrCreateForTeam"]>>;
 
 /**
  * Sends recall outreach (email + optional SMS) and writes RecallHistory audit rows.
@@ -35,14 +32,16 @@ type TemplateContext = {
  */
 export class RecallMailerService {
   private readonly settingsService: RecallSettingsService;
+  private readonly historyService: RecallHistoryService;
   private readonly log = createDentalLogger({ module: "recall-mailer" });
 
   constructor(
-    private readonly prisma: PrismaClient,
+    prisma: PrismaClient,
     private readonly emailTransport: RecallEmailTransport = createRecallEmailTransport(),
     private readonly smsService: SmsService = createSmsService()
   ) {
     this.settingsService = new RecallSettingsService(prisma);
+    this.historyService = new RecallHistoryService(prisma);
   }
 
   async sendRecall(candidate: RecallCandidate): Promise<Result<RecallMailerResult[], string>> {
@@ -63,12 +62,7 @@ export class RecallMailerService {
       const results: RecallMailerResult[] = [];
 
       const optOutToken = randomUUID();
-      const templateContext: TemplateContext = {
-        patientName: validCandidate.name,
-        bookingLink: this.settingsService.buildBookingLink(settings),
-        practiceName: settings.practiceName ?? settings.team.name ?? "Ihre Praxis",
-        optOutLink: this.settingsService.buildOptOutLink(optOutToken),
-      };
+      const templateContext = this.buildTemplateContext(validCandidate, settings, optOutToken);
 
       const emailResult = await this.sendEmailRecall(validCandidate, settings, templateContext, optOutToken);
       if (!emailResult.success) {
@@ -99,26 +93,35 @@ export class RecallMailerService {
     }
   }
 
+  private buildTemplateContext(
+    candidate: RecallCandidate,
+    settings: RecallSettings,
+    optOutToken: string
+  ): RecallTemplateContext {
+    return {
+      patientName: candidate.name,
+      bookingLink: this.settingsService.buildBookingLink(settings),
+      practiceName: settings.practiceName ?? settings.team.name ?? "Ihre Praxis",
+      optOutLink: this.settingsService.buildOptOutLink(optOutToken),
+    };
+  }
+
   private async sendEmailRecall(
     candidate: RecallCandidate,
-    settings: Awaited<ReturnType<RecallSettingsService["getOrCreateForTeam"]>>,
-    templateContext: TemplateContext,
+    settings: RecallSettings,
+    templateContext: RecallTemplateContext,
     optOutToken: string
   ): Promise<Result<RecallMailerResult, string>> {
     let historyId: string;
 
     try {
-      const history = await this.prisma.recallHistory.create({
-        data: {
-          teamId: candidate.teamId,
-          patientId: candidate.patientId,
-          channel: RecallChannel.EMAIL,
-          status: RecallHistoryStatus.PENDING,
-          recallDueDate: candidate.recallDueDate,
-          optOutToken,
-        },
+      historyId = await this.historyService.createPending({
+        teamId: candidate.teamId,
+        patientId: candidate.patientId,
+        channel: RecallChannel.EMAIL,
+        recallDueDate: candidate.recallDueDate,
+        optOutToken,
       });
-      historyId = history.id;
     } catch (error) {
       this.log.error("Failed to create recall history row", error, {
         teamId: candidate.teamId,
@@ -143,11 +146,11 @@ export class RecallMailerService {
     );
 
     if (!sendResult.success) {
-      await this.markHistoryFailed(historyId, sendResult.error);
+      await this.historyService.markFailed(historyId, sendResult.error);
       return err(sendResult.error);
     }
 
-    await this.markHistorySent(historyId);
+    await this.historyService.markSent(historyId);
     return ok({
       historyId,
       status: RecallHistoryStatus.SENT,
@@ -157,8 +160,8 @@ export class RecallMailerService {
 
   private async sendSmsRecall(
     candidate: RecallCandidate,
-    settings: Awaited<ReturnType<RecallSettingsService["getOrCreateForTeam"]>>,
-    templateContext: TemplateContext
+    settings: RecallSettings,
+    templateContext: RecallTemplateContext
   ): Promise<Result<RecallMailerResult, string>> {
     if (!candidate.phoneNumber?.trim()) {
       return err("Patient phone number is required for SMS recall");
@@ -167,16 +170,12 @@ export class RecallMailerService {
     let historyId: string;
 
     try {
-      const history = await this.prisma.recallHistory.create({
-        data: {
-          teamId: candidate.teamId,
-          patientId: candidate.patientId,
-          channel: RecallChannel.SMS,
-          status: RecallHistoryStatus.PENDING,
-          recallDueDate: candidate.recallDueDate,
-        },
+      historyId = await this.historyService.createPending({
+        teamId: candidate.teamId,
+        patientId: candidate.patientId,
+        channel: RecallChannel.SMS,
+        recallDueDate: candidate.recallDueDate,
       });
-      historyId = history.id;
     } catch {
       return err("Failed to persist SMS recall history");
     }
@@ -195,29 +194,15 @@ export class RecallMailerService {
     );
 
     if (!sendResult.success) {
-      await this.markHistoryFailed(historyId, sendResult.error);
+      await this.historyService.markFailed(historyId, sendResult.error);
       return err(sendResult.error);
     }
 
-    await this.markHistorySent(historyId);
+    await this.historyService.markSent(historyId);
     return ok({
       historyId,
       status: RecallHistoryStatus.SENT,
       channel: RecallChannel.SMS,
-    });
-  }
-
-  private async markHistorySent(historyId: string): Promise<void> {
-    await this.prisma.recallHistory.update({
-      where: { id: historyId },
-      data: { status: RecallHistoryStatus.SENT, sentAt: new Date(), error: null },
-    });
-  }
-
-  private async markHistoryFailed(historyId: string, message: string): Promise<void> {
-    await this.prisma.recallHistory.update({
-      where: { id: historyId },
-      data: { status: RecallHistoryStatus.FAILED, error: message.slice(0, 2000) },
     });
   }
 }
