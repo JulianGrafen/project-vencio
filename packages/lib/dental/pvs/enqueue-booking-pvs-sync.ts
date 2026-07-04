@@ -19,11 +19,12 @@ export type BookingPvsSyncInput = {
   patientEmail: string;
   patientPhone?: string | null;
   source?: AppointmentSyncDTO["source"];
+  smartFillTaskId?: string;
   cancellationReason?: string | null;
   rescheduledToBookingUid?: string;
 };
 
-function toAppointmentSyncDto(input: BookingPvsSyncInput): AppointmentSyncDTO {
+export function toAppointmentSyncDto(input: BookingPvsSyncInput): AppointmentSyncDTO {
   return {
     bookingUid: input.bookingUid,
     teamId: input.teamId,
@@ -35,63 +36,62 @@ function toAppointmentSyncDto(input: BookingPvsSyncInput): AppointmentSyncDTO {
     title: input.title,
     eventTypeId: input.eventTypeId ?? null,
     source: input.source ?? "booker",
+    smartFillTaskId: input.smartFillTaskId,
     cancellationReason: input.cancellationReason ?? undefined,
     rescheduledToBookingUid: input.rescheduledToBookingUid,
   };
+}
+
+async function enqueuePvsBookingOperationIfEnabled(
+  tx: PrismaTx,
+  input: BookingPvsSyncInput,
+  operation: PvsSyncOperation
+): Promise<{ outboxId: string } | null> {
+  if (!isPvsSyncEnabled()) {
+    return null;
+  }
+
+  const dto = toAppointmentSyncDto(input);
+
+  if (operation === PvsSyncOperation.CREATE_APPOINTMENT) {
+    const existing = await tx.pvsSyncOutbox.findFirst({
+      where: {
+        teamId: input.teamId,
+        bookingUid: input.bookingUid,
+        operation: PvsSyncOperation.CREATE_APPOINTMENT,
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return null;
+    }
+
+    return enqueuePvsAppointmentSync(tx, dto, operation);
+  }
+
+  return enqueuePvsOperationIfNotDuplicate(tx, dto, operation);
 }
 
 export async function enqueueBookingPvsSyncIfEnabled(
   tx: PrismaTx,
   input: BookingPvsSyncInput
 ): Promise<{ outboxId: string } | null> {
-  if (!isPvsSyncEnabled()) {
-    return null;
-  }
-
-  const existing = await tx.pvsSyncOutbox.findFirst({
-    where: {
-      teamId: input.teamId,
-      bookingUid: input.bookingUid,
-      operation: PvsSyncOperation.CREATE_APPOINTMENT,
-    },
-    select: { id: true },
-  });
-
-  if (existing) {
-    return null;
-  }
-
-  return enqueuePvsAppointmentSync(tx, toAppointmentSyncDto(input), PvsSyncOperation.CREATE_APPOINTMENT);
+  return enqueuePvsBookingOperationIfEnabled(tx, input, PvsSyncOperation.CREATE_APPOINTMENT);
 }
 
 export async function enqueueBookingPvsCancelIfEnabled(
   tx: PrismaTx,
   input: BookingPvsSyncInput
 ): Promise<{ outboxId: string } | null> {
-  if (!isPvsSyncEnabled()) {
-    return null;
-  }
-
-  return enqueuePvsOperationIfNotDuplicate(
-    tx,
-    toAppointmentSyncDto(input),
-    PvsSyncOperation.CANCEL_APPOINTMENT
-  );
+  return enqueuePvsBookingOperationIfEnabled(tx, input, PvsSyncOperation.CANCEL_APPOINTMENT);
 }
 
 export async function enqueueBookingPvsUpdateIfEnabled(
   tx: PrismaTx,
   input: BookingPvsSyncInput
 ): Promise<{ outboxId: string } | null> {
-  if (!isPvsSyncEnabled()) {
-    return null;
-  }
-
-  return enqueuePvsOperationIfNotDuplicate(
-    tx,
-    toAppointmentSyncDto(input),
-    PvsSyncOperation.UPDATE_APPOINTMENT
-  );
+  return enqueuePvsBookingOperationIfEnabled(tx, input, PvsSyncOperation.UPDATE_APPOINTMENT);
 }
 
 export type BookingRecordForPvsSync = {
@@ -114,6 +114,7 @@ export function bookingToPvsSyncInput(
     cancellationReason?: string | null;
     rescheduledToBookingUid?: string;
     source?: AppointmentSyncDTO["source"];
+    smartFillTaskId?: string;
   }
 ): BookingPvsSyncInput | null {
   const attendee = booking.attendees[0];
@@ -132,6 +133,7 @@ export function bookingToPvsSyncInput(
     patientEmail: attendee.email,
     patientPhone: attendee.phoneNumber,
     source: extras?.source ?? "booker",
+    smartFillTaskId: extras?.smartFillTaskId,
     cancellationReason: extras?.cancellationReason,
     rescheduledToBookingUid: extras?.rescheduledToBookingUid,
   };

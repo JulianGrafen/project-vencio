@@ -4,15 +4,10 @@ import { SmartFillTaskStatus } from "@calcom/prisma/enums";
 import { randomUUID } from "node:crypto";
 
 import {
-  SMART_FILL_BUSY_BOOKING_STATUSES,
-  SMART_FILL_DEFAULT_REVENUE_CENTS,
-  SMART_FILL_DEFAULT_WORK_DAYS,
-  SMART_FILL_DEFAULT_WORK_END_MINUTES,
-  SMART_FILL_DEFAULT_WORK_START_MINUTES,
-  SMART_FILL_LOOKAHEAD_HOURS,
-  SMART_FILL_MIN_GAP_MINUTES,
   SMART_FILL_STALE_TASK_STATUSES,
 } from "./constants";
+import { loadSmartFillEligibleHosts, type SmartFillCronHost } from "./smart-fill-cron-host-loader";
+import { scanSmartFillSlotsForHost } from "./smart-fill-cron-slot-scan";
 import {
   lockSmartFillTaskForInvite,
   rollbackSmartFillInvite,
@@ -20,28 +15,14 @@ import {
 import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
 import { buildSmartFillInviteSmsBody } from "./smart-fill-sms-message";
 import { releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
-import {
-  findSmartFillCandidateSlots,
-  type WeeklyAvailabilityWindow,
-} from "./smart-fill-slot-scanner";
 import type { SmsService } from "./sms/sms-service.interface";
 import { createSmsService } from "./sms/mock-sms-service";
-import { timeToMinutesUtc } from "./time-utils";
 
 export type SmartFillCronResult = {
   scanRunId: string;
   tasksCreated: number;
   invitesSent: number;
   errors: string[];
-};
-
-type TeamHost = {
-  teamId: number;
-  userId: number;
-  timeZone: string;
-  eventTypeId: number | null;
-  eventTypeTitle: string | null;
-  revenueCents: number;
 };
 
 /**
@@ -68,11 +49,11 @@ export class SmartFillCronService {
     let tasksCreated = 0;
     let invitesSent = 0;
 
-    const hosts = await this.loadEligibleHosts();
+    const hosts = await loadSmartFillEligibleHosts(this.prisma);
 
     for (const host of hosts) {
       try {
-        const slots = await this.scanHostSlots(host);
+        const slots = await scanSmartFillSlotsForHost(this.prisma, host);
         for (const slot of slots) {
           const task = await this.upsertTask(host, slot, scanRunId);
           if (task.created) tasksCreated++;
@@ -93,90 +74,8 @@ export class SmartFillCronService {
     return { scanRunId, tasksCreated, invitesSent, errors };
   }
 
-  private async loadEligibleHosts(): Promise<TeamHost[]> {
-    const memberships = await this.prisma.membership.findMany({
-      where: { accepted: true, team: { isOrganization: false } },
-      select: {
-        teamId: true,
-        user: {
-          select: {
-            id: true,
-            timeZone: true,
-            eventTypes: {
-              where: { hidden: false },
-              select: { id: true, title: true, length: true, teamId: true },
-              take: 1,
-              orderBy: { id: "asc" },
-            },
-          },
-        },
-      },
-    });
-
-    return memberships
-      .filter((m) => m.user.eventTypes.length > 0)
-      .map((m) => {
-        const eventType = m.user.eventTypes[0];
-        return {
-          teamId: m.teamId,
-          userId: m.user.id,
-          timeZone: m.user.timeZone,
-          eventTypeId: eventType.id,
-          eventTypeTitle: eventType.title,
-          revenueCents: SMART_FILL_DEFAULT_REVENUE_CENTS,
-        };
-      });
-  }
-
-  private async scanHostSlots(host: TeamHost) {
-    const now = dayjs();
-    const windowStart = now.toDate();
-    const windowEnd = now.add(SMART_FILL_LOOKAHEAD_HOURS, "hour").toDate();
-
-    const schedule = await this.prisma.schedule.findFirst({
-      where: { userId: host.userId },
-      include: { availability: true },
-    });
-
-    const availability: WeeklyAvailabilityWindow[] =
-      schedule?.availability.flatMap((a) =>
-        a.days.map((dayOfWeek) => ({
-          dayOfWeek,
-          startMinutes: timeToMinutesUtc(a.startTime),
-          endMinutes: timeToMinutesUtc(a.endTime),
-        }))
-      ) ?? this.defaultAvailability();
-
-    const bookings = await this.prisma.booking.findMany({
-      where: {
-        userId: host.userId,
-        status: { in: [...SMART_FILL_BUSY_BOOKING_STATUSES] },
-        startTime: { lt: windowEnd },
-        endTime: { gt: windowStart },
-      },
-      select: { startTime: true, endTime: true },
-    });
-
-    return findSmartFillCandidateSlots({
-      windowStart,
-      windowEnd,
-      minDurationMinutes: SMART_FILL_MIN_GAP_MINUTES,
-      availability,
-      busyIntervals: bookings.map((b) => ({ start: b.startTime, end: b.endTime })),
-      timeZone: host.timeZone,
-    });
-  }
-
-  private defaultAvailability(): WeeklyAvailabilityWindow[] {
-    return SMART_FILL_DEFAULT_WORK_DAYS.map((day) => ({
-      dayOfWeek: day,
-      startMinutes: SMART_FILL_DEFAULT_WORK_START_MINUTES,
-      endMinutes: SMART_FILL_DEFAULT_WORK_END_MINUTES,
-    }));
-  }
-
   private async upsertTask(
-    host: TeamHost,
+    host: SmartFillCronHost,
     slot: { start: Date; end: Date },
     scanRunId: string
   ): Promise<{ task: { id: string; status: SmartFillTaskStatus }; created: boolean }> {
@@ -227,7 +126,7 @@ export class SmartFillCronService {
     return existingInvites === 0;
   }
 
-  private async invitePatientsForTask(taskId: string, host: TeamHost): Promise<number> {
+  private async invitePatientsForTask(taskId: string, host: SmartFillCronHost): Promise<number> {
     const patients = await this.patientSelection.selectCandidates({
       teamId: host.teamId,
       eventTypeId: host.eventTypeId,

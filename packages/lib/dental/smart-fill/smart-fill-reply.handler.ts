@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
-import { enqueuePvsAppointmentSync } from "@calcom/lib/dental/pvs/enqueue-pvs-sync";
+import { enqueueBookingPvsSyncIfEnabled } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import { randomUUID } from "node:crypto";
 
 import { finalizeSmartFillBooking } from "./smart-fill-booking-finalizer";
@@ -164,14 +164,14 @@ export class SmartFillReplyHandler {
       });
 
       const title = invite.task.eventType?.title ?? SMART_FILL_DEFAULT_BOOKING_TITLE;
-      await enqueuePvsAppointmentSync(tx, {
+      await enqueueBookingPvsSyncIfEnabled(tx, {
         bookingUid,
         teamId: invite.task.teamId,
         patientName: patient.name,
         patientEmail: patient.email,
         patientPhone: patient.phoneNumber,
-        startTime: invite.task.startTime.toISOString(),
-        endTime: invite.task.endTime.toISOString(),
+        startTime: invite.task.startTime,
+        endTime: invite.task.endTime,
         title,
         eventTypeId: invite.task.eventTypeId,
         source: "smart-fill",

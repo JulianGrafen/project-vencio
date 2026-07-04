@@ -34,7 +34,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Clean Code refactor** — Smart-Fill modules split into focused services (invite lifecycle, booking finalizer, patient repository, SMS templates); deduplicated dental tRPC middleware.
+- **Clean Code refactor (report)** — unified PVS enqueue pipeline, shared connector API handler/schemas, Smart-Fill cron split; see `docs/dental/CLEAN_CODE_REPORT.md`.
 - **dentalAuthedProcedure** on additional booking routes (`requestReschedule`, `addGuests`, `getBookingAttendees`, `getBookingHistory`, `editLocation`).
 - `resolveTeamIdFromInput` accepts `bookingUid` for tenant encryption context.
 

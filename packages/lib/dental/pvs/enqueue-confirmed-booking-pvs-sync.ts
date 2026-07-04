@@ -2,20 +2,15 @@ import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { resolveTeamIdFromEventTypeId } from "../practice-team-resolver";
-import { enqueueBookingPvsSyncIfEnabled } from "./enqueue-booking-pvs-sync";
+import {
+  bookingToPvsSyncInput,
+  enqueueBookingPvsSyncIfEnabled,
+  type BookingRecordForPvsSync,
+} from "./enqueue-booking-pvs-sync";
 
-type ConfirmedBookingRecord = {
-  uid: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
+type ConfirmedBookingRecord = BookingRecordForPvsSync & {
   status: BookingStatus;
   eventTypeId: number | null;
-  attendees: Array<{
-    name: string;
-    email: string;
-    phoneNumber: string | null;
-  }>;
 };
 
 export async function enqueuePvsSyncForConfirmedBooking(
@@ -31,23 +26,12 @@ export async function enqueuePvsSyncForConfirmedBooking(
     return;
   }
 
-  const primaryAttendee = booking.attendees[0];
-  if (!primaryAttendee) {
+  const input = bookingToPvsSyncInput(teamId, booking, { source: "booker" });
+  if (!input) {
     return;
   }
 
   await prisma.$transaction(async (tx) => {
-    await enqueueBookingPvsSyncIfEnabled(tx, {
-      bookingUid: booking.uid,
-      teamId,
-      title: booking.title,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      eventTypeId: booking.eventTypeId,
-      patientName: primaryAttendee.name,
-      patientEmail: primaryAttendee.email,
-      patientPhone: primaryAttendee.phoneNumber,
-      source: "booker",
-    });
+    await enqueueBookingPvsSyncIfEnabled(tx, input);
   });
 }

@@ -5,37 +5,26 @@ import {
   generatePvsConnectorApiKey,
   hashPvsConnectorApiKey,
 } from "./pvs-connector-key";
-
-type CredentialListItem = {
-  id: string;
-  label: string;
-  keyPrefix: string;
-  isActive: boolean;
-  lastUsedAt: Date | null;
-  createdAt: Date;
-  revokedAt: Date | null;
-};
+import {
+  PVS_CONNECTOR_CREDENTIAL_SELECT,
+  type PvsConnectorCredentialListItem,
+} from "./pvs-connector-credential.select";
 
 export class PvsConnectorCredentialService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  listByTeam(teamId: number): Promise<CredentialListItem[]> {
+  listByTeam(teamId: number): Promise<PvsConnectorCredentialListItem[]> {
     return this.prisma.pvsConnectorCredential.findMany({
       where: { teamId },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        label: true,
-        keyPrefix: true,
-        isActive: true,
-        lastUsedAt: true,
-        createdAt: true,
-        revokedAt: true,
-      },
+      select: PVS_CONNECTOR_CREDENTIAL_SELECT,
     });
   }
 
-  async create(teamId: number, label: string): Promise<{ credential: CredentialListItem; rawApiKey: string }> {
+  async create(
+    teamId: number,
+    label: string
+  ): Promise<{ credential: PvsConnectorCredentialListItem; rawApiKey: string }> {
     const { rawKey, hashedKey, keyPrefix } = generatePvsConnectorApiKey();
 
     const credential = await this.prisma.pvsConnectorCredential.create({
@@ -45,36 +34,20 @@ export class PvsConnectorCredentialService {
         hashedApiKey: hashedKey,
         keyPrefix,
       },
-      select: {
-        id: true,
-        label: true,
-        keyPrefix: true,
-        isActive: true,
-        lastUsedAt: true,
-        createdAt: true,
-        revokedAt: true,
-      },
+      select: PVS_CONNECTOR_CREDENTIAL_SELECT,
     });
 
     return { credential, rawApiKey: rawKey };
   }
 
-  async revoke(teamId: number, credentialId: string): Promise<CredentialListItem> {
+  revoke(teamId: number, credentialId: string): Promise<PvsConnectorCredentialListItem> {
     return this.prisma.pvsConnectorCredential.update({
       where: { id: credentialId, teamId },
       data: {
         isActive: false,
         revokedAt: new Date(),
       },
-      select: {
-        id: true,
-        label: true,
-        keyPrefix: true,
-        isActive: true,
-        lastUsedAt: true,
-        createdAt: true,
-        revokedAt: true,
-      },
+      select: PVS_CONNECTOR_CREDENTIAL_SELECT,
     });
   }
 

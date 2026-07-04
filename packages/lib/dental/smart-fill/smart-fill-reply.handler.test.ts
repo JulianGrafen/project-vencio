@@ -2,8 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { SmartFillReplyHandler } from "./smart-fill-reply.handler";
 
-vi.mock("@calcom/lib/dental/pvs/enqueue-pvs-sync", () => ({
-  enqueuePvsAppointmentSync: vi.fn(async () => ({ outboxId: "outbox-1" })),
+vi.mock("@calcom/lib/dental/pvs/enqueue-booking-pvs-sync", () => ({
+  enqueueBookingPvsSyncIfEnabled: vi.fn(async () => ({ outboxId: "outbox-1" })),
 }));
 
 describe("SmartFillReplyHandler", () => {
