@@ -6,28 +6,33 @@ export type DentalPublicEventType = {
   title: string;
   slug: string;
   length: number;
-  descriptionAsSafeHTML?: string;
-  metadata?: { dentalCategory?: string } | null;
+  descriptionAsSafeHTML?: string | null;
+  metadata?: unknown;
 };
 
-export type GroupedDentalEventTypes = {
+export type GroupedDentalEventTypes<T extends DentalPublicEventType = DentalPublicEventType> = {
   category: DentalEventCategory;
   label: string;
-  eventTypes: DentalPublicEventType[];
+  eventTypes: T[];
 };
 
 export function getDentalCategoryFromEventType(
   eventType: Pick<DentalPublicEventType, "metadata">
 ): DentalEventCategory {
-  const raw = eventType.metadata?.dentalCategory;
+  const metadata = eventType.metadata as { dentalCategory?: string } | null | undefined;
+  const raw = metadata?.dentalCategory;
   return isDentalEventCategory(raw) ? raw : "SONSTIGES";
 }
 
-export function groupEventTypesByDentalCategory(
-  eventTypes: DentalPublicEventType[],
+export function groupEventTypesByDentalCategory<T extends DentalPublicEventType>(
+  eventTypes: T[],
   getCategoryLabel: (category: DentalEventCategory) => string
-): GroupedDentalEventTypes[] {
-  const buckets = new Map<DentalEventCategory, DentalPublicEventType[]>();
+): Array<{
+  category: DentalEventCategory;
+  label: string;
+  eventTypes: T[];
+}> {
+  const buckets = new Map<DentalEventCategory, T[]>();
 
   for (const category of DENTAL_EVENT_CATEGORY_ORDER) {
     buckets.set(category, []);

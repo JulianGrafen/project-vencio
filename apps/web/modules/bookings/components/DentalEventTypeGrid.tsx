@@ -1,6 +1,5 @@
 "use client";
 
-import type { DentalPublicEventType } from "@calcom/lib/dental/group-event-types-by-category";
 import {
   getDentalCategoryFromEventType,
   groupEventTypesByDentalCategory,
@@ -9,13 +8,14 @@ import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-conf
 import { DENTAL_EVENT_CATEGORY_LABELS } from "@calcom/lib/dental/event-type-categories";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
+import type { EventTypeDescriptionProps } from "@calcom/web/modules/event-types/components/EventTypeDescription";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/web/modules/event-types/components";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
 type DentalEventTypeGridProps = {
-  username: string;
-  eventTypes: DentalPublicEventType[];
+  username: string | null;
+  eventTypes: EventTypeDescriptionProps["eventType"][];
   query: Record<string, string | string[] | undefined>;
   listItemStyles?: CSSProperties;
 };
@@ -67,7 +67,7 @@ export function DentalEventTypeGrid({
                 <p className="text-subtle mt-1 text-xs">
                   {t(`dental_category_${getDentalCategoryFromEventType(type).toLowerCase()}`, group.label)}
                 </p>
-                <EventTypeDescription eventType={type} isPublic shortenedDescription />
+                <EventTypeDescription eventType={type} isPublic shortenDescription />
               </Link>
             ))}
           </div>
