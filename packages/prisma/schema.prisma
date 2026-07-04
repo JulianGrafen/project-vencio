@@ -289,6 +289,7 @@ model EventType {
 
   smartFillTasks SmartFillTask[]
   recallSettings RecallSettings[]
+  medicalProfile EventTypeMedicalProfile?
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -718,6 +719,45 @@ model BookingResource {
 
   @@id([bookingId, resourceId])
   @@index([resourceId])
+}
+
+// ---------------------------------------------------------------------------
+// Medical Booking Flow — patient triage (insurance) & treatment categories
+// ---------------------------------------------------------------------------
+
+/// Versicherungsart — contract/social data (P2), deliberately NOT Art. 9 health data.
+enum InsuranceType {
+  GESETZLICH
+  PRIVAT
+  SELBSTZAHLER
+}
+
+/// Medizinische Behandlungskategorie for grouping event types on the booking page.
+enum MedicalCategory {
+  PROPHYLAXE
+  SCHMERZBEHANDLUNG
+  KONTROLLE
+  FUELLUNG
+  IMPLANTOLOGIE
+  KIEFERORTHOPAEDIE
+  SONSTIGES
+}
+
+/// Dental satellite to EventType — keeps the upstream table merge-free (fork convention).
+model EventTypeMedicalProfile {
+  id                    String          @id @default(cuid())
+  eventTypeId           Int             @unique
+  eventType             EventType       @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  category              MedicalCategory @default(SONSTIGES)
+  /// Empty = bookable by all insurance types (e.g. private-only: [PRIVAT, SELBSTZAHLER]).
+  allowedInsuranceTypes InsuranceType[]
+  displayOrder          Int             @default(0)
+  /// Schmerzbehandlung: pinned prominently at the top of the booking page.
+  isEmergency           Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([category])
 }
 
 // ---------------------------------------------------------------------------
@@ -1203,6 +1243,8 @@ model Booking {
   report                     BookingReport?
   wrongAssignmentReports     WrongAssignmentReport[]
   resources                  BookingResource[]
+  /// P2 contract data (not Art. 9 health data) — deliberately unencrypted for aggregation.
+  insuranceType              InsuranceType?
 
   // @@partial_index([reassignById])
 
@@ -1219,6 +1261,7 @@ model Booking {
   @@index([eventTypeId, status])
   @@index([userId, createdAt])
   @@index([userPrimaryEmailBlindIndex])
+  @@index([eventTypeId, insuranceType])
 }
 
 model Tracking {

@@ -233,6 +233,7 @@ export const buildDryRunBooking = ({
     creationSource: CreationSource.WEBAPP,
     references: [],
     payment: [],
+    insuranceType: null,
   } satisfies ReturnTypeCreateBooking;
 
   /**
