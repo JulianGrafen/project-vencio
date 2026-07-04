@@ -26,6 +26,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **CI** — `dental-critical-path.yml` runs dental + PVS unit tests on relevant PRs.
 - **Per-team PVS connector credentials** — `PvsConnectorCredential` model; tRPC `pvsConnector.*`; team-scoped Bearer auth on poll/ack.
 - **PVS adapter interface** — `PvsAdapter` + `MockPvsAdapter` with contract tests.
+- **PVS admin UI** — `/settings/pvs-connector?teamId=` for connector API key management.
+- **Booker PVS enqueue** — outbox row on accepted booking create + on manual confirm.
+- **DampsoftPvsAdapter** stub with contract tests (connector-side reference).
 
 ### Changed
 

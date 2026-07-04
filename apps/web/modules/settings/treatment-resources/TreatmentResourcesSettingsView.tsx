@@ -5,6 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type ResourceTypeOption = { label: string; value: "CHAIR" | "ROOM" | "XRAY" };
@@ -179,6 +180,15 @@ export function TreatmentResourcesSettingsView({ teamId }: TreatmentResourcesSet
           Ressource anlegen
         </Button>
       </form>
+
+      <div className="text-subtle flex flex-wrap gap-4 text-sm">
+        <Link className="text-emphasis underline" href={`/settings/pvs-connector?teamId=${teamId}`}>
+          PVS Connector
+        </Link>
+        <Link className="text-emphasis underline" href={`/settings/smart-fill?teamId=${teamId}`}>
+          Smart-Fill Patientenpool
+        </Link>
+      </div>
     </div>
   );
 }

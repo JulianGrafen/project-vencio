@@ -5,6 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import Link from "next/link";
 import { useState } from "react";
 
 type SmartFillPatientPoolViewProps = {
@@ -164,6 +165,15 @@ export function SmartFillPatientPoolView({ teamId }: SmartFillPatientPoolViewPro
           </li>
         ))}
       </ul>
+
+      <div className="text-subtle flex flex-wrap gap-4 text-sm">
+        <Link className="text-emphasis underline" href={`/settings/pvs-connector?teamId=${teamId}`}>
+          PVS Connector
+        </Link>
+        <Link className="text-emphasis underline" href={`/settings/treatment-resources?teamId=${teamId}`}>
+          Behandlungsressourcen
+        </Link>
+      </div>
     </div>
   );
 }

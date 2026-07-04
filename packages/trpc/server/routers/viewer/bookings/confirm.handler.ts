@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import { enqueuePvsSyncForConfirmedBooking } from "@calcom/lib/dental/pvs/enqueue-confirmed-booking-pvs-sync";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
@@ -193,6 +194,16 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
+    await enqueuePvsSyncForConfirmedBooking(prisma, {
+      uid: booking.uid,
+      title: booking.title,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: BookingStatus.ACCEPTED,
+      eventTypeId: booking.eventTypeId,
+      attendees: booking.attendees,
+    });
+
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
 
@@ -371,6 +382,16 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       emailsEnabled,
       platformClientParams,
       traceContext,
+    });
+
+    await enqueuePvsSyncForConfirmedBooking(prisma, {
+      uid: booking.uid,
+      title: booking.title,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: BookingStatus.ACCEPTED,
+      eventTypeId: booking.eventTypeId,
+      attendees: booking.attendees,
     });
   } else {
     evt.rejectionReason = rejectionReason;

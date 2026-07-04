@@ -189,7 +189,7 @@ See sequence diagram in §8.
 | Fail-closed encrypt | same | No tenant context → throw |
 | Booking list decrypt | `get.handler.test.ts` | Kysely rows decrypted after fetch |
 | Slot + resource | `getSchedule.handler.test.ts` | Resource schedule filters slots |
-| **PVS outbox enqueue** | `packages/lib/dental/pvs/enqueue-pvs-sync.test.ts` | Booking create → outbox row `PENDING` |
+| **PVS outbox enqueue** | `packages/lib/dental/pvs/enqueue-pvs-sync.test.ts`, `enqueue-booking-pvs-sync.test.ts` | Smart-Fill confirm + booker create → outbox `PENDING` |
 | **PVS connector poll/ack** | `packages/lib/dental/pvs/pvs-outbox.service.test.ts` | Claim jobs, complete/fail with retry |
 | **PVS adapter contract** | `packages/pvs-integration/src/adapters/mock-pvs.adapter.test.ts` | Each adapter passes shared test suite |
 | E2E booking | `playwright` smoke (planned) | Booker → confirmation without PVS mock failure |

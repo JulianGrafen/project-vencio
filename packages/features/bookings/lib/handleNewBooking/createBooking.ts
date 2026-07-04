@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { enqueueBookingPvsSyncIfEnabled } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type short from "short-uuid";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
@@ -96,7 +97,14 @@ const _createBooking = async ({
     bookingAndAssociatedData,
     originalRescheduledBooking,
     eventType.paymentAppData,
-    eventType.organizerUser
+    eventType.organizerUser,
+    {
+      teamId: eventType.eventTypeData?.teamId ?? null,
+      eventTypeId: eventType.id ? Number(eventType.id) : null,
+      bookerEmail: input.bookerEmail,
+      smsReminderNumber: input.smsReminderNumber,
+      isAccepted: eventType.isConfirmedByDefault,
+    }
   );
 };
 
@@ -106,7 +114,14 @@ async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
-  organizerUser: CreateBookingParams["eventType"]["organizerUser"]
+  organizerUser: CreateBookingParams["eventType"]["organizerUser"],
+  pvsSyncContext?: {
+    teamId: number | null;
+    eventTypeId: number | null;
+    bookerEmail: string;
+    smsReminderNumber?: string | null;
+    isAccepted: boolean;
+  }
 ) {
   const { newBookingData, originalBookingUpdateDataForCancellation } = bookingAndAssociatedData;
   const createBookingObj = {
@@ -151,6 +166,27 @@ async function saveBooking(
     }
 
     const booking = await tx.booking.create(createBookingObj);
+
+    if (pvsSyncContext?.teamId && pvsSyncContext.isAccepted) {
+      const booker =
+        booking.attendees.find((attendee) => attendee.email === pvsSyncContext.bookerEmail) ??
+        booking.attendees[0];
+
+      if (booker) {
+        await enqueueBookingPvsSyncIfEnabled(tx, {
+          bookingUid: booking.uid,
+          teamId: pvsSyncContext.teamId,
+          title: booking.title,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          eventTypeId: pvsSyncContext.eventTypeId,
+          patientName: booker.name,
+          patientEmail: booker.email,
+          patientPhone: booker.phoneNumber ?? pvsSyncContext.smsReminderNumber,
+          source: "booker",
+        });
+      }
+    }
 
     return { ...booking, userUuid: booking.user?.uuid ?? null };
   });
