@@ -53,7 +53,7 @@ export function DentalSettingsShell({
                     <span
                       className={classNames(
                         "mt-0.5 block text-[11px] leading-tight",
-                        isActive ? "text-blue-100" : "text-subtle"
+                        isActive ? "text-[#E8F1F8]" : "text-subtle"
                       )}>
                       {tab.description}
                     </span>

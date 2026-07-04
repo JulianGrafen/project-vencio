@@ -29,12 +29,12 @@ export function DentalLandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
+    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased" data-teeth-al>
       <LandingNav />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 via-white to-white">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.12),transparent_50%)]" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#E8F1F8]/80 via-white to-white">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(15,76,129,0.1),transparent_50%)]" />
         <div className={`relative ${landingDesign.container} py-16 md:py-24`}>
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
@@ -42,14 +42,14 @@ export function DentalLandingPage() {
                 {TRUST_BADGES.map((badge) => (
                   <span
                     key={badge}
-                    className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-medium text-emerald-800">
+                    className="rounded-full border border-[#E8F1F8] bg-white px-3 py-1 text-xs font-medium text-[#0B3D66]">
                     {badge}
                   </span>
                 ))}
               </div>
               <h1 className={landingDesign.h1}>
                 Terminsoftware für Zahnarztpraxen —{" "}
-                <span className="text-teal-700">10× effizienter als Telefon & Excel.</span>
+                <span className="text-[#0F4C81]">10× effizienter als Telefon & Excel.</span>
               </h1>
               <p className="mt-6 text-lg leading-relaxed text-slate-600">
                 Patienten buchen online. Behandlungsstühle werden parallel geplant. Patientendaten bleiben
@@ -71,7 +71,7 @@ export function DentalLandingPage() {
 
             {/* Mock UI */}
             <div id="demo" className={`${landingDesign.card} p-6 shadow-xl shadow-slate-200/50`}>
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-teal-700">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[#0F4C81]">
                 Interaktive Vorschau
               </p>
               <div className="space-y-4">
@@ -81,7 +81,7 @@ export function DentalLandingPage() {
                     {["Kontrolle", "Prophylaxe", "Füllung", "Schmerztermin"].map((label, i) => (
                       <div
                         key={label}
-                        className={`rounded-lg border px-3 py-2 text-sm ${i === 0 ? "border-teal-600 bg-teal-50 font-medium text-teal-900" : "border-slate-200 bg-white text-slate-700"}`}>
+                        className={`rounded-lg border px-3 py-2 text-sm ${i === 0 ? "border-[#0F4C81] bg-[#E8F1F8] font-medium text-[#0B3D66]" : "border-slate-200 bg-white text-slate-700"}`}>
                         {label}
                       </div>
                     ))}
@@ -90,7 +90,7 @@ export function DentalLandingPage() {
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-sm font-medium text-slate-500">Schritt 2 — Ressource & Slot</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-medium text-teal-800">
+                    <span className="rounded-full bg-[#E8F1F8] px-3 py-1 text-xs font-medium text-[#0B3D66]">
                       Stuhl 2 frei
                     </span>
                     <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
@@ -101,7 +101,7 @@ export function DentalLandingPage() {
                     </span>
                   </div>
                 </div>
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                <div className="rounded-xl border border-[#ECFDF5] bg-[#ECFDF5] p-4 text-sm text-[#059669]">
                   ✓ Patientendaten werden verschlüsselt übertragen · Mandant: Ihre Praxis
                 </div>
               </div>
@@ -161,7 +161,7 @@ export function DentalLandingPage() {
           <div className="grid gap-8 lg:grid-cols-2">
             {COMPLIANCE_BLOCKS.map((block) => (
               <article key={block.title} className="rounded-2xl border border-slate-200 p-8">
-                <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">{block.eyebrow}</p>
+                <p className="text-sm font-semibold uppercase tracking-wide text-[#0F4C81]">{block.eyebrow}</p>
                 <h3 className="mt-2 text-xl font-bold text-slate-900">{block.title}</h3>
                 <p className="mt-3 text-slate-600">{block.description}</p>
                 <ul className="mt-6 space-y-2">
@@ -225,7 +225,7 @@ export function DentalLandingPage() {
                 </li>
               </ul>
             </article>
-            <article className="rounded-2xl border border-teal-200 bg-teal-50 p-8">
+            <article className="rounded-2xl border border-[#E8F1F8] bg-[#E8F1F8] p-8">
               <h3 className="text-xl font-bold text-slate-900">Im Ernstfall zählt Struktur</h3>
               <p className="mt-3 text-slate-700">
                 Datenschutzbeauftragte und Aufsicht fragen nicht nach Ihrem guten Willen — sondern nach
@@ -234,7 +234,7 @@ export function DentalLandingPage() {
               </p>
               <Link
                 href="/auth/login"
-                className="mt-6 inline-flex rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
+                className="mt-6 inline-flex rounded-lg bg-[#0F4C81] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0B3D66]">
                 Compliance-Modus testen →
               </Link>
             </article>
@@ -255,13 +255,13 @@ export function DentalLandingPage() {
               <button
                 type="button"
                 onClick={() => setYearlyBilling(false)}
-                className={`rounded-md px-4 py-2 text-sm font-medium ${!yearlyBilling ? "bg-teal-700 text-white" : "text-slate-600"}`}>
+                className={`rounded-md px-4 py-2 text-sm font-medium ${!yearlyBilling ? "bg-[#0F4C81] text-white" : "text-slate-600"}`}>
                 Monatlich
               </button>
               <button
                 type="button"
                 onClick={() => setYearlyBilling(true)}
-                className={`rounded-md px-4 py-2 text-sm font-medium ${yearlyBilling ? "bg-teal-700 text-white" : "text-slate-600"}`}>
+                className={`rounded-md px-4 py-2 text-sm font-medium ${yearlyBilling ? "bg-[#0F4C81] text-white" : "text-slate-600"}`}>
                 Jährlich −15 %
               </button>
             </div>
@@ -278,9 +278,9 @@ export function DentalLandingPage() {
               return (
                 <article
                   key={plan.id}
-                  className={`flex flex-col rounded-2xl border p-6 ${plan.highlighted ? "border-teal-600 bg-white shadow-lg ring-2 ring-teal-600/20" : "border-slate-200 bg-white"}`}>
+                  className={`flex flex-col rounded-2xl border p-6 ${plan.highlighted ? "border-[#0F4C81] bg-white shadow-lg ring-2 ring-[#0F4C81]/20" : "border-slate-200 bg-white"}`}>
                   {plan.highlighted ? (
-                    <span className="mb-3 w-fit rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
+                    <span className="mb-3 w-fit rounded-full bg-[#E8F1F8] px-2.5 py-0.5 text-xs font-semibold text-[#0B3D66]">
                       Empfohlen
                     </span>
                   ) : null}
@@ -310,8 +310,8 @@ export function DentalLandingPage() {
                     href="/auth/login"
                     className={`mt-8 block rounded-lg px-4 py-2.5 text-center text-sm font-semibold ${
                       plan.highlighted
-                        ? "bg-teal-700 text-white hover:bg-teal-800"
-                        : "border border-slate-300 text-slate-800 hover:border-teal-400"
+                        ? "bg-[#0F4C81] text-white hover:bg-[#0B3D66]"
+                        : "border border-slate-300 text-slate-800 hover:border-[#0F4C81]"
                     }`}>
                     {plan.cta}
                   </Link>
@@ -342,7 +342,7 @@ export function DentalLandingPage() {
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   aria-expanded={openFaq === index}>
                   <span className="pr-4 font-semibold text-slate-900">{item.question}</span>
-                  <span className="text-xl text-teal-700">{openFaq === index ? "−" : "+"}</span>
+                  <span className="text-xl text-[#0F4C81]">{openFaq === index ? "−" : "+"}</span>
                 </button>
                 {openFaq === index ? (
                   <div className="px-6 pb-5 text-sm leading-relaxed text-slate-600">{item.answer}</div>
@@ -354,19 +354,19 @@ export function DentalLandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="border-t border-slate-100 bg-gradient-to-br from-teal-800 to-teal-900 py-20 text-white">
+      <section className="border-t border-slate-100 bg-gradient-to-br from-[#0B3D66] to-[#0a3254] py-20 text-white">
         <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
-          <p className="text-sm font-semibold uppercase tracking-wide text-teal-200">Kostenlos & unverbindlich</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#E8F1F8]">Kostenlos & unverbindlich</p>
           <h2 className="mt-3 text-3xl font-bold md:text-4xl">Jetzt teeth.al kostenlos testen</h2>
-          <p className="mt-4 text-lg text-teal-100">
+          <p className="mt-4 text-lg text-[#E8F1F8]/90">
             Überzeugen Sie sich selbst — starten Sie in Minuten mit Ihrer Praxis. Wir begleiten Sie beim Setup.
           </p>
           <Link
             href="/auth/login"
-            className="mt-8 inline-flex rounded-lg bg-white px-8 py-3 text-base font-semibold text-teal-900 shadow-lg hover:bg-teal-50">
+            className="mt-8 inline-flex rounded-lg bg-white px-8 py-3 text-base font-semibold text-[#0B3D66] shadow-lg hover:bg-[#E8F1F8]">
             Kostenlos testen
           </Link>
-          <p className="mt-4 text-xs text-teal-200/80">
+          <p className="mt-4 text-xs text-[#E8F1F8]/80">
             100 % kostenlos testen. Mit dem Start stimmen Sie unserer Datenschutzerklärung zu.
           </p>
         </div>
@@ -383,13 +383,13 @@ export function DentalLandingPage() {
             Terminsoftware für Zahnarztpraxen · DSGVO-konform · Made in Germany
           </p>
           <div className="flex gap-6 text-sm text-slate-600">
-            <Link href="/auth/login" className="hover:text-teal-700">
+            <Link href="/auth/login" className="hover:text-[#0F4C81]">
               Anmelden
             </Link>
-            <a href="#preise" className="hover:text-teal-700">
+            <a href="#preise" className="hover:text-[#0F4C81]">
               Preise
             </a>
-            <a href="#faq" className="hover:text-teal-700">
+            <a href="#faq" className="hover:text-[#0F4C81]">
               FAQ
             </a>
           </div>

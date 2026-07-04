@@ -9,7 +9,7 @@ export const TRUST_BADGES = [
 
 export const HERO_BULLETS = [
   "Online-Termine in 30 Sekunden — ohne Telefon-Marathon",
-  "Smart-Fill AI füllt Leerlauf-Slots per SMS automatisch",
+  "Smart-Fill AI füllt Leerlauf-Slots per E-Mail automatisch",
   "Prophylaxe-Recall — Patienten kommen von selbst zurück",
   "Behandlungsstuhl & Raum parallel zum Zahnarzt buchen",
   "Patientendaten verschlüsselt — nicht in Excel-Listen",
@@ -19,10 +19,10 @@ export const SMART_AUTOMATION = {
   eyebrow: "Smart-Fill AI & Recall",
   title: "Leere Slots füllen sich von selbst — Recall bringt Patienten zurück",
   description:
-    "Warteliste, SMS-Einladungen bei kurzfristigen Absagen und automatische Prophylaxe-Erinnerungen — ohne Excel und Telefon-Marathon.",
+    "Warteliste, E-Mail-Einladungen bei kurzfristigen Absagen und automatische Prophylaxe-Erinnerungen — ohne Excel und Telefon-Marathon.",
   bullets: [
-    "Smart-Fill: freie Termine per SMS an Wartelisten-Patienten",
-    "Recall: E-Mail & SMS nach konfigurierbarem Intervall (z. B. 6 Monate)",
+    "Smart-Fill: freie Termine per E-Mail an Wartelisten-Patienten",
+    "Recall: E-Mail-Erinnerungen nach konfigurierbarem Intervall (z. B. 6 Monate)",
     "PVS-Sync: Termine direkt ins Praxisverwaltungssystem",
     "Praxis-Dashboard mit KPIs auf der Event-Types-Seite",
   ],
@@ -32,7 +32,7 @@ export const FEATURES = [
   {
     title: "Smart-Fill & Prophylaxe-Recall",
     description:
-      "Kurzfristig frei gewordene Slots werden per SMS an Wartelisten-Patienten vergeben. Recall erinnert automatisch an die nächste Prophylaxe — mit DSGVO Opt-out.",
+      "Kurzfristig frei gewordene Slots werden per E-Mail an Wartelisten-Patienten vergeben. Recall erinnert automatisch an die nächste Prophylaxe — mit DSGVO Opt-out.",
   },
   {
     title: "Termine in Sekunden online buchen",
@@ -149,8 +149,8 @@ export const PRICING_PLANS = [
     features: [
       "Bis 5 Behandler",
       "Behandlungsressourcen (Stuhl/Raum)",
-      "Smart-Fill Warteliste & SMS",
-      "Prophylaxe-Recall (E-Mail/SMS)",
+      "Smart-Fill Warteliste & E-Mail",
+      "Prophylaxe-Recall (E-Mail)",
       "Verschlüsselung Patientendaten",
       "E-Mail-Erinnerungen",
       "E-Mail-Support",
