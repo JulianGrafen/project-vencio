@@ -8,6 +8,7 @@ import {
   INDUSTRIES,
   PRICING_PLANS,
   PRODUCT_NAME,
+  SMART_AUTOMATION,
   TRUST_BADGES,
 } from "./content";
 
@@ -19,6 +20,7 @@ function appLink(path: string): string {
 
 const NAV_ITEMS = [
   { href: "#funktionen", label: "Funktionen" },
+  { href: "#automation", label: "Smart-Fill" },
   { href: "#compliance", label: "Compliance" },
   { href: "#preise", label: "Preise" },
   { href: "#faq", label: "FAQ" },
@@ -289,6 +291,53 @@ export default function App() {
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{feature.description}</p>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Smart-Fill & Recall */}
+      <section id="automation" className="py-20">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <div className="grid items-center gap-10 rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-white p-8 md:grid-cols-2 md:p-12">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
+                {SMART_AUTOMATION.eyebrow}
+              </p>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{SMART_AUTOMATION.title}</h2>
+              <p className="mt-4 text-lg text-slate-600">{SMART_AUTOMATION.description}</p>
+              <ul className="mt-6 space-y-3">
+                {SMART_AUTOMATION.bullets.map((item) => (
+                  <li key={item} className="flex gap-3 text-slate-700">
+                    <CheckIcon />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <PrimaryButton href={appLink("/auth/login")} className="mt-8">
+                Smart-Fill testen
+              </PrimaryButton>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+              <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Heute in Ihrer Praxis</p>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="rounded-lg bg-teal-50 p-4">
+                  <p className="text-3xl font-bold text-teal-900">3</p>
+                  <p className="text-sm text-teal-800">Slots per SMS gefüllt</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-3xl font-bold text-slate-900">+420 €</p>
+                  <p className="text-sm text-slate-600">Umsatz gesichert</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-3xl font-bold text-slate-900">12</p>
+                  <p className="text-sm text-slate-600">Recall diese Woche</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-3xl font-bold text-slate-900">0</p>
+                  <p className="text-sm text-slate-600">Leerlauf-Stühle</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

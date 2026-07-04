@@ -11,6 +11,7 @@ import {
   INDUSTRIES,
   PRICING_PLANS,
   PRODUCT_NAME,
+  SMART_AUTOMATION,
   TRUST_BADGES,
 } from "./landing-content";
 
@@ -64,6 +65,9 @@ export function DentalLandingPage() {
           <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
             <a href="#funktionen" className="hover:text-teal-700">
               Funktionen
+            </a>
+            <a href="#automation" className="hover:text-teal-700">
+              Smart-Fill
             </a>
             <a href="#compliance" className="hover:text-teal-700">
               Compliance

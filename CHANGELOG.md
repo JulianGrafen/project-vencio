@@ -15,7 +15,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Mandatory 2FA** for practice OWNER/ADMIN in compliance mode (`DENTAL_REQUIRE_2FA`)
 - Prisma models: `SmartFillTask`, `SmartFillPatient`, `SmartFillInvite`.
 - B2B landing page at `/zahnarzt` (PraxisTermin marketing).
-- **GitHub Pages landing** — standalone static site in `apps/praxistermin-landing` with deploy workflow.
+- **GitHub Pages landing** — standalone static site in `apps/praxistermin-landing`; deploy via Actions workflow (Smart-Fill/Recall section, CNAME + sitemap support).
 - **Mandatory 2FA** for practice OWNER/ADMIN in compliance mode (`DENTAL_REQUIRE_2FA`).
 - PVS integration target structure documented (implementation pending in `packages/pvs-integration`).
 
