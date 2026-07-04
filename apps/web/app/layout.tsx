@@ -64,7 +64,7 @@ export const metadata = {
       },
     ],
   },
-  manifest: "/site.webmanifest",
+  manifest: "/manifest.webmanifest",
   other: {
     "application-TileColor": "#ff0000",
   },
