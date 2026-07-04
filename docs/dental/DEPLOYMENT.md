@@ -163,6 +163,7 @@ Structured dental logs use `createDentalLogger()` with module tags:
 ## 7. Security hardening (already implemented)
 
 - Smart-Fill invite emails with one-click confirm/decline links (`/api/smart-fill/confirm`, `/api/smart-fill/decline`)
+- Smart-Fill SMS webhook (`/api/webhooks/smart-fill/sms`) returns **410 Gone** — email-only since 2026-07-04; set `SMART_FILL_SMS_LEGACY_WEBHOOK=true` only for local legacy testing
 - Recall opt-out: HTML escaping, uniform error responses
 - Mock email providers blocked at runtime in production
 
@@ -193,7 +194,8 @@ CALCOM_ENV=production NODE_ENV=production DENTAL_ENCRYPTION_ENABLED=true \
 
 | Item | Status |
 |------|--------|
-| `SmartFillPatient` PII field encryption | **Implemented** — `field-registry`, blind-index SMS lookup, Prisma extension |
+| `SmartFillPatient` PII field encryption | **Implemented** — `field-registry`, blind-index phone lookup, Prisma extension |
+| Smart-Fill SMS replies | **Deprecated** — use email confirm/decline links; legacy webhook opt-in via `SMART_FILL_SMS_LEGACY_WEBHOOK=true` |
 | Dampsoft PVS adapter | Stub — real PVS I/O required for sync |
 | Playwright E2E | Not yet automated |
 | Desloppify subjective review | 20 dimensions unassessed |

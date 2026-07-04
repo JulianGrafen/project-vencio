@@ -11,7 +11,39 @@ import {
 import { shouldValidateTwilioSignature } from "@calcom/lib/dental/smart-fill/sms/webhook-auth";
 import { prisma } from "@calcom/prisma";
 
+const LEGACY_SMS_WEBHOOK_ENV = "SMART_FILL_SMS_LEGACY_WEBHOOK";
+
+function isLegacySmsWebhookEnabled(): boolean {
+  return process.env[LEGACY_SMS_WEBHOOK_ENV] === "true";
+}
+
+function deprecatedSmsWebhookResponse() {
+  return NextResponse.json(
+    {
+      error: "deprecated",
+      message:
+        "Smart-Fill Nachrücktermine use email-only invites. SMS reply webhooks are no longer supported.",
+      migrateTo: {
+        confirm: "/api/smart-fill/confirm?token=...",
+        decline: "/api/smart-fill/decline?token=...",
+      },
+      legacyEnv: LEGACY_SMS_WEBHOOK_ENV,
+    },
+    {
+      status: 410,
+      headers: {
+        Deprecation: "true",
+        Sunset: "Sat, 04 Jul 2026 00:00:00 GMT",
+      },
+    }
+  );
+}
+
 async function postHandler(request: NextRequest) {
+  if (!isLegacySmsWebhookEnabled()) {
+    return deprecatedSmsWebhookResponse();
+  }
+
   const contentType = request.headers.get("content-type") ?? "";
 
   let from: string | undefined;

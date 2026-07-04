@@ -79,6 +79,8 @@ jobs:
             packages/pvs-integration \
             packages/pvs-connector \
             apps/web/app/api/pvs/outbox/__tests__ \
+            apps/web/app/api/smart-fill/**/__tests__ \
+            apps/web/app/api/webhooks/smart-fill/**/__tests__ \
             packages/trpc/server/routers/viewer/bookings/get.handler.test.ts \
             packages/lib/dental/production-config.test.ts \
             --reporter=dot
