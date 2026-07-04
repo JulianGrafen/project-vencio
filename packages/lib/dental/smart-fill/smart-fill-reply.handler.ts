@@ -1,12 +1,17 @@
-import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus, SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
+import { SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
 import { enqueuePvsAppointmentSync } from "@calcom/lib/dental/pvs/enqueue-pvs-sync";
 import { randomUUID } from "node:crypto";
 
-import { SMART_FILL_CONFIRM_KEYWORDS } from "./constants";
+import { finalizeSmartFillBooking } from "./smart-fill-booking-finalizer";
+import {
+  isSmartFillConfirmKeyword,
+  isSmartFillDeclineKeyword,
+  SMART_FILL_DEFAULT_BOOKING_TITLE,
+} from "./constants";
+import { declineSmartFillInvite } from "./smart-fill-invite-lifecycle";
 import { normalizePhoneNumber } from "./phone-utils";
-import { parseSmartFillTaskMetadata, releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
+import { parseSmartFillTaskMetadata } from "./smart-fill-slot-hold";
 
 export type InboundSmsPayload = {
   from: string;
@@ -26,22 +31,47 @@ export class SmartFillReplyHandler {
   constructor(private readonly prisma: PrismaClient) {}
 
   async handleInboundSms(payload: InboundSmsPayload): Promise<SmartFillReplyResult> {
-    const normalizedPhone = normalizePhoneNumber(payload.from);
-    const normalizedBody = payload.body.trim().toUpperCase();
-
-    const patient = await this.prisma.smartFillPatient.findFirst({
-      where: {
-        OR: [{ phoneNumber: normalizedPhone }, { phoneNumber: payload.from.replace(/\s+/g, "") }],
-      },
-    });
-
+    const patient = await this.findPatientByPhone(payload.from);
     if (!patient) {
       return { action: "ignored", reason: "unknown_patient" };
     }
 
-    const invite = await this.prisma.smartFillInvite.findFirst({
+    const invite = await this.findActiveInvite(patient.id);
+    if (!invite) {
+      return { action: "ignored", reason: "no_active_invite" };
+    }
+
+    if (isSmartFillConfirmKeyword(payload.body)) {
+      return this.confirmInvite(invite, payload.body);
+    }
+
+    if (isSmartFillDeclineKeyword(payload.body)) {
+      await declineSmartFillInvite(this.prisma, {
+        inviteId: invite.id,
+        taskId: invite.taskId,
+        taskMetadata: invite.task.metadata,
+        replyBody: payload.body,
+      });
+      return { action: "declined", taskId: invite.taskId };
+    }
+
+    return { action: "ignored", reason: "unrecognized_reply" };
+  }
+
+  private findPatientByPhone(from: string) {
+    const normalizedPhone = normalizePhoneNumber(from);
+
+    return this.prisma.smartFillPatient.findFirst({
       where: {
-        patientId: patient.id,
+        OR: [{ phoneNumber: normalizedPhone }, { phoneNumber: from.replace(/\s+/g, "") }],
+      },
+    });
+  }
+
+  private findActiveInvite(patientId: string) {
+    return this.prisma.smartFillInvite.findFirst({
+      where: {
+        patientId,
         status: { in: [SmartFillInviteStatus.SENT, SmartFillInviteStatus.DELIVERED] },
         task: {
           status: SmartFillTaskStatus.INVITED,
@@ -54,29 +84,6 @@ export class SmartFillReplyHandler {
         task: { include: { user: true, eventType: true } },
       },
     });
-
-    if (!invite) {
-      return { action: "ignored", reason: "no_active_invite" };
-    }
-
-    if (SMART_FILL_CONFIRM_KEYWORDS.includes(normalizedBody as (typeof SMART_FILL_CONFIRM_KEYWORDS)[number])) {
-      return this.confirmInvite(invite, payload.body);
-    }
-
-    if (["NEIN", "N", "NO"].includes(normalizedBody)) {
-      await this.prisma.smartFillInvite.update({
-        where: { id: invite.id },
-        data: { status: SmartFillInviteStatus.REPLIED_NO, repliedAt: new Date(), replyBody: payload.body },
-      });
-      await releaseSmartFillHoldBooking(this.prisma, invite.taskId, invite.task.metadata);
-      await this.prisma.smartFillTask.update({
-        where: { id: invite.taskId },
-        data: { status: SmartFillTaskStatus.DECLINED, metadata: {} },
-      });
-      return { action: "declined", taskId: invite.taskId };
-    }
-
-    return { action: "ignored", reason: "unrecognized_reply" };
   }
 
   private async confirmInvite(
@@ -105,7 +112,6 @@ export class SmartFillReplyHandler {
     replyBody: string
   ): Promise<SmartFillReplyResult> {
     const { patient } = invite;
-    const title = invite.task.eventType?.title ?? "Smart-Fill Termin";
     const holdBookingUid = parseSmartFillTaskMetadata(invite.task.metadata).holdBookingUid;
     const bookingUid = holdBookingUid ?? randomUUID();
 
@@ -118,50 +124,30 @@ export class SmartFillReplyHandler {
       if (locked.count === 0) {
         const existing = await tx.smartFillTask.findUnique({ where: { id: invite.taskId } });
         if (existing?.status === SmartFillTaskStatus.CONFIRMED && existing.bookingUid) {
-          return { alreadyConfirmed: true as const, bookingUid: existing.bookingUid };
+          return { bookingUid: existing.bookingUid };
         }
         throw new Error(`SmartFillTask ${invite.taskId} is no longer invitable`);
       }
 
-      if (holdBookingUid) {
-        await tx.booking.update({
-          where: { uid: holdBookingUid },
-          data: {
-            status: BookingStatus.ACCEPTED,
-            title,
-            metadata: { source: "smart-fill", smartFillTaskId: invite.task.id },
-            attendees: {
-              create: {
-                email: patient.email,
-                name: patient.name,
-                timeZone: invite.task.user.timeZone,
-                locale: patient.locale ?? "de",
-              },
-            },
-          },
-        });
-      } else {
-        await tx.booking.create({
-          data: {
-            uid: bookingUid,
-            title,
-            startTime: invite.task.startTime,
-            endTime: invite.task.endTime,
-            userId: invite.task.userId,
-            eventTypeId: invite.task.eventTypeId,
-            status: BookingStatus.ACCEPTED,
-            metadata: { source: "smart-fill", smartFillTaskId: invite.task.id },
-            attendees: {
-              create: {
-                email: patient.email,
-                name: patient.name,
-                timeZone: invite.task.user.timeZone,
-                locale: patient.locale ?? "de",
-              },
-            },
-          },
-        });
-      }
+      await finalizeSmartFillBooking(tx, {
+        bookingUid,
+        holdBookingUid,
+        task: {
+          id: invite.task.id,
+          teamId: invite.task.teamId,
+          userId: invite.task.userId,
+          eventTypeId: invite.task.eventTypeId,
+          startTime: invite.task.startTime,
+          endTime: invite.task.endTime,
+          eventTypeTitle: invite.task.eventType?.title,
+        },
+        patient: {
+          email: patient.email,
+          name: patient.name,
+          timeZone: invite.task.user.timeZone,
+          locale: patient.locale,
+        },
+      });
 
       await tx.smartFillInvite.update({
         where: { id: invite.id },
@@ -177,6 +163,7 @@ export class SmartFillReplyHandler {
         data: { lastVisitAt: invite.task.startTime },
       });
 
+      const title = invite.task.eventType?.title ?? SMART_FILL_DEFAULT_BOOKING_TITLE;
       await enqueuePvsAppointmentSync(tx, {
         bookingUid,
         teamId: invite.task.teamId,
@@ -191,7 +178,7 @@ export class SmartFillReplyHandler {
         smartFillTaskId: invite.task.id,
       });
 
-      return { alreadyConfirmed: false as const, bookingUid };
+      return { bookingUid };
     });
 
     return { action: "confirmed", bookingUid: result.bookingUid, taskId: invite.taskId };

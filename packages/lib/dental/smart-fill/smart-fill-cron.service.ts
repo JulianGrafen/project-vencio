@@ -1,18 +1,25 @@
 import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus, SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
+import { SmartFillTaskStatus } from "@calcom/prisma/enums";
 import { randomUUID } from "node:crypto";
 
 import {
+  SMART_FILL_BUSY_BOOKING_STATUSES,
   SMART_FILL_DEFAULT_REVENUE_CENTS,
+  SMART_FILL_DEFAULT_WORK_DAYS,
+  SMART_FILL_DEFAULT_WORK_END_MINUTES,
+  SMART_FILL_DEFAULT_WORK_START_MINUTES,
   SMART_FILL_LOOKAHEAD_HOURS,
   SMART_FILL_MIN_GAP_MINUTES,
+  SMART_FILL_STALE_TASK_STATUSES,
 } from "./constants";
-import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
 import {
-  createSmartFillHoldBooking,
-  releaseSmartFillHoldBooking,
-} from "./smart-fill-slot-hold";
+  lockSmartFillTaskForInvite,
+  rollbackSmartFillInvite,
+} from "./smart-fill-invite-lifecycle";
+import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
+import { buildSmartFillInviteSmsBody } from "./smart-fill-sms-message";
+import { releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
 import {
   findSmartFillCandidateSlots,
   type WeeklyAvailabilityWindow,
@@ -71,8 +78,7 @@ export class SmartFillCronService {
           if (task.created) tasksCreated++;
 
           if (await this.shouldSendInvite(task.task.id, task.task.status)) {
-            const sent = await this.invitePatientsForTask(task.task.id, host);
-            invitesSent += sent;
+            invitesSent += await this.invitePatientsForTask(task.task.id, host);
           }
         }
       } catch (error) {
@@ -144,7 +150,7 @@ export class SmartFillCronService {
     const bookings = await this.prisma.booking.findMany({
       where: {
         userId: host.userId,
-        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING, BookingStatus.AWAITING_HOST] },
+        status: { in: [...SMART_FILL_BUSY_BOOKING_STATUSES] },
         startTime: { lt: windowEnd },
         endTime: { gt: windowStart },
       },
@@ -162,10 +168,10 @@ export class SmartFillCronService {
   }
 
   private defaultAvailability(): WeeklyAvailabilityWindow[] {
-    return [1, 2, 3, 4, 5].map((day) => ({
+    return SMART_FILL_DEFAULT_WORK_DAYS.map((day) => ({
       dayOfWeek: day,
-      startMinutes: 9 * 60,
-      endMinutes: 17 * 60,
+      startMinutes: SMART_FILL_DEFAULT_WORK_START_MINUTES,
+      endMinutes: SMART_FILL_DEFAULT_WORK_END_MINUTES,
     }));
   }
 
@@ -232,50 +238,24 @@ export class SmartFillCronService {
 
     const patient = patients[0];
 
-    const lockedInvite = await this.prisma.$transaction(async (tx) => {
-      const locked = await tx.smartFillTask.updateMany({
-        where: { id: taskId, status: SmartFillTaskStatus.PENDING },
-        data: { status: SmartFillTaskStatus.INVITED },
-      });
-
-      if (locked.count === 0) {
-        return null;
-      }
-
-      const task = await tx.smartFillTask.findUniqueOrThrow({ where: { id: taskId } });
-      const existingInvites = await tx.smartFillInvite.count({ where: { taskId } });
-
-      if (existingInvites > 0) {
-        return null;
-      }
-
-      await createSmartFillHoldBooking(tx, {
-        taskId: task.id,
-        teamId: host.teamId,
-        userId: host.userId,
-        eventTypeId: host.eventTypeId,
-        title: host.eventTypeTitle ?? "Behandlung",
-        startTime: task.startTime,
-        endTime: task.endTime,
-      });
-
-      const invite = await tx.smartFillInvite.create({
-        data: {
-          taskId: task.id,
-          patientId: patient.id,
-          status: SmartFillInviteStatus.SENT,
-        },
-      });
-
-      return { task, inviteId: invite.id };
-    });
+    const lockedInvite = await this.prisma.$transaction((tx) =>
+      lockSmartFillTaskForInvite(tx, {
+        taskId,
+        patientId: patient.id,
+        host,
+      })
+    );
 
     if (!lockedInvite) {
       return 0;
     }
 
-    const startFormatted = dayjs(lockedInvite.task.startTime).tz(host.timeZone).format("DD.MM. HH:mm");
-    const body = `Guten Tag ${patient.name}, in der Praxis ist am ${startFormatted} ein Termin frei geworden (${host.eventTypeTitle ?? "Behandlung"}). Antworten Sie mit JA zur Bestätigung.`;
+    const body = buildSmartFillInviteSmsBody({
+      patientName: patient.name,
+      slotStart: lockedInvite.task.startTime,
+      timeZone: host.timeZone,
+      treatmentTitle: host.eventTypeTitle,
+    });
 
     try {
       const smsResult = await this.sms.send({
@@ -292,15 +272,13 @@ export class SmartFillCronService {
 
       return 1;
     } catch {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.smartFillInvite.delete({ where: { id: lockedInvite.inviteId } });
-        await releaseSmartFillHoldBooking(tx, taskId, lockedInvite.task.metadata);
-        await tx.smartFillTask.update({
-          where: { id: taskId },
-          data: { status: SmartFillTaskStatus.PENDING, metadata: {} },
-        });
-      });
-
+      await this.prisma.$transaction((tx) =>
+        rollbackSmartFillInvite(tx, {
+          taskId,
+          inviteId: lockedInvite.inviteId,
+          taskMetadata: lockedInvite.task.metadata,
+        })
+      );
       return 0;
     }
   }
@@ -308,7 +286,7 @@ export class SmartFillCronService {
   private async expireStaleTasks() {
     const staleTasks = await this.prisma.smartFillTask.findMany({
       where: {
-        status: { in: [SmartFillTaskStatus.PENDING, SmartFillTaskStatus.INVITED] },
+        status: { in: [...SMART_FILL_STALE_TASK_STATUSES] },
         startTime: { lt: new Date() },
       },
       select: { id: true, metadata: true },
@@ -320,7 +298,7 @@ export class SmartFillCronService {
 
     await this.prisma.smartFillTask.updateMany({
       where: {
-        status: { in: [SmartFillTaskStatus.PENDING, SmartFillTaskStatus.INVITED] },
+        status: { in: [...SMART_FILL_STALE_TASK_STATUSES] },
         startTime: { lt: new Date() },
       },
       data: { status: SmartFillTaskStatus.EXPIRED },

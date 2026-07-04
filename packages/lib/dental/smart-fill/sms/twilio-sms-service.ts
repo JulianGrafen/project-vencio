@@ -1,9 +1,9 @@
 import type { SmsSendParams, SmsSendResult, SmsService } from "./sms-service.interface";
+import { buildTwilioBasicAuthHeader, resolveTwilioCredentials } from "./twilio-config";
 
 type TwilioMessagesResponse = {
   sid: string;
   status: string;
-  error_code?: number | null;
   error_message?: string | null;
 };
 
@@ -16,13 +16,10 @@ export class TwilioSmsService implements SmsService {
   private readonly fromNumber: string;
 
   constructor(config?: { accountSid?: string; authToken?: string; fromNumber?: string }) {
-    this.accountSid = config?.accountSid ?? process.env.TWILIO_SID ?? "";
-    this.authToken = config?.authToken ?? process.env.TWILIO_TOKEN ?? "";
-    this.fromNumber = config?.fromNumber ?? process.env.TWILIO_PHONE_NUMBER ?? "";
-
-    if (!this.accountSid || !this.authToken || !this.fromNumber) {
-      throw new Error("TwilioSmsService requires TWILIO_SID, TWILIO_TOKEN, and TWILIO_PHONE_NUMBER");
-    }
+    const credentials = resolveTwilioCredentials(config);
+    this.accountSid = credentials.accountSid;
+    this.authToken = credentials.authToken;
+    this.fromNumber = credentials.fromNumber;
   }
 
   async send(params: SmsSendParams): Promise<SmsSendResult> {
@@ -37,7 +34,7 @@ export class TwilioSmsService implements SmsService {
       {
         method: "POST",
         headers: {
-          Authorization: `Basic ${Buffer.from(`${this.accountSid}:${this.authToken}`).toString("base64")}`,
+          Authorization: buildTwilioBasicAuthHeader(this.accountSid, this.authToken),
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body,

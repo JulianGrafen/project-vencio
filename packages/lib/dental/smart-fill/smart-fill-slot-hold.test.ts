@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { createSmartFillHoldBooking, parseSmartFillTaskMetadata, releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
+import { SMART_FILL_HOLD_SOURCE } from "./constants";
+import {
+  createSmartFillHoldBooking,
+  parseSmartFillTaskMetadata,
+  releaseSmartFillHoldBooking,
+} from "./smart-fill-slot-hold";
 
 describe("smart-fill-slot-hold", () => {
   it("parses hold booking uid from task metadata", () => {
@@ -37,7 +42,7 @@ describe("smart-fill-slot-hold", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           status: BookingStatus.PENDING,
-          metadata: expect.objectContaining({ source: "smart-fill-hold" }),
+          metadata: expect.objectContaining({ source: SMART_FILL_HOLD_SOURCE }),
         }),
       })
     );

@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { SMART_FILL_HOLD_SOURCE } from "./constants";
+
 export type SmartFillTaskMetadata = {
   holdBookingUid?: string;
 };
@@ -44,7 +46,7 @@ export async function createSmartFillHoldBooking(
       eventTypeId: params.eventTypeId,
       status: BookingStatus.PENDING,
       metadata: {
-        source: "smart-fill-hold",
+        source: SMART_FILL_HOLD_SOURCE,
         smartFillTaskId: params.taskId,
         teamId: params.teamId,
       },

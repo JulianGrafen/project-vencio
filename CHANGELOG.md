@@ -21,7 +21,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Root `/` redirects unauthenticated users to `/zahnarzt` when `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true`.
+- **Clean Code refactor** — Smart-Fill modules split into focused services (invite lifecycle, booking finalizer, patient repository, SMS templates); deduplicated dental tRPC middleware.
 
 ### Security / Compliance
 

@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 
 import { SmartFillDashboardService } from "@calcom/lib/dental/smart-fill";
 import { isSmartFillEnabled } from "@calcom/lib/dental/smart-fill/feature-flags";
-import { normalizePhoneNumber } from "@calcom/lib/dental/smart-fill/phone-utils";
+import { SmartFillPatientService } from "@calcom/lib/dental/smart-fill/smart-fill-patient.service";
 import {
   assertAcceptedTeamMembership,
   assertAdminOrOwnerTeamMembership,
@@ -20,22 +20,14 @@ import {
   ZSmartFillPatientUpdateInput,
 } from "./_schemas";
 
-const patientSelect = {
-  id: true,
-  name: true,
-  email: true,
-  phoneNumber: true,
-  waitlistEnabled: true,
-  lastVisitAt: true,
-  priorityScore: true,
-  preferredEventTypeId: true,
-  createdAt: true,
-} as const;
+const patientService = new SmartFillPatientService(prisma);
 
-async function findTeamPatient(patientId: string, teamId: number) {
-  return prisma.smartFillPatient.findFirst({
-    where: { id: patientId, teamId },
-  });
+async function requireTeamPatient(teamId: number, patientId: string) {
+  const patient = await patientService.findByTeam(teamId, patientId);
+  if (!patient) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+  return patient;
 }
 
 export const smartFillRouter = router({
@@ -60,62 +52,23 @@ export const smartFillRouter = router({
 
   listPatients: authedProcedure.input(ZSmartFillPatientListInput).query(async ({ ctx, input }) => {
     await assertAcceptedTeamMembership(ctx.user.id, input.teamId);
-
-    return prisma.smartFillPatient.findMany({
-      where: { teamId: input.teamId },
-      orderBy: [{ waitlistEnabled: "desc" }, { priorityScore: "desc" }, { name: "asc" }],
-      select: patientSelect,
-    });
+    return patientService.listByTeam(input.teamId);
   }),
 
   createPatient: dentalAdminProcedure.input(ZSmartFillPatientCreateInput).mutation(async ({ ctx, input }) => {
     await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
-    return prisma.smartFillPatient.create({
-      data: {
-        teamId: input.teamId,
-        name: input.name,
-        email: input.email,
-        phoneNumber: normalizePhoneNumber(input.phoneNumber),
-        waitlistEnabled: input.waitlistEnabled,
-        priorityScore: input.priorityScore,
-        preferredEventTypeId: input.preferredEventTypeId ?? null,
-      },
-      select: patientSelect,
-    });
+    return patientService.create(input);
   }),
 
   updatePatient: dentalAdminProcedure.input(ZSmartFillPatientUpdateInput).mutation(async ({ ctx, input }) => {
     await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
-    const patient = await findTeamPatient(input.patientId, input.teamId);
-    if (!patient) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    return prisma.smartFillPatient.update({
-      where: { id: input.patientId },
-      data: {
-        name: input.name,
-        email: input.email,
-        phoneNumber: input.phoneNumber ? normalizePhoneNumber(input.phoneNumber) : undefined,
-        waitlistEnabled: input.waitlistEnabled,
-        priorityScore: input.priorityScore,
-        preferredEventTypeId: input.preferredEventTypeId,
-      },
-      select: patientSelect,
-    });
+    await requireTeamPatient(input.teamId, input.patientId);
+    return patientService.update(input);
   }),
 
   deletePatient: dentalAdminProcedure.input(ZSmartFillPatientDeleteInput).mutation(async ({ ctx, input }) => {
     await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
-    const patient = await findTeamPatient(input.patientId, input.teamId);
-    if (!patient) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    await prisma.smartFillPatient.delete({ where: { id: input.patientId } });
-    return { success: true as const };
+    await requireTeamPatient(input.teamId, input.patientId);
+    return patientService.delete(input.patientId).then(() => ({ success: true as const }));
   }),
 });

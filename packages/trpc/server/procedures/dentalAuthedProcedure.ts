@@ -2,14 +2,17 @@ import authedProcedure from "./authedProcedure";
 import { dentalTenantContextMiddleware } from "../middlewares/dentalTenantContextMiddleware";
 import { dentalTwoFactorMiddleware } from "../middlewares/dentalTwoFactorMiddleware";
 
-/** Authed procedure with dental tenant encryption context when enabled. */
-const dentalAuthedProcedure = authedProcedure
-  .use(dentalTwoFactorMiddleware as unknown as Parameters<typeof authedProcedure.use>[0])
-  .use(dentalTenantContextMiddleware as unknown as Parameters<typeof authedProcedure.use>[0]);
+type AuthedProcedure = typeof authedProcedure;
 
-/** Dental admin mutations — tenant context + mandatory 2FA for practice OWNER/ADMIN. */
-export const dentalAdminProcedure = authedProcedure
-  .use(dentalTwoFactorMiddleware as unknown as Parameters<typeof authedProcedure.use>[0])
-  .use(dentalTenantContextMiddleware as unknown as Parameters<typeof authedProcedure.use>[0]);
+const withDentalComplianceMiddleware = (procedure: AuthedProcedure) =>
+  procedure
+    .use(dentalTwoFactorMiddleware as unknown as Parameters<AuthedProcedure["use"]>[0])
+    .use(dentalTenantContextMiddleware as unknown as Parameters<AuthedProcedure["use"]>[0]);
+
+/** Authed procedure with dental 2FA gate + tenant encryption context when enabled. */
+const dentalAuthedProcedure = withDentalComplianceMiddleware(authedProcedure);
+
+/** Semantic alias for admin mutations — same middleware stack as dentalAuthedProcedure. */
+export const dentalAdminProcedure = dentalAuthedProcedure;
 
 export default dentalAuthedProcedure;
