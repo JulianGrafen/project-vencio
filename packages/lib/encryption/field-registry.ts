@@ -30,6 +30,11 @@ export const ENCRYPTED_FIELD_REGISTRY: Record<string, ModelFieldRegistry> = {
     email: { classification: "P1_PII" },
     name: { classification: "P1_PII" },
   },
+  SmartFillPatient: {
+    name: { classification: "P1_PII" },
+    email: { classification: "P1_PII", blindIndex: true, blindIndexField: "emailBlindIndex" },
+    phoneNumber: { classification: "P1_PII", blindIndex: true, blindIndexField: "phoneBlindIndex" },
+  },
 };
 
 export const HEALTH_DATA_GUARD_FIELDS = new Set([

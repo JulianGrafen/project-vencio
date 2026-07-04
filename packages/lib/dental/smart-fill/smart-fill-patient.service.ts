@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@calcom/prisma/generated/prisma/client";
 
+import { isDentalEncryptionEnabled } from "../feature-flags";
 import { normalizePhoneNumber } from "./phone-utils";
+import {
+  resolveSmartFillPatientPhoneLookupKey,
+} from "./smart-fill-patient-phone-index";
 import {
   SMART_FILL_PATIENT_SELECT,
   type SmartFillPatientListItem,
@@ -54,12 +58,18 @@ export class SmartFillPatientService {
   }
 
   create(input: CreatePatientInput): Promise<SmartFillPatientListItem> {
+    const phoneNumber = normalizePhoneNumber(input.phoneNumber);
+    const phoneBlindIndex = isDentalEncryptionEnabled()
+      ? undefined
+      : resolveSmartFillPatientPhoneLookupKey(phoneNumber);
+
     return this.prisma.smartFillPatient.create({
       data: {
         teamId: input.teamId,
         name: input.name,
         email: input.email,
-        phoneNumber: normalizePhoneNumber(input.phoneNumber),
+        phoneNumber,
+        ...(phoneBlindIndex ? { phoneBlindIndex } : {}),
         waitlistEnabled: input.waitlistEnabled,
         recallEnabled: input.recallEnabled ?? true,
         priorityScore: input.priorityScore,
@@ -71,8 +81,12 @@ export class SmartFillPatientService {
 
   async update(input: UpdatePatientInput): Promise<SmartFillPatientListItem> {
     let phoneNumber: string | undefined;
+    let phoneBlindIndex: string | undefined;
     if (input.phoneNumber !== undefined) {
       phoneNumber = normalizePhoneNumber(input.phoneNumber);
+      if (!isDentalEncryptionEnabled()) {
+        phoneBlindIndex = resolveSmartFillPatientPhoneLookupKey(phoneNumber);
+      }
     }
 
     const updated = await this.prisma.smartFillPatient.updateMany({
@@ -81,6 +95,7 @@ export class SmartFillPatientService {
         name: input.name,
         email: input.email,
         phoneNumber,
+        phoneBlindIndex,
         waitlistEnabled: input.waitlistEnabled,
         recallEnabled: input.recallEnabled,
         priorityScore: input.priorityScore,

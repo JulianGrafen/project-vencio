@@ -745,6 +745,8 @@ model SmartFillPatient {
   name                 String
   email                String
   phoneNumber          String
+  emailBlindIndex      String?
+  phoneBlindIndex      String
   waitlistEnabled      Boolean           @default(false)
   recallEnabled        Boolean           @default(true)
   lastVisitAt          DateTime?
@@ -757,9 +759,10 @@ model SmartFillPatient {
   invites              SmartFillInvite[]
   recallHistory        RecallHistory[]
 
-  @@unique([teamId, phoneNumber])
+  @@unique([teamId, phoneBlindIndex])
   @@index([teamId, waitlistEnabled, lastVisitAt])
   @@index([teamId, recallEnabled, lastVisitAt])
+  @@index([emailBlindIndex])
 }
 
 /// A detected free calendar gap eligible for automated patient outreach.

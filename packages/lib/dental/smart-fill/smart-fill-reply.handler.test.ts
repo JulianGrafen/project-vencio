@@ -26,6 +26,7 @@ describe("SmartFillReplyHandler", () => {
 
   const prisma = {
     smartFillInvite: {
+      findMany: vi.fn(async () => [{ task: { teamId: 1 } }]),
       findFirst: vi.fn(),
       update: vi.fn(),
     },

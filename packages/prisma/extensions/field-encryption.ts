@@ -9,7 +9,7 @@ import { isDentalEncryptionEnabled } from "@calcom/lib/dental/feature-flags";
 
 import { Prisma } from "../client";
 
-const ENCRYPTED_MODELS = ["Attendee", "Booking", "BookingInternalNote", "VideoCallGuest"] as const;
+const ENCRYPTED_MODELS = ["Attendee", "Booking", "BookingInternalNote", "VideoCallGuest", "SmartFillPatient"] as const;
 
 const READ_OPERATIONS = [
   "findUnique",

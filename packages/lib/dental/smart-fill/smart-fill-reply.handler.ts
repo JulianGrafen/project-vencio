@@ -11,7 +11,7 @@ import {
   SMART_FILL_DEFAULT_BOOKING_TITLE,
 } from "./constants";
 import { declineSmartFillInvite } from "./smart-fill-invite-lifecycle";
-import { normalizePhoneNumber } from "./phone-utils";
+import { buildSmartFillPatientPhoneLookupConditions } from "./smart-fill-patient-phone-index";
 import type { SmartFillActiveInvite } from "./smart-fill-reply.types";
 import { parseSmartFillTaskMetadata } from "./smart-fill-slot-hold";
 
@@ -56,19 +56,33 @@ export class SmartFillReplyHandler {
   }
 
   /** Resolves invite by phone via active invite chain — avoids cross-team patient mismatch. */
-  private findActiveInviteByPhone(from: string): Promise<SmartFillActiveInvite | null> {
-    const normalizedPhone = normalizePhoneNumber(from);
-    const compactPhone = from.replace(/\s+/g, "");
+  private async findActiveInviteByPhone(from: string): Promise<SmartFillActiveInvite | null> {
+    const activeInviteWhere = {
+      status: { in: [SmartFillInviteStatus.SENT, SmartFillInviteStatus.DELIVERED] },
+      task: {
+        status: SmartFillTaskStatus.INVITED,
+        startTime: { gt: new Date() },
+      },
+    };
+
+    const phoneConditions = await buildSmartFillPatientPhoneLookupConditions(
+      this.prisma,
+      from,
+      activeInviteWhere
+    );
+
+    if (phoneConditions.length === 0) {
+      return null;
+    }
 
     return this.prisma.smartFillInvite.findFirst({
       where: {
-        status: { in: [SmartFillInviteStatus.SENT, SmartFillInviteStatus.DELIVERED] },
-        task: {
-          status: SmartFillTaskStatus.INVITED,
-          startTime: { gt: new Date() },
-        },
+        ...activeInviteWhere,
         patient: {
-          OR: [{ phoneNumber: normalizedPhone }, { phoneNumber: compactPhone }],
+          OR: phoneConditions.map(({ teamId, phoneBlindIndex }) => ({
+            teamId,
+            phoneBlindIndex,
+          })),
         },
       },
       orderBy: { sentAt: "desc" },

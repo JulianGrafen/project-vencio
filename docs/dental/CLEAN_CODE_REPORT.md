@@ -248,7 +248,7 @@ packages/pvs-connector/src/
 |----------|------|--------|
 | P3 | Desloppify subjective review (`desloppify review --prepare`) | Deferred — 20 dimensions unassessed |
 | P3 | Playwright E2E booker → outbox row | Deferred |
-| P3 | SmartFillPatient PII field encryption | Deferred — compliance follow-up |
+| P3 | SmartFillPatient PII field encryption | **Resolved** — blind-index + field encryption |
 | P3 | Real Dampsoft PVS adapter (currently stub) | Deferred — required for live PVS sync |
 | P3 | Further large settings views | Deferred |
 
@@ -267,6 +267,20 @@ packages/pvs-connector/src/
 | **Deployment docs** | `docs/dental/DEPLOYMENT.md` — Vercel, self-hosted, connector, env matrix |
 
 **Test count after production readiness:** 154+ passing.
+
+---
+
+## 16. SmartFillPatient PII Encryption (2026-07-04)
+
+| Area | Change |
+|------|--------|
+| **Schema** | `phoneBlindIndex`, `emailBlindIndex`; unique on `[teamId, phoneBlindIndex]` |
+| **Field registry** | `SmartFillPatient` name/email/phone encrypted as `P1_PII` |
+| **Prisma extension** | Auto encrypt/decrypt on read/write |
+| **SMS lookup** | `smart-fill-patient-phone-index.ts` — DEK blind index for inbound replies |
+| **Migration** | Backfills phoneBlindIndex from existing plaintext numbers |
+
+**Test count after encryption:** 157+ passing.
 
 ---
 

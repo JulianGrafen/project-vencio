@@ -203,7 +203,7 @@ CALCOM_ENV=production NODE_ENV=production DENTAL_ENCRYPTION_ENABLED=true \
 
 | Item | Status |
 |------|--------|
-| `SmartFillPatient` PII field encryption | Plaintext in DB — compliance follow-up |
+| `SmartFillPatient` PII field encryption | **Implemented** — `field-registry`, blind-index SMS lookup, Prisma extension |
 | Dampsoft PVS adapter | Stub — real PVS I/O required for sync |
 | Playwright E2E | Not yet automated |
 | Desloppify subjective review | 20 dimensions unassessed |
