@@ -21,11 +21,11 @@ function isExemptPath(pathname: string): boolean {
 
 /** Redirects expired trial users to the upgrade page (conversion wall). */
 export function PracticeTrialGuard() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const router = useRouter();
   const enabled = isDentalClientComplianceMode();
 
-  const { data } = trpc.viewer.practiceTrial.status.useQuery(undefined, {
+  const { data } = trpc.viewer.practiceTrial.status.useQuery({}, {
     enabled,
     refetchOnWindowFocus: true,
   });

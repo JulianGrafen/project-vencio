@@ -16,7 +16,7 @@ type PendingItem = {
 };
 
 type RecallPendingListProps = {
-  items: PendingItem[] | undefined;
+  items: readonly PendingItem[] | undefined;
   isLoading: boolean;
 };
 
