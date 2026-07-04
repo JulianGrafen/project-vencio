@@ -1,13 +1,10 @@
 import type { z } from "zod";
 
 import { isDentalComplianceMode } from "./compliance-config";
-import { INSURANCE_TYPE_OPTIONS } from "./medical-categories/constants";
+import { INSURANCE_BOOKING_FIELD_NAME, INSURANCE_TYPE_OPTIONS } from "./medical-categories/constants";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 type BookingField = z.infer<typeof eventTypeBookingFields>[number];
-
-/** Identifier of the insurance booking field — shared with the pre-booking triage step. */
-export const INSURANCE_BOOKING_FIELD_NAME = "insuranceType";
 
 /** Standard patient intake fields for German dental practices. */
 export const DENTAL_PATIENT_BOOKING_FIELDS: BookingField[] = [

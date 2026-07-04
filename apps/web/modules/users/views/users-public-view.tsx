@@ -6,6 +6,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -19,6 +20,8 @@ import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { Toaster } from "sonner";
+
+import { DentalBookingDirectory } from "./dental/DentalBookingDirectory";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
@@ -112,40 +115,48 @@ export function UserPage(props: PageProps) {
             </div>
           </div>
 
-          <div
-            className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
-            data-testid="event-types">
-            {eventTypes.map((type) => (
-              <Link
-                key={type.id}
-                style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                prefetch={false}
-                href={{
-                  pathname: `/${user.profile.username}/${type.slug}`,
-                  query,
-                }}
-                passHref
-                onClick={async () => {
-                  sdkActionManager?.fire("eventTypeSelected", {
-                    eventType: type,
-                  });
-                }}
-                className="bg-default border-subtle dark:bg-cal-muted dark:hover:bg-subtle hover:bg-cal-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
-                data-testid="event-type-link">
-                <Icon
-                  name="arrow-right"
-                  className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
-                />
-                {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                <div className="block w-full p-5">
-                  <div className="flex flex-wrap items-center">
-                    <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
+          {isDentalClientComplianceMode() ? (
+            <DentalBookingDirectory
+              username={user.profile.username ?? ""}
+              eventTypes={eventTypes}
+              query={query}
+            />
+          ) : (
+            <div
+              className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
+              data-testid="event-types">
+              {eventTypes.map((type) => (
+                <Link
+                  key={type.id}
+                  style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
+                  prefetch={false}
+                  href={{
+                    pathname: `/${user.profile.username}/${type.slug}`,
+                    query,
+                  }}
+                  passHref
+                  onClick={async () => {
+                    sdkActionManager?.fire("eventTypeSelected", {
+                      eventType: type,
+                    });
+                  }}
+                  className="bg-default border-subtle dark:bg-cal-muted dark:hover:bg-subtle hover:bg-cal-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
+                  data-testid="event-type-link">
+                  <Icon
+                    name="arrow-right"
+                    className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
+                  />
+                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
+                  <div className="block w-full p-5">
+                    <div className="flex flex-wrap items-center">
+                      <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
+                    </div>
+                    <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                   </div>
-                  <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
 
           {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
         </main>

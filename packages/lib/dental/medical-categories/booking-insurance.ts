@@ -2,7 +2,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import type { InsuranceType } from "@calcom/prisma/enums";
 
-import { INSURANCE_BOOKING_FIELD_NAME } from "../booking-fields";
+import { INSURANCE_BOOKING_FIELD_NAME } from "./constants";
 import { isInsuranceAllowed, parseInsuranceType } from "./medical-categories";
 
 type InsuranceProfileStore = {

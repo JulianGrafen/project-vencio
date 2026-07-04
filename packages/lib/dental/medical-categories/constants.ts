@@ -76,5 +76,9 @@ export const MEDICAL_CATEGORY_DEFINITIONS: Record<MedicalCategory, MedicalCatego
 
 export const DEFAULT_MEDICAL_CATEGORY: MedicalCategory = "SONSTIGES";
 
-/** Query parameter carrying the triage selection into the booker (deep-linkable from recall emails). */
-export const INSURANCE_QUERY_PARAM = "versicherung";
+/**
+ * Identifier of the insurance booking field. Doubles as the booker query
+ * parameter so the triage selection auto-prefills the booking form
+ * (useInitialFormValues maps query params by field name).
+ */
+export const INSURANCE_BOOKING_FIELD_NAME = "insuranceType";
