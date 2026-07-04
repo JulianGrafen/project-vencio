@@ -12,14 +12,7 @@ import type {
   WatchlistOperationsScope,
 } from "./WatchlistOperationsService";
 import { WatchlistOperationsService } from "./WatchlistOperationsService";
-
-type PermissionString = string;
-class PermissionCheckService {
-  constructor(_prisma?: unknown) {}
-  async checkPermission(..._args: unknown[]) { return true; }
-  async hasPermission(..._args: unknown[]) { return true; }
-  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> { return []; }
-}
+import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
 
 type Deps = {
   watchlistRepo: WatchlistRepository;

@@ -4,7 +4,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import { extractBearerToken } from "./pvs-connector-key";
 import { PvsConnectorCredentialService } from "./pvs-connector-credential.service";
-import { PVS_CONNECTOR_ENV } from "./pvs-outbox.constants";
+import { isGlobalPvsConnectorKeyAllowed, PVS_CONNECTOR_ENV } from "./pvs-outbox.constants";
 
 export class PvsConnectorAuthError extends Error {
   readonly statusCode = 401;
@@ -53,7 +53,7 @@ export async function assertPvsConnectorAuthorizedForTeam(
   }
 
   const globalKey = resolvePvsConnectorApiKey();
-  if (globalKey && token === globalKey) {
+  if (isGlobalPvsConnectorKeyAllowed() && globalKey && token === globalKey) {
     return;
   }
 

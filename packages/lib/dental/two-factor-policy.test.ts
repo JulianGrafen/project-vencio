@@ -49,7 +49,7 @@ describe("two-factor-policy", () => {
     expect(canUseAppTwoFactor(IdentityProvider.GOOGLE)).toBe(false);
   });
 
-  it("flags practice admins without 2FA", async () => {
+  it("flags practice members without 2FA", async () => {
     process.env.DENTAL_ENCRYPTION_ENABLED = "true";
     vi.mocked(prisma.membership.count).mockResolvedValue(1);
 
@@ -62,7 +62,7 @@ describe("two-factor-policy", () => {
     expect(required).toBe(true);
   });
 
-  it("does not require 2FA for team members", async () => {
+  it("does not require 2FA for users without team membership", async () => {
     process.env.DENTAL_ENCRYPTION_ENABLED = "true";
     vi.mocked(prisma.membership.count).mockResolvedValue(0);
 
@@ -75,7 +75,7 @@ describe("two-factor-policy", () => {
     expect(required).toBe(false);
   });
 
-  it("blocks disable for practice admins when policy is active", async () => {
+  it("blocks disable for practice members when policy is active", async () => {
     process.env.DENTAL_ENCRYPTION_ENABLED = "true";
     vi.mocked(prisma.membership.count).mockResolvedValue(1);
 

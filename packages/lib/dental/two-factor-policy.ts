@@ -45,7 +45,14 @@ export async function isDentalTwoFactorSetupRequiredForUser(params: {
     return false;
   }
 
-  return isPracticeAdminUser(params.userId);
+  const isPracticeMember = await prisma.membership.count({
+    where: {
+      userId: params.userId,
+      accepted: true,
+    },
+  });
+
+  return isPracticeMember > 0;
 }
 
 export async function isDentalTwoFactorDisableBlockedForUser(params: {
@@ -56,5 +63,12 @@ export async function isDentalTwoFactorDisableBlockedForUser(params: {
     return false;
   }
 
-  return isPracticeAdminUser(params.userId);
+  const isPracticeMember = await prisma.membership.count({
+    where: {
+      userId: params.userId,
+      accepted: true,
+    },
+  });
+
+  return isPracticeMember > 0;
 }

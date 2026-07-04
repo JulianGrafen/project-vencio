@@ -53,7 +53,10 @@ describe("pvs-connector-auth", () => {
     );
   });
 
-  it("falls back to global key when team credential missing", async () => {
+  it("falls back to global key when team credential missing in development", async () => {
+    const previousEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
+
     const prisma = {
       pvsConnectorCredential: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -63,6 +66,32 @@ describe("pvs-connector-auth", () => {
     await expect(
       assertPvsConnectorAuthorizedForTeam(prisma as never, "Bearer secret-connector-key", 42)
     ).resolves.toBeUndefined();
+
+    process.env.NODE_ENV = previousEnv;
+  });
+
+  it("rejects global key in production without explicit allow flag", async () => {
+    const previousEnv = process.env.NODE_ENV;
+    const previousAllow = process.env.PVS_CONNECTOR_ALLOW_GLOBAL_KEY;
+    process.env.NODE_ENV = "production";
+    delete process.env.PVS_CONNECTOR_ALLOW_GLOBAL_KEY;
+
+    const prisma = {
+      pvsConnectorCredential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+
+    await expect(
+      assertPvsConnectorAuthorizedForTeam(prisma as never, "Bearer secret-connector-key", 42)
+    ).rejects.toThrow(PvsConnectorAuthError);
+
+    process.env.NODE_ENV = previousEnv;
+    if (previousAllow === undefined) {
+      delete process.env.PVS_CONNECTOR_ALLOW_GLOBAL_KEY;
+    } else {
+      process.env.PVS_CONNECTOR_ALLOW_GLOBAL_KEY = previousAllow;
+    }
   });
 
   it("rejects when neither team nor global key matches", async () => {

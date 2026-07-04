@@ -5,7 +5,7 @@ import { isDentalTwoFactorSetupRequiredForUser } from "./two-factor-policy";
 export class DentalTwoFactorRequiredError extends Error {
   constructor() {
     super(
-      "Zwei-Faktor-Authentifizierung ist für Praxis-Administratoren erforderlich. Bitte aktivieren Sie 2FA unter Einstellungen → Sicherheit."
+      "Zwei-Faktor-Authentifizierung ist für Praxis-Mitarbeiter erforderlich. Bitte aktivieren Sie 2FA unter Einstellungen → Sicherheit."
     );
     this.name = "DentalTwoFactorRequiredError";
   }

@@ -1,3 +1,5 @@
+import { parseBooleanEnv } from "../env";
+
 /** Max delivery attempts before an outbox row is marked permanently FAILED. */
 export const PVS_OUTBOX_MAX_ATTEMPTS = 5;
 
@@ -15,4 +17,15 @@ export const PVS_OUTBOX_ERROR_MAX_LENGTH = 2000;
 
 export const PVS_CONNECTOR_ENV = {
   API_KEY: "PVS_CONNECTOR_API_KEY",
+  /** Dev-only escape hatch; must not be set in production. */
+  ALLOW_GLOBAL_KEY: "PVS_CONNECTOR_ALLOW_GLOBAL_KEY",
 } as const;
+
+/** Global connector key bypasses per-team credentials — disabled in production by default. */
+export function isGlobalPvsConnectorKeyAllowed(): boolean {
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+
+  return parseBooleanEnv(process.env[PVS_CONNECTOR_ENV.ALLOW_GLOBAL_KEY]);
+}

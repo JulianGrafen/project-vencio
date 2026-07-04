@@ -8,11 +8,8 @@ import {
   formDataToRecord,
   validateTwilioWebhookSignature,
 } from "@calcom/lib/dental/smart-fill/sms/validate-twilio-webhook";
+import { shouldValidateTwilioSignature } from "@calcom/lib/dental/smart-fill/sms/webhook-auth";
 import { prisma } from "@calcom/prisma";
-
-function shouldValidateTwilioSignature(contentType: string): boolean {
-  return !contentType.includes("application/json");
-}
 
 async function postHandler(request: NextRequest) {
   const contentType = request.headers.get("content-type") ?? "";
@@ -27,6 +24,11 @@ async function postHandler(request: NextRequest) {
     from = json.from;
     body = json.body;
     messageSid = json.messageSid;
+    twilioParams = {
+      ...(from ? { From: from } : {}),
+      ...(body ? { Body: body } : {}),
+      ...(messageSid ? { MessageSid: messageSid } : {}),
+    };
   } else {
     const form = await request.formData();
     twilioParams = formDataToRecord(form);
