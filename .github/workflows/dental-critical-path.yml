@@ -18,7 +18,10 @@ on:
       - "apps/web/app/api/pvs/**"
       - "apps/web/app/api/webhooks/smart-fill/**"
       - "apps/web/app/api/cron/recall/**"
+      - "packages/trpc/server/routers/viewer/practiceTrial/**"
+      - "packages/trpc/server/middlewares/dentalTrialMiddleware.ts"
       - "apps/web/app/api/cron/smart-fill/**"
+      - "apps/web/app/api/smart-fill/**"
       - "apps/web/app/api/recall/**"
       - "apps/web/app/api/health/dental/**"
       - "apps/web/instrumentation.ts"
@@ -33,10 +36,26 @@ on:
       - "packages/lib/encryption/**"
       - "packages/pvs-integration/**"
       - "packages/pvs-connector/**"
+      - "packages/trpc/server/procedures/dentalAuthedProcedure.ts"
+      - "packages/trpc/server/procedures/dentalTeamMemberProcedure.ts"
+      - "packages/trpc/server/procedures/dentalTeamAdminProcedure.ts"
+      - "packages/trpc/server/routers/viewer/bookings/**"
+      - "packages/trpc/server/routers/viewer/smartFill/**"
+      - "packages/trpc/server/routers/viewer/recall/**"
+      - "packages/trpc/server/routers/viewer/pvsConnector/**"
+      - "packages/trpc/server/routers/viewer/treatmentResources/**"
+      - "packages/trpc/server/routers/viewer/practiceTrial/**"
+      - "packages/trpc/server/middlewares/dentalTrialMiddleware.ts"
       - "apps/web/app/api/pvs/**"
+      - "apps/web/app/api/webhooks/smart-fill/**"
+      - "apps/web/app/api/smart-fill/**"
       - "apps/web/app/api/cron/smart-fill/**"
       - "apps/web/app/api/cron/recall/**"
+      - "apps/web/app/api/recall/**"
       - "apps/web/app/api/health/dental/**"
+      - "apps/web/instrumentation.ts"
+      - "docs/dental/**"
+      - ".github/workflows/dental-critical-path.yml"
 
 jobs:
   dental-tests:
@@ -61,4 +80,5 @@ jobs:
             packages/pvs-connector \
             apps/web/app/api/pvs/outbox/__tests__ \
             packages/trpc/server/routers/viewer/bookings/get.handler.test.ts \
+            packages/lib/dental/production-config.test.ts \
             --reporter=dot
