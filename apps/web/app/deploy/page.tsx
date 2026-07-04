@@ -58,7 +58,12 @@ export default function DeploySetupPage() {
               <strong>DATABASE_DIRECT_URL</strong> = Session/Direct (Port 5432)
             </li>
             <li>
-              Schema deployen: <code className="text-xs">yarn db:supabase-deploy</code> (lokal mit .env)
+              Schema deployen: SQL Editor (Datei{" "}
+              <code className="text-xs">scripts/supabase/supabase-sql-editor-setup.sql</code>) oder{" "}
+              <code className="text-xs">yarn db:supabase-deploy</code>
+            </li>
+            <li>
+              Nach SQL Editor: <code className="text-xs">SKIP_DB_MIGRATIONS=1</code> in Vercel setzen
             </li>
           </ol>
           <p className="text-default mt-3 text-xs">
