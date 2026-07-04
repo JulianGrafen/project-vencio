@@ -44,7 +44,6 @@ import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
 import { DatePicker } from "./DatePicker";
-import { InsuranceTypeStep } from "./InsuranceTypeStep";
 import { TreatmentResourceSelector } from "./TreatmentResourceSelector";
 import { DryRunMessage } from "./DryRunMessage";
 import { EventMeta } from "./EventMeta";
@@ -99,8 +98,6 @@ const BookerComponent = ({
   );
 
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const selectedInsuranceType = useBookerStoreContext((state) => state.selectedInsuranceType);
-  const storeRescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
 
   const [isSlotSelectionModalVisible, setIsSlotSelectionModalVisible] = useBookerStoreContext(
     (state) => [state.isSlotSelectionModalVisible, state.setIsSlotSelectionModalVisible],
@@ -225,9 +222,6 @@ const BookerComponent = ({
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
-    const requiresInsuranceStep =
-      isDentalClientComplianceMode() && !storeRescheduleUid && !selectedInsuranceType;
-    if (requiresInsuranceStep) return setBookerState("selecting_insurance");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = layout !== BookerLayouts.WEEK_VIEW;
@@ -238,8 +232,6 @@ const BookerComponent = ({
     event.isPending,
     selectedDate,
     selectedTimeslot,
-    selectedInsuranceType,
-    storeRescheduleUid,
     setBookerState,
     skipConfirmStep,
     layout,
@@ -448,11 +440,8 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
-                      {bookerState === "selecting_insurance" ? <InsuranceTypeStep /> : null}
-                      {bookerState !== "selecting_insurance" ? (
-                        <>
-                          <TreatmentResourceSelector eventTypeId={event.data?.id} />
-                          <DatePicker
+                      <TreatmentResourceSelector eventTypeId={event.data?.id} />
+                      <DatePicker
                             classNames={customClassNames?.datePickerCustomClassNames}
                             event={event}
                             slots={schedule?.data?.slots}
@@ -465,8 +454,6 @@ const BookerComponent = ({
                               }
                             }}
                           />
-                        </>
-                      ) : null}
                     </div>
                   )}
               </BookerSection>
@@ -484,22 +471,16 @@ const BookerComponent = ({
             <BookerSection
               key="datepicker"
               area="main"
-              visible={
-                bookerState !== "booking" &&
-                (bookerState === "selecting_insurance" || layout === BookerLayouts.MONTH_VIEW)
-              }
+              visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
               className={classNames(
                 "md:border-subtle -ml-px h-full shrink px-5 py-3  lg:w-(--booker-main-width)",
                 hideEventTypeDetails ? "" : "md:border-l"
               )}>
-              {bookerState === "selecting_insurance" ? (
-                <InsuranceTypeStep />
-              ) : (
-                <>
-                  <TreatmentResourceSelector eventTypeId={event.data?.id} />
-                  <DatePicker
+              <>
+                <TreatmentResourceSelector eventTypeId={event.data?.id} />
+                <DatePicker
                     classNames={customClassNames?.datePickerCustomClassNames}
                     event={event}
                     slots={schedule?.data?.slots}
@@ -507,8 +488,7 @@ const BookerComponent = ({
                     scrollToTimeSlots={scrollToTimeSlots}
                     showNoAvailabilityDialog={showNoAvailabilityDialog}
                   />
-                </>
-              )}
+              </>
             </BookerSection>
 
             <BookerSection
@@ -566,12 +546,7 @@ const BookerComponent = ({
           </AnimatePresence>
         </div>
         <HavingTroubleFindingTime
-          visible={
-            bookerState !== "booking" &&
-            bookerState !== "selecting_insurance" &&
-            layout === BookerLayouts.MONTH_VIEW &&
-            !isMobile
-          }
+          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
           dayCount={dayCount}
           isScheduleLoading={schedule.isLoading}
           onButtonClick={() => {

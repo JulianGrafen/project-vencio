@@ -4,40 +4,31 @@ import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "../../lib/t
 
 export async function isDentalComplianceUiActive(page: Page): Promise<boolean> {
   return page
-    .getByTestId("insurance-type-step")
-    .isVisible({ timeout: 1500 })
+    .getByTestId("practice-info-header")
+    .isVisible({ timeout: 3000 })
     .catch(() => false);
 }
 
-export async function completeInsuranceTypeStepIfPresent(page: Page, value: "GESETZLICH" | "PRIVAT" | "SELBSTZAHLER" = "GESETZLICH") {
-  const insuranceStep = page.getByTestId("insurance-type-step");
-  if (!(await insuranceStep.isVisible({ timeout: 2000 }).catch(() => false))) {
-    return false;
-  }
-
-  await page.getByTestId(`insurance-type-${value.toLowerCase()}`).click();
-  return true;
-}
-
 export async function fillDentalPatientFieldsIfPresent(page: Page) {
-  const dateOfBirth = page.locator('[name="responses.dateOfBirth"]');
-  if (await dateOfBirth.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await dateOfBirth.fill("01.01.1990");
+  const insuranceType = page.locator('[name="responses.insuranceType"]');
+  if (await insuranceType.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await insuranceType.selectOption("GESETZLICH");
   }
 
-  const newPatientToggle = page.locator('[name="responses.isNewPatient"]');
-  if (await newPatientToggle.isVisible({ timeout: 1000 }).catch(() => false)) {
-    const inputType = await newPatientToggle.getAttribute("type");
-    if (inputType === "checkbox") {
-      await newPatientToggle.check();
-    } else {
-      await newPatientToggle.fill("true");
-    }
+  const birthDay = page.locator('[name="responses.birthDay"]');
+  if (await birthDay.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await birthDay.selectOption("01");
+    await page.locator('[name="responses.birthMonth"]').selectOption("01");
+    await page.locator('[name="responses.birthYear"]').selectOption("1990");
+  }
+
+  const patientStatus = page.locator('[name="responses.isNewPatient"]');
+  if (await patientStatus.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await patientStatus.selectOption("FIRST");
   }
 }
 
 export async function selectFirstAvailableTimeSlotNextMonthWithDentalFlow(page: Page) {
-  await completeInsuranceTypeStepIfPresent(page);
   await selectFirstAvailableTimeSlotNextMonth(page);
 }
 

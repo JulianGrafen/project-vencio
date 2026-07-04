@@ -81,6 +81,23 @@ EMAIL_SERVER_PASSWORD=
 # Per-team API keys via Settings → PVS Connector — no global key in production
 ```
 
+### Dental booking form (patient intake dropdowns)
+
+When `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true` (or `DENTAL_ENCRYPTION_ENABLED=true`), the public booking form shows **dropdown fields only** — no free-text notes:
+
+| Field | Type |
+|-------|------|
+| Versicherungsart | Select (Kasse / Privat / Selbstzahler) |
+| Geburtsdatum | Tag / Monat / Jahr (3 selects) |
+| Patientenstatus | Select (Erstpatient / Bestandspatient) |
+
+`Zusätzliche Notizen` and `Weitere Gäste` are hidden (DSGVO Art. 9).
+
+```bash
+NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true
+DENTAL_ENCRYPTION_ENABLED=true
+```
+
 ### Calendar OAuth (required for “Kalender verbinden”)
 
 Without calendar credentials, the connect UI is empty or OAuth fails after redirect.

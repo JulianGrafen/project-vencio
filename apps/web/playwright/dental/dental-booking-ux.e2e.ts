@@ -4,8 +4,9 @@ import { test } from "../lib/fixtures";
 import { testEmail } from "../lib/testUtils";
 import {
   bookDentalTimeSlot,
-  completeInsuranceTypeStepIfPresent,
+  fillDentalPatientFieldsIfPresent,
   isDentalComplianceUiActive,
+  selectFirstAvailableTimeSlotNextMonthWithDentalFlow,
 } from "./helpers/dental-booking-flow";
 import { createDentalPracticeFixture } from "./helpers/create-dental-practice-fixture";
 
@@ -31,10 +32,7 @@ test.describe("Dental booking UX", () => {
     await expect(page.getByTestId("dental-event-type-card")).toHaveCount(2);
   });
 
-  test("collects insurance before calendar and shows practice info in the sidebar", async ({
-    page,
-    users,
-  }) => {
+  test("shows practice info in the sidebar when compliance UI is active", async ({ page, users }) => {
     const { team, teamEvent } = await createDentalPracticeFixture(users, "dental-insurance-e2e");
 
     await page.goto(`/${team.slug}/${teamEvent.slug}`);
@@ -47,14 +45,16 @@ test.describe("Dental booking UX", () => {
     await expect(page.getByTestId("practice-info-header")).toContainText("Praxis Dr. E2E");
     await expect(page.getByTestId("practice-info-header")).toContainText("Zahnstraße 42");
 
-    const selectedInsurance = await completeInsuranceTypeStepIfPresent(page, "PRIVAT");
-    expect(selectedInsurance).toBe(true);
+    await selectFirstAvailableTimeSlotNextMonthWithDentalFlow(page);
 
-    await expect(page.getByTestId("insurance-type-step")).not.toBeVisible({ timeout: 5000 });
-    await expect(page.locator('[data-testid="day"]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[name="responses.insuranceType"]')).toBeVisible();
+    await expect(page.locator('[name="responses.birthDay"]')).toBeVisible();
+    await expect(page.locator('[name="responses.isNewPatient"]')).toBeVisible();
+    await expect(page.locator('[name="responses.notes"]')).toHaveCount(0);
+    await expect(page.locator('[name="responses.guests"]')).toHaveCount(0);
   });
 
-  test("completes booking after insurance step with dental patient fields", async ({ page, users }) => {
+  test("completes booking with dental dropdown patient fields", async ({ page, users }) => {
     const { team, teamEvent } = await createDentalPracticeFixture(users, "dental-booking-e2e");
 
     await page.goto(`/${team.slug}/${teamEvent.slug}`);
