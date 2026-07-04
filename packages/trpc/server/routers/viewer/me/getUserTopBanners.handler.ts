@@ -9,6 +9,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { checkInvalidAppCredentials } from "./checkForInvalidAppCredentials";
 import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
 import { isDentalTwoFactorSetupRequiredForUser } from "@calcom/lib/dental/two-factor-policy";
+import { PracticeTrialService } from "@calcom/lib/dental/trial/trial.service";
+import { isPracticeTrialEnabled } from "@calcom/lib/dental/trial/trial-feature-flags";
 
 const getUpgradeableHandler = async (..._args: unknown[]) => null;
 const checkIfOrgNeedsUpgradeHandler = async (..._args: unknown[]) => false;
@@ -40,6 +42,24 @@ const _checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
   return connectedCalendars.some((calendar) => !!calendar.error);
 };
 
+async function getPracticeTrialBanner(userId: number) {
+  if (!isPracticeTrialEnabled()) {
+    return null;
+  }
+
+  const service = new PracticeTrialService(prisma);
+  const eligibility = await service.getEligibilityForUser(userId);
+  if (!eligibility || !eligibility.eligible) {
+    return null;
+  }
+
+  return {
+    daysRemaining: eligibility.daysRemaining,
+    bookingsRemaining: eligibility.bookingsRemaining,
+    trialBookingsCount: eligibility.trialBookingsCount,
+  };
+}
+
 export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   const upgradeableTeamMememberships = getUpgradeableHandler({ userId: ctx.user.id });
   const upgradeableOrgMememberships = checkIfOrgNeedsUpgradeHandler({ ctx });
@@ -53,6 +73,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     verifyEmailBanner,
     invalidAppCredentialBanners,
     dentalTwoFactorBanner,
+    practiceTrialBanner,
   ] = await Promise.allSettled([
     upgradeableTeamMememberships,
     upgradeableOrgMememberships,
@@ -63,6 +84,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
       twoFactorEnabled: ctx.user.twoFactorEnabled,
       identityProvider: ctx.user.identityProvider,
     }),
+    getPracticeTrialBanner(ctx.user.id),
   ]);
 
   return {
@@ -75,5 +97,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     dueInvoiceBanner: null,
     dentalTwoFactorBanner:
       dentalTwoFactorBanner.status === "fulfilled" && dentalTwoFactorBanner.value ? true : null,
+    practiceTrialBanner:
+      practiceTrialBanner.status === "fulfilled" ? practiceTrialBanner.value : null,
   };
 };

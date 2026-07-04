@@ -8,6 +8,10 @@ import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
+  PracticeTrialService,
+  shouldCountBookingForTrial,
+} from "@calcom/lib/dental/trial/trial.service";
+import {
   enqueueBookingPvsSyncIfEnabled,
   enqueueBookingPvsCancelIfEnabled,
 } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
@@ -169,6 +173,10 @@ async function saveBooking(
     }
 
     const booking = await tx.booking.create(createBookingObj);
+
+    if (pvsSyncContext?.teamId && shouldCountBookingForTrial(booking.status)) {
+      await new PracticeTrialService(tx).recordAcceptedBooking(pvsSyncContext.teamId);
+    }
 
     if (pvsSyncContext?.teamId && pvsSyncContext.isAccepted) {
       const booker =

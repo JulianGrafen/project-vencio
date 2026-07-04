@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { assertAdminOrOwnerTeamMembership } from "@calcom/lib/dental/assert-team-membership";
 
 import { dentalAdminProcedure } from "./dentalAuthedProcedure";
+import { dentalTrialMiddleware } from "../middlewares/dentalTrialMiddleware";
 
 type TeamScopedInput = {
   teamId: number;

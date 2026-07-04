@@ -1,18 +1,22 @@
-import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import LegacyPage from "~/upgrade/upgrade-view";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("upgrade"),
-    () => "",
-    undefined,
-    undefined,
-    "/upgrade"
-  );
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-const ServerPage = async () => {
-  return <LegacyPage />;
-};
+import { UpgradePageView } from "~/trial/UpgradePageView";
 
-export default ServerPage;
+export default async function UpgradePage() {
+  if (!isDentalComplianceMode()) {
+    redirect("/event-types");
+  }
+
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  if (!session?.user?.id) {
+    redirect("/auth/login?callbackUrl=/upgrade");
+  }
+
+  return <UpgradePageView />;
+}

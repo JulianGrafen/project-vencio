@@ -11,6 +11,8 @@ import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbrick
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
 
+import { PracticeTrialGuard } from "@calcom/web/modules/trial/PracticeTrialGuard";
+
 import TimezoneChangeDialog from "@calcom/web/modules/settings/components/TimezoneChangeDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -40,6 +42,7 @@ const Layout = (props: LayoutProps) => {
 
       <TimezoneChangeDialog />
       <DynamicModals />
+      <PracticeTrialGuard />
 
       <div className="flex min-h-screen flex-col">
         {banners && <BannerContainer banners={banners} />}

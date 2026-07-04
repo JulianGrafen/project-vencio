@@ -12,11 +12,16 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/web/modules/users/components/VerifyEmailBanner";
 import { DentalTwoFactorBanner } from "@calcom/web/modules/settings/security/DentalTwoFactorBanner";
+import {
+  PracticeTrialBanner,
+  type PracticeTrialBannerData,
+} from "@calcom/web/modules/trial/PracticeTrialBanner";
 
 type BannerTypeProps = {
   verifyEmailBanner: VerifyEmailBannerProps;
   adminPasswordBanner: AdminPasswordBannerProps;
   dentalTwoFactorBanner: boolean | null;
+  practiceTrialBanner: PracticeTrialBannerData | null;
   calendarCredentialBanner: CalendarCredentialBannerProps;
   invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
 };
@@ -33,6 +38,8 @@ export const BannerComponent: BannerComponent = {
   verifyEmailBanner: (props: VerifyEmailBannerProps) => <VerifyEmailBanner {...props} />,
   adminPasswordBanner: (props: AdminPasswordBannerProps) => <AdminPasswordBanner {...props} />,
   dentalTwoFactorBanner: (_props: { data: boolean | null }) => <DentalTwoFactorBanner />,
+  practiceTrialBanner: (props: { data: PracticeTrialBannerData | null }) =>
+    props.data ? <PracticeTrialBanner data={props.data} /> : null,
   calendarCredentialBanner: (props: CalendarCredentialBannerProps) => <CalendarCredentialBanner {...props} />,
   invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
     <InvalidAppCredentialBanners {...props} />
@@ -54,6 +61,10 @@ export const BannerContainer: React.FC<BannerContainerProps> = ({ banners }) => 
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         } else if (key === "dentalTwoFactorBanner") {
+          if (!banners[key]) return null;
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "practiceTrialBanner") {
           if (!banners[key]) return null;
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;

@@ -658,6 +658,12 @@ model Team {
   recallSettings          RecallSettings?
   recallHistory           RecallHistory[]
 
+  /// Dental beta trial — 30 days or 10 accepted bookings, then conversion wall.
+  trialStartedAt     DateTime?
+  trialEndedAt       DateTime?
+  isTrialActive      Boolean   @default(true)
+  trialBookingsCount Int       @default(0)
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
