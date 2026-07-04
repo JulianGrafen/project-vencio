@@ -90,9 +90,14 @@ export class DampsoftPvsAdapter implements PvsAdapter {
     }
 
     if (this.config.apiBaseUrl) {
-      const response = await callDampsoftApi(this.config, `/appointments/${ref.externalId}`, "DELETE", {
-        reason,
-      });
+      const response = await callDampsoftApi(
+        this.config,
+        `/appointments/${encodeURIComponent(ref.externalId)}`,
+        "DELETE",
+        {
+          reason,
+        }
+      );
       if (!response.ok) {
         throw new Error(`Dampsoft cancelAppointment HTTP ${response.status}`);
       }

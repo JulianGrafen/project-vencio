@@ -1,6 +1,12 @@
 import Link from "next/link";
 
-import { PRACTICE_TRIAL_DURATION_DAYS, PRACTICE_TRIAL_MAX_BOOKINGS } from "@calcom/lib/dental/trial/trial.constants";
+import {
+  PRACTICE_TRIAL_DEFAULT_UPGRADE_EMAIL,
+  PRACTICE_TRIAL_DURATION_DAYS,
+  PRACTICE_TRIAL_ENV,
+  PRACTICE_TRIAL_MAX_BOOKINGS,
+} from "@calcom/lib/dental/trial/trial.constants";
+import { resolvePracticeTrialUpgradeAction } from "@calcom/lib/dental/trial/trial-upgrade";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -28,6 +34,10 @@ const FEATURES = [
 ] as const;
 
 export function UpgradePageView() {
+  const upgradeAction = resolvePracticeTrialUpgradeAction();
+  const supportEmail =
+    process.env[PRACTICE_TRIAL_ENV.UPGRADE_EMAIL]?.trim() || PRACTICE_TRIAL_DEFAULT_UPGRADE_EMAIL;
+
   return (
     <div className="bg-subtle min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
@@ -67,8 +77,13 @@ export function UpgradePageView() {
           <p className="text-emphasis font-cal mt-2 text-4xl font-bold">Auf Anfrage</p>
           <p className="text-subtle mt-1 text-sm">Individuelles Praxis-Paket · monatlich kündbar</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button color="primary" href="mailto:hello@praxistermin.de?subject=Upgrade%20PraxisTermin">
-              Upgrade anfragen
+            <Button
+              color="primary"
+              href={upgradeAction.href}
+              {...(upgradeAction.external
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : undefined)}>
+              {upgradeAction.label}
             </Button>
             <Button color="secondary" href="/settings/my-account/general">
               Account-Einstellungen
@@ -78,8 +93,8 @@ export function UpgradePageView() {
 
         <p className="text-subtle mt-8 text-center text-sm">
           Fragen?{" "}
-          <Link href="mailto:hello@praxistermin.de" className="text-teal-700 underline">
-            hello@praxistermin.de
+          <Link href={`mailto:${supportEmail}`} className="text-teal-700 underline">
+            {supportEmail}
           </Link>
         </p>
       </div>

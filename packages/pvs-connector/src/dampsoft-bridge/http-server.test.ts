@@ -32,6 +32,7 @@ function bridgeRequest(
 
     req.on("error", reject);
     if (options.body) {
+      req.setHeader("Content-Length", Buffer.byteLength(options.body));
       req.write(options.body);
     }
     req.end();
@@ -88,10 +89,15 @@ describe("Dampsoft bridge HTTP server", () => {
       `/appointments/${encodeURIComponent(created.externalId)}`,
       {
         method: "DELETE",
-        headers: { Authorization: "Bearer secret-key" },
+        headers: {
+          Authorization: "Bearer secret-key",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: "Patient abgesagt" }),
       }
     );
 
     expect(cancelResponse.status, cancelResponse.body).toBe(200);
+    expect(bridge.store.get(created.externalId)?.cancellationReason).toBe("Patient abgesagt");
   });
 });
