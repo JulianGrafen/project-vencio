@@ -3,21 +3,21 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
-import { isSmartFillEnabled } from "@calcom/lib/dental/smart-fill/feature-flags";
+import { isRecallEnabled } from "@calcom/lib/dental/recall/feature-flags";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { DentalSettingsEntry } from "~/settings/dental/DentalSettingsEntry";
-import { SmartFillPatientPoolView } from "~/settings/smart-fill/SmartFillPatientPoolView";
+import { RecallSettingsView } from "~/settings/recall/RecallSettingsView";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Smart-Fill Patientenpool",
-    () => "Warteliste und Recall für automatische Termin-Einladungen per SMS",
+    () => "Recall",
+    () => "Prophylaxe-Erinnerungen automatisch versenden",
     undefined,
     undefined,
-    "/settings/smart-fill"
+    "/settings/recall"
   );
 
 type PageProps = {
@@ -25,13 +25,13 @@ type PageProps = {
 };
 
 const Page = async ({ searchParams }: PageProps) => {
-  if (!isDentalComplianceMode() || !isSmartFillEnabled()) {
+  if (!isDentalComplianceMode() || !isRecallEnabled()) {
     redirect("/settings/my-account/general");
   }
 
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.id) {
-    redirect("/auth/login?callbackUrl=/settings/smart-fill");
+    redirect("/auth/login?callbackUrl=/settings/recall");
   }
 
   const params = await searchParams;
@@ -39,7 +39,7 @@ const Page = async ({ searchParams }: PageProps) => {
 
   return (
     <DentalSettingsEntry teamId={Number.isNaN(teamId) ? 0 : teamId}>
-      <SmartFillPatientPoolView teamId={teamId} />
+      <RecallSettingsView teamId={teamId} />
     </DentalSettingsEntry>
   );
 };

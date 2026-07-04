@@ -2,6 +2,7 @@
 
 import { HAS_ORG_OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -366,7 +367,26 @@ const useTabs = ({
     });
 
     // check if name is in adminRequiredKeys
-    return processedTabs.filter((tab) => {
+    const withDentalTab = isDentalClientComplianceMode()
+      ? [
+          ...processedTabs.slice(0, 2),
+          {
+            name: "Praxis-Einstellungen",
+            href: "/settings/practice",
+            icon: "building" as const,
+            children: [
+              {
+                name: "Smart-Fill & Recall",
+                href: "/settings/practice",
+                trackingMetadata: { section: "dental", page: "practice" },
+              },
+            ],
+          },
+          ...processedTabs.slice(2),
+        ]
+      : processedTabs;
+
+    return withDentalTab.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
       if (tab.name === "other_teams" && !permissions?.canUpdateOrganization) return false;
 

@@ -7,6 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+import { DentalSettingsEntry } from "~/settings/dental/DentalSettingsEntry";
 import { PvsConnectorSettingsView } from "~/settings/pvs-connector/PvsConnectorSettingsView";
 
 export const generateMetadata = async () =>
@@ -34,11 +35,12 @@ const Page = async ({ searchParams }: PageProps) => {
 
   const params = await searchParams;
   const teamId = Number(params.teamId);
-  if (!teamId || Number.isNaN(teamId)) {
-    redirect("/settings/my-account/general");
-  }
 
-  return <PvsConnectorSettingsView teamId={teamId} />;
+  return (
+    <DentalSettingsEntry teamId={Number.isNaN(teamId) ? 0 : teamId}>
+      <PvsConnectorSettingsView teamId={teamId} />
+    </DentalSettingsEntry>
+  );
 };
 
 export default Page;

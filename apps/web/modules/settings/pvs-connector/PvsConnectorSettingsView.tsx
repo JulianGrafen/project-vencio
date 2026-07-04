@@ -4,7 +4,7 @@ import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-conf
 import { trpc } from "@calcom/trpc/react";
 import { useState } from "react";
 
-import { DentalSettingsCrossLinks } from "~/settings/dental/DentalSettingsCrossLinks";
+import { DentalSettingsShell } from "~/settings/dental/DentalSettingsShell";
 import { PvsCredentialManager } from "~/settings/pvs-connector/PvsCredentialManager";
 import { PvsOutboxDashboardPanel } from "~/settings/pvs-connector/PvsOutboxDashboardPanel";
 
@@ -16,6 +16,7 @@ export function PvsConnectorSettingsView({ teamId }: PvsConnectorSettingsViewPro
   const utils = trpc.useUtils();
   const enabled = isDentalClientComplianceMode() && teamId > 0;
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
+  const [showSetupDetails, setShowSetupDetails] = useState(false);
 
   const { data: credentials, isLoading: credentialsLoading } =
     trpc.viewer.pvsConnector.listCredentials.useQuery({ teamId }, { enabled });
@@ -42,31 +43,45 @@ export function PvsConnectorSettingsView({ teamId }: PvsConnectorSettingsViewPro
     return null;
   }
 
-  return (
-    <div className="max-w-3xl space-y-8">
-      <div>
-        <h2 className="text-emphasis text-lg font-semibold">PVS Connector</h2>
-        <p className="text-subtle text-sm">
-          API-Schlüssel für den lokalen PVS-Connector (Dampsoft, Z1, …). Der Connector pollt{" "}
-          <code className="text-xs">/api/pvs/outbox/poll</code> mit Bearer-Token und Team-ID.
-        </p>
-      </div>
+  const hasActiveCredential = credentials?.some((credential) => credential.isActive);
 
-      <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        <p className="font-medium">Lokaler Connector</p>
-        <p className="mt-1 text-xs">
-          Start:{" "}
-          <code>
+  return (
+    <DentalSettingsShell
+      teamId={teamId}
+      activeTab="pvs-connector"
+      title="PVS Sync"
+      description="Verbinden Sie Ihre Praxissoftware — Termine werden automatisch synchronisiert, sobald der lokale Connector läuft.">
+      <PvsOutboxDashboardPanel dashboard={dashboard} isLoading={dashboardLoading} />
+
+      {!hasActiveCredential && !credentialsLoading ? (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+          <p className="font-medium">In 2 Schritten startklar</p>
+          <ol className="mt-2 list-inside list-decimal space-y-1 text-xs">
+            <li>API-Schlüssel unten erstellen und sicher speichern</li>
+            <li>Connector auf dem Praxis-Server mit Team-ID {teamId} starten</li>
+          </ol>
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        className="text-subtle text-sm underline"
+        onClick={() => setShowSetupDetails((value) => !value)}>
+        {showSetupDetails ? "Technische Details ausblenden" : "Technische Details für IT anzeigen"}
+      </button>
+
+      {showSetupDetails ? (
+        <div className="rounded-lg border p-4 text-sm">
+          <p className="text-emphasis font-medium">Connector-Start (Praxis-Server)</p>
+          <code className="mt-2 block break-all rounded bg-subtle p-3 text-xs">
             PVS_CLOUD_BASE_URL=… PVS_CONNECTOR_API_KEY=… PVS_TEAM_ID={teamId} yarn pvs-connector
           </code>
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1 text-xs">
-          <li>POST /api/pvs/outbox/poll — ausstehende Termine abholen</li>
-          <li>POST /api/pvs/outbox/ack — Erfolg/Fehler bestätigen</li>
-        </ul>
-      </div>
-
-      <PvsOutboxDashboardPanel dashboard={dashboard} isLoading={dashboardLoading} />
+          <ul className="text-subtle mt-3 list-inside list-disc space-y-1 text-xs">
+            <li>POST /api/pvs/outbox/poll — ausstehende Termine abholen</li>
+            <li>POST /api/pvs/outbox/ack — Erfolg oder Fehler melden</li>
+          </ul>
+        </div>
+      ) : null}
 
       <PvsCredentialManager
         teamId={teamId}
@@ -79,8 +94,6 @@ export function PvsConnectorSettingsView({ teamId }: PvsConnectorSettingsViewPro
         revealedKey={revealedKey}
         onDismissRevealedKey={() => setRevealedKey(null)}
       />
-
-      <DentalSettingsCrossLinks teamId={teamId} current="pvs-connector" />
-    </div>
+    </DentalSettingsShell>
   );
 }
