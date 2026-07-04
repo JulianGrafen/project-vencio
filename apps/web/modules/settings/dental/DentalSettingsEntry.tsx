@@ -16,7 +16,7 @@ type DentalSettingsEntryProps = {
 
 export function DentalSettingsEntry({ teamId, children }: DentalSettingsEntryProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const enabled = isDentalClientComplianceMode();
 
   const { data, isLoading } = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(
