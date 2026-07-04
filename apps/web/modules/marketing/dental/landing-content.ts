@@ -1,4 +1,4 @@
-export const PRODUCT_NAME = "PraxisTermin";
+export const PRODUCT_NAME = "teeth.al";
 
 export const TRUST_BADGES = [
   "DSGVO-konform",
@@ -196,7 +196,7 @@ export const FAQ_ITEMS = [
   {
     question: "Lohnt sich das wirklich, wenn wir weiter telefonisch buchen?",
     answer:
-      "Telefonische Buchung skaliert nicht: Rezeption blockiert, Fehler passieren bei Notizen, und außerhalb der Sprechzeiten gehen Termine verloren. PraxisTermin entlastet das Team und gibt Patienten 24/7-Self-Service — ohne Kalender-Chaos in Excel.",
+      "Telefonische Buchung skaliert nicht: Rezeption blockiert, Fehler passieren bei Notizen, und außerhalb der Sprechzeiten gehen Termine verloren. teeth.al entlastet das Team und gibt Patienten 24/7-Self-Service — ohne Kalender-Chaos in Excel.",
   },
   {
     question: "Ist das DSGVO-konform für Patientendaten?",

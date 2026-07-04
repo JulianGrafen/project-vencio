@@ -1,4 +1,4 @@
--- Supabase: full schema for PraxisTermin / Cal.diy (generated from schema.prisma)
+-- Supabase: full schema for teeth.al (generated from schema.prisma)
 -- Run in Supabase → SQL Editor → New query → Paste → Run
 
 -- Supabase bootstrap: run once before Prisma migrations (idempotent).

@@ -1,6 +1,6 @@
 # Dental Production Deployment Guide
 
-**Scope:** PraxisTermin / Cal.diy dental fork — Vercel, self-hosted EU, on-prem PVS connector  
+**Scope:** teeth.al dental fork — Vercel, self-hosted EU, on-prem PVS connector  
 **Last updated:** 2026-07-04
 
 ---

@@ -1,6 +1,6 @@
-# PraxisTermin Landing (GitHub Pages)
+# teeth.al Landing (GitHub Pages)
 
-Statische B2B-Landingpage für **PraxisTermin** — deploybar auf GitHub Pages ohne Next.js-Stack.
+Statische B2B-Landingpage für **teeth.al** — deploybar auf GitHub Pages ohne Next.js-Stack.
 
 ## Go live (GitHub Pages)
 
@@ -8,7 +8,7 @@ Statische B2B-Landingpage für **PraxisTermin** — deploybar auf GitHub Pages o
 2. **Actions → Variables** (optional aber empfohlen):
    - `VITE_APP_URL` — Live-App für Login/CTA (z. B. `https://app.praxistermin.de`)
    - `PAGES_CUSTOM_DOMAIN` — eigene Domain (z. B. `www.praxistermin.de`)
-3. **Merge nach `master`/`main`** oder manuell: **Actions → Deploy PraxisTermin landing → Run workflow**
+3. **Merge nach `master`/`main`** oder manuell: **Actions → Deploy teeth.al landing → Run workflow**
 4. Nach dem Deploy: URL steht im Workflow-Summary
 
 **Project Pages:** `https://<owner>.github.io/<repo>/`  

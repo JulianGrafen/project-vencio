@@ -281,7 +281,7 @@ export default class EventManager {
    *
    * @param event
    * @param options.skipCalendarEvent - When true, skips calendar event creation but still creates video meetings.
-   *   This is useful for platform customers who manage their own calendar events but still want Cal.diy to create
+   *   This is useful for platform customers who manage their own calendar events but still want teeth.al to create
    *   video meetings for third-party video apps like Daily.co.
    */
   public async create(

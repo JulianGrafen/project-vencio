@@ -2,7 +2,7 @@
   "name": "@calcom/feature-auth",
   "sideEffects": false,
   "private": true,
-  "description": "Cal.diy's main auth code",
+  "description": "teeth.al's main auth code",
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",
   "main": "index.ts",

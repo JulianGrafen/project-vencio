@@ -1,5 +1,5 @@
 -- ============================================================
--- PraxisTermin: complete Supabase setup (run once in SQL Editor)
+-- teeth.al: complete Supabase setup (run once in SQL Editor)
 -- Supabase → SQL Editor → New query → paste → Run
 -- Project: sozarwmazweyiiookfxg
 -- ============================================================
@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- Prisma migrations use gen_random_uuid() throughout the history.
 -- pgcrypto is pre-enabled on most Supabase projects; this is a safety net.
 
--- Supabase: full schema for PraxisTermin / Cal.diy (generated from schema.prisma)
+-- Supabase: full schema for teeth.al (generated from schema.prisma)
 -- Run in Supabase → SQL Editor → New query → Paste → Run
 
 -- Supabase bootstrap: run once before Prisma migrations (idempotent).

@@ -2509,7 +2509,7 @@ model OrganizationOnboarding {
   // TODO: Use uuid for id
   id String @id @default(uuid())
 
-  // User who started the onboarding. It is different from orgOwnerEmail in case Cal.diy admin is doing the onboarding for someone else.
+  // User who started the onboarding. It is different from orgOwnerEmail in case teeth.al admin is doing the onboarding for someone else.
   createdBy   User     @relation("CreatedOrganizationOnboardings", fields: [createdById], references: [id], onDelete: Cascade)
   createdById Int
   createdAt   DateTime @default(now())
@@ -2730,7 +2730,7 @@ enum BookingAuditSource {
 }
 
 enum AuditActorType {
-  USER     @map("user") // Registered Cal.diy user (stored here for audit retention even after user deletion)
+  USER     @map("user") // Registered teeth.al user (stored here for audit retention even after user deletion)
   GUEST    @map("guest") // Non-registered user
   ATTENDEE @map("attendee") // Has Attendee record with us
   SYSTEM   @map("system") // Automated actions
