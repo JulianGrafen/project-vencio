@@ -13,13 +13,47 @@ export async function getEventTypesPublic(userId: number) {
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(userId);
 
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
+  const medicalProfilesByEventTypeId = await getMedicalProfilesByEventTypeId(
+    eventTypesRaw.map((eventType) => eventType.id)
+  );
 
   return eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
+    medicalProfile: medicalProfilesByEventTypeId.get(eventType.id) ?? null,
   }));
 }
+
+/** Dental fork: category + insurance restrictions for the public booking page. */
+async function getMedicalProfilesByEventTypeId(eventTypeIds: number[]) {
+  if (eventTypeIds.length === 0) {
+    return new Map<number, MedicalProfilePublic>();
+  }
+
+  const profiles = await prisma.eventTypeMedicalProfile.findMany({
+    where: { eventTypeId: { in: eventTypeIds } },
+    select: {
+      eventTypeId: true,
+      category: true,
+      allowedInsuranceTypes: true,
+      displayOrder: true,
+      isEmergency: true,
+    },
+  });
+
+  return new Map(profiles.map((profile) => [profile.eventTypeId, profile]));
+}
+
+type MedicalProfilePublic = Prisma.EventTypeMedicalProfileGetPayload<{
+  select: {
+    eventTypeId: true;
+    category: true;
+    allowedInsuranceTypes: true;
+    displayOrder: true;
+    isEmergency: true;
+  };
+}>;
 
 type BaseEventType = Prisma.EventTypeGetPayload<{
   select: typeof baseEventTypeSelect;

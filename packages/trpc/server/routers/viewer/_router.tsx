@@ -23,6 +23,7 @@ import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
 import { slotsRouter } from "./slots/_router";
+import { medicalProfilesRouter } from "./medicalProfiles/_router";
 import { treatmentResourcesRouter } from "./treatmentResources/_router";
 import { smartFillRouter } from "./smartFill/_router";
 import { pvsConnectorRouter } from "./pvsConnector/_router";
@@ -61,6 +62,7 @@ export const viewerRouter = router({
   holidays: holidaysRouter,
   travelSchedules: travelSchedulesRouter,
   treatmentResources: treatmentResourcesRouter,
+  medicalProfiles: medicalProfilesRouter,
   smartFill: smartFillRouter,
   pvsConnector: pvsConnectorRouter,
   recall: recallRouter,

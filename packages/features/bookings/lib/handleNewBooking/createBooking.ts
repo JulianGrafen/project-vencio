@@ -5,12 +5,16 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { CreationSource } from "@calcom/prisma/enums";
+import type { CreationSource, InsuranceType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
   PracticeTrialService,
   shouldCountBookingForTrial,
 } from "@calcom/lib/dental/trial/trial.service";
+import {
+  assertInsuranceAllowedForEventType,
+  extractInsuranceTypeFromResponses,
+} from "@calcom/lib/dental/medical-categories/booking-insurance";
 import {
   bookingToPvsSyncInput,
   enqueueBookingPvsCancelIfEnabled,
@@ -87,6 +91,11 @@ const _createBooking = async ({
 
   const sanitizedTracking = sanitizeBookingTracking(tracking);
 
+  const insuranceType = extractInsuranceTypeFromResponses(input.responses);
+  if (insuranceType && eventType.id) {
+    await assertInsuranceAllowedForEventType(prisma, Number(eventType.id), insuranceType);
+  }
+
   updateEventDetails(evt, originalRescheduledBooking);
 
   const bookingAndAssociatedData = buildNewBookingData({
@@ -99,6 +108,7 @@ const _createBooking = async ({
     originalRescheduledBooking,
     creationSource,
     tracking: sanitizedTracking,
+    insuranceType,
   });
 
   return await saveBooking(
@@ -252,7 +262,7 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
   }));
 }
 
-function buildNewBookingData(params: CreateBookingParams) {
+function buildNewBookingData(params: CreateBookingParams & { insuranceType: InsuranceType | null }) {
   const {
     uid,
     evt,
@@ -263,6 +273,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     rescheduledBy,
     creationSource,
     tracking,
+    insuranceType,
   } = params;
 
   const attendeesData = getAttendeesData(evt);
@@ -304,6 +315,7 @@ function buildNewBookingData(params: CreateBookingParams) {
         : undefined,
     creationSource,
     tracking: tracking ? { create: tracking } : undefined,
+    insuranceType,
     ...(reqBody.treatmentResourceId
       ? {
           resources: {

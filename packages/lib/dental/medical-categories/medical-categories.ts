@@ -75,7 +75,7 @@ export function groupEventTypesByCategory<TEventType extends WithOptionalMedical
     }
   }
 
-  return [...groups.entries()]
+  return Array.from(groups.entries())
     .map(([category, groupedEventTypes]) => ({
       definition: MEDICAL_CATEGORY_DEFINITIONS[category],
       eventTypes: [...groupedEventTypes].sort(byEmergencyThenDisplayOrder),
