@@ -15,19 +15,19 @@ const credentialService = new PvsConnectorCredentialService(prisma);
 const outboxDashboardService = new PvsOutboxDashboardService(prisma);
 
 export const pvsConnectorRouter = router({
-  dashboard: dentalTeamAdminProcedure.input(ZPvsConnectorDashboardInput).query(async ({ input }) => {
+  dashboard: dentalTeamAdminProcedure(ZPvsConnectorDashboardInput).query(async ({ input }) => {
     return outboxDashboardService.getStatsForTeam(input.teamId);
   }),
 
-  listCredentials: dentalTeamAdminProcedure.input(ZPvsConnectorListInput).query(async ({ input }) => {
+  listCredentials: dentalTeamAdminProcedure(ZPvsConnectorListInput).query(async ({ input }) => {
     return credentialService.listByTeam(input.teamId);
   }),
 
-  createCredential: dentalTeamAdminProcedure.input(ZPvsConnectorCreateInput).mutation(async ({ input }) => {
+  createCredential: dentalTeamAdminProcedure(ZPvsConnectorCreateInput).mutation(async ({ input }) => {
     return credentialService.create(input.teamId, input.label);
   }),
 
-  revokeCredential: dentalTeamAdminProcedure.input(ZPvsConnectorRevokeInput).mutation(async ({ input }) => {
+  revokeCredential: dentalTeamAdminProcedure(ZPvsConnectorRevokeInput).mutation(async ({ input }) => {
     const credential = await credentialService.revoke(input.teamId, input.credentialId);
     return { success: true as const, credential };
   }),

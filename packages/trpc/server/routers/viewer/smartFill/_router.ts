@@ -52,16 +52,16 @@ export const smartFillRouter = router({
     return patientService.listByTeam(input.teamId);
   }),
 
-  createPatient: dentalTeamAdminProcedure.input(ZSmartFillPatientCreateInput).mutation(async ({ input }) => {
+  createPatient: dentalTeamAdminProcedure(ZSmartFillPatientCreateInput).mutation(async ({ input }) => {
     return patientService.create(input);
   }),
 
-  updatePatient: dentalTeamAdminProcedure.input(ZSmartFillPatientUpdateInput).mutation(async ({ input }) => {
+  updatePatient: dentalTeamAdminProcedure(ZSmartFillPatientUpdateInput).mutation(async ({ input }) => {
     await requireTeamPatient(input.teamId, input.patientId);
     return patientService.update(input);
   }),
 
-  deletePatient: dentalTeamAdminProcedure.input(ZSmartFillPatientDeleteInput).mutation(async ({ input }) => {
+  deletePatient: dentalTeamAdminProcedure(ZSmartFillPatientDeleteInput).mutation(async ({ input }) => {
     await requireTeamPatient(input.teamId, input.patientId);
     return patientService.delete(input.patientId).then(() => ({ success: true as const }));
   }),

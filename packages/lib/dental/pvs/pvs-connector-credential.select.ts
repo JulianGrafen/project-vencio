@@ -1,4 +1,4 @@
-import type { Prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/generated/prisma/client";
 
 export const PVS_CONNECTOR_CREDENTIAL_SELECT = {
   id: true,

@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@calcom/prisma";
+import type { Prisma, PrismaClient } from "@calcom/prisma/generated/prisma/client";
 
 import { normalizePhoneNumber } from "./phone-utils";
 

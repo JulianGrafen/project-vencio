@@ -36,7 +36,7 @@ export function validateTwilioWebhookSignature(params: {
 
 export function formDataToRecord(form: FormData): Record<string, string> {
   const record: Record<string, string> = {};
-  for (const [key, value] of form.entries()) {
+  for (const [key, value] of Array.from(form.entries())) {
     if (typeof value === "string") {
       record[key] = value;
     }

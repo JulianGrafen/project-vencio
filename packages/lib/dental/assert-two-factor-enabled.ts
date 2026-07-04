@@ -16,7 +16,11 @@ export async function assertDentalTwoFactorEnabledForUser(user: {
   twoFactorEnabled: boolean;
   identityProvider: IdentityProvider;
 }): Promise<void> {
-  const setupRequired = await isDentalTwoFactorSetupRequiredForUser(user);
+  const setupRequired = await isDentalTwoFactorSetupRequiredForUser({
+    userId: user.id,
+    twoFactorEnabled: user.twoFactorEnabled,
+    identityProvider: user.identityProvider,
+  });
 
   if (setupRequired) {
     throw new DentalTwoFactorRequiredError();

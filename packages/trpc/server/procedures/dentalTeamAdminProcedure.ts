@@ -1,27 +1,20 @@
-import { TRPCError } from "@trpc/server";
+import type { z } from "zod";
 
 import { assertAdminOrOwnerTeamMembership } from "@calcom/lib/dental/assert-team-membership";
 
 import { dentalAdminProcedure } from "./dentalAuthedProcedure";
 
 type TeamScopedInput = {
-  teamId?: unknown;
+  teamId: number;
 };
 
 /**
- * Dental admin procedure that also verifies OWNER/ADMIN membership for `input.teamId`.
+ * Dental admin procedure with validated input and OWNER/ADMIN membership for `teamId`.
+ * Input must be registered before the membership middleware runs.
  */
-export const dentalTeamAdminProcedure = dentalAdminProcedure.use(async ({ ctx, input, next }) => {
-  const teamId = (input as TeamScopedInput).teamId;
-
-  if (typeof teamId !== "number" || teamId <= 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "teamId is required",
-    });
-  }
-
-  await assertAdminOrOwnerTeamMembership(ctx.user.id, teamId);
-
-  return next();
-});
+export function dentalTeamAdminProcedure<TSchema extends z.ZodType<TeamScopedInput>>(schema: TSchema) {
+  return dentalAdminProcedure.input(schema).use(async ({ ctx, input, next }) => {
+    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
+    return next();
+  });
+}
