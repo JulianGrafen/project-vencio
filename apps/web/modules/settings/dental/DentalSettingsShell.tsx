@@ -31,7 +31,7 @@ export function DentalSettingsShell({
 
   return (
     <SettingsHeader title={title} description={description} CTA={headerAction}>
-      <div className={dentalDesign.pageStack}>
+      <div className={dentalDesign.pageStack} data-teeth-al-app="true">
         <div className={classNames(dentalDesign.card, "p-4 sm:p-5")}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <nav

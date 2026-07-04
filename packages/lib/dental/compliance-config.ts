@@ -67,3 +67,8 @@ export function isDentalClientAnalyticsDisabled(): boolean {
     parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_DISABLE_THIRD_PARTY_ANALYTICS])
   );
 }
+
+/** Hide Cal.com App Store / Installed Apps navigation for dental practices. */
+export function shouldHideAppStoreNavigation(): boolean {
+  return isDentalComplianceMode() || isDentalClientComplianceMode();
+}

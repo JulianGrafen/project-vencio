@@ -5,6 +5,8 @@ import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocati
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
+import { applyDentalBookingFieldPolicy, isDentalBookingFormActive } from "@calcom/lib/dental/booking-fields";
+import { filterDentalBookingLocations } from "@calcom/lib/dental/booking-locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -41,12 +43,14 @@ export const BookingFields = ({
 }) => {
   const { t, i18n } = useLocale();
   const { watch, setValue, formState } = useFormContext();
+  const dentalLocations = filterDentalBookingLocations(locations);
+  const displayFields = useMemo(() => applyDentalBookingFieldPolicy(fields), [fields]);
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   // Identify all phone fields (except location field)
   const otherPhoneFieldNames = useMemo(
-    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
-    [fields]
+    () => displayFields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
+    [displayFields]
   );
 
   // Track last synced value to avoid redundant updates
@@ -124,7 +128,7 @@ export const BookingFields = ({
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
-      {fields.map((field, index) => {
+      {displayFields.map((field, index) => {
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         const rescheduleReadOnly =
@@ -176,6 +180,9 @@ export const BookingFields = ({
 
         if (field.name === SystemField.Enum.location) {
           readOnly = false;
+          if (isDentalBookingFormActive() && dentalLocations.length <= 1) {
+            hidden = true;
+          }
         }
 
         // Dynamically populate location field options
@@ -186,7 +193,7 @@ export const BookingFields = ({
           const optionsInputs = field.optionsInputs;
 
           // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
-          const options = getLocationOptionsForSelect(locations, t);
+          const options = getLocationOptionsForSelect(dentalLocations, t);
           options.forEach((option) => {
             const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
             if (optionInput) {

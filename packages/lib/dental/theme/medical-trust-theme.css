@@ -1,0 +1,47 @@
+/**
+ * teeth.al Medical Trust theme overrides.
+ * Activated via data-teeth-al on <html>, data-teeth-al-booker on booker root, or data-teeth-al-app on settings.
+ */
+[data-teeth-al],
+[data-teeth-al-booker],
+[data-teeth-al-app] {
+  --cal-brand: #0f4c81;
+  --cal-brand-emphasis: #0b3d66;
+  --cal-brand-text: #ffffff;
+  --cal-brand-muted: #e8f1f8;
+  --cal-bg: #f8fafc;
+  --cal-bg-subtle: #f1f5f9;
+  --cal-bg-emphasis: #e2e8f0;
+  --cal-text-semantic-success: #059669;
+  --cal-bg-semantic-success-emphasis: #059669;
+  --cal-bg-semantic-success-subtle: #ecfdf5;
+  --brand-color: #0f4c81;
+}
+
+[data-teeth-al-booker] {
+  background-color: #f8fafc;
+}
+
+[data-teeth-al-booker] .bg-default {
+  background-color: #ffffff;
+}
+
+[data-teeth-al-booker] .bg-subtle {
+  background-color: #f8fafc;
+}
+
+[data-teeth-al-app] .text-teal-700 {
+  color: #0f4c81;
+}
+
+[data-teeth-al-app] .bg-teal-700 {
+  background-color: #0f4c81;
+}
+
+[data-teeth-al-app] .bg-teal-50 {
+  background-color: #e8f1f8;
+}
+
+[data-teeth-al-app] .border-teal-200 {
+  border-color: #bfdbfe;
+}
