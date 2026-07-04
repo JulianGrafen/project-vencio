@@ -83,7 +83,19 @@ async function main(): Promise<void> {
     console.info("No DATABASE_DIRECT_URL found, skipping migrations");
     return;
   }
-  if (!(await isPrismaAvailableCheck())) {
+  let prismaAvailable = false;
+  try {
+    prismaAvailable = await isPrismaAvailableCheck();
+  } catch (error) {
+    console.error(commandOutput(error));
+    if (process.env.VERCEL === "1") {
+      printVercelMigrationHelp();
+      return;
+    }
+    throw error;
+  }
+
+  if (!prismaAvailable) {
     console.info("Prisma can't be initialized, skipping migrations");
     return;
   }
