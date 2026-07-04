@@ -167,6 +167,19 @@ export async function createUserAndEventType({
       );
     }
   }
+  if (eventTypes.length === 0) {
+    const { isDentalComplianceMode } = await import("@calcom/lib/dental/compliance-config");
+    if (isDentalComplianceMode()) {
+      const { seedDentalEventTypesForUser } = await import("@calcom/lib/dental/seed-dental-event-types");
+      const created = await seedDentalEventTypesForUser(prisma, theUser.id, {
+        locale: typeof userData.locale === "string" ? userData.locale : "de",
+      });
+      if (created > 0) {
+        console.log(`\t🦷 Seeded ${created} dental event types for ${theUser.username}`);
+      }
+    }
+  }
+
   console.log("👤 User with it's event-types and bookings created", theUser.email);
 
   if (credentials) {
