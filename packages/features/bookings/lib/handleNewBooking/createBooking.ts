@@ -1,4 +1,9 @@
-import { sanitizeBookingTracking } from "@calcom/lib/dental/compliance-config";
+import { sanitizeBookingTracking, isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import {
+  prepareTokenBookingCreate,
+  persistTokenBookingPayload,
+  resolvePracticeBookingPublicKey,
+} from "@calcom/lib/dental/token-booking";
 import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -159,6 +164,9 @@ async function saveBooking(
   }
 
   if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
+    if (isDentalComplianceMode()) {
+      throw new Error("Zahlungen bei der Buchung sind im Dental-Modus nicht verfügbar.");
+    }
     await prisma.credential.findFirstOrThrow({
       where: {
         appId: paymentAppData.appId,
@@ -168,12 +176,34 @@ async function saveBooking(
     });
   }
 
+  let bookingCreateData = createBookingObj.data;
+  let tokenBookingPayloadRow: Awaited<ReturnType<typeof prepareTokenBookingCreate>>["tokenBookingPayload"] =
+    null;
+
+  if (isDentalComplianceMode() && pvsSyncContext?.teamId) {
+    const practicePublicKey = await resolvePracticeBookingPublicKey(pvsSyncContext.teamId);
+    const prepared = prepareTokenBookingCreate(bookingCreateData, {
+      teamId: pvsSyncContext.teamId,
+      bookingUid: String(bookingCreateData.uid),
+      practicePublicKey,
+    });
+    bookingCreateData = prepared.bookingData;
+    tokenBookingPayloadRow = prepared.tokenBookingPayload;
+  }
+
   return prisma.$transaction(async (tx) => {
     if (originalBookingUpdateDataForCancellation) {
       await tx.booking.update(originalBookingUpdateDataForCancellation);
     }
 
-    const booking = await tx.booking.create(createBookingObj);
+    const booking = await tx.booking.create({
+      ...createBookingObj,
+      data: bookingCreateData,
+    });
+
+    if (tokenBookingPayloadRow) {
+      await persistTokenBookingPayload(tx, booking.uid, tokenBookingPayloadRow);
+    }
 
     if (pvsSyncContext?.teamId && shouldCountBookingForTrial(booking.status)) {
       await new PracticeTrialService(tx).recordAcceptedBooking(pvsSyncContext.teamId);
