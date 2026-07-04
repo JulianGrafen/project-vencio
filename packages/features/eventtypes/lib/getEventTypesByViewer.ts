@@ -53,7 +53,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters) => {
     shouldListUserEvents = true;
   }
 
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
   const [teamsWithEventTypeReadPermission, teamsWithEventTypeUpdatePermission] = await Promise.all([
     permissionCheckService.getTeamIdsWithPermission({
       userId: user.id,

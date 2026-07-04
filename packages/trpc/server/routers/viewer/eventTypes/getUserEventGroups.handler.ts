@@ -39,7 +39,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const dependencies = {
     membershipRepository: MembershipRepository,
     profileRepository: ProfileRepository,
-    teamAccessUseCase: new TeamAccessUseCase(),
+    teamAccessUseCase: new TeamAccessUseCase(new PermissionCheckService(ctx.prisma)),
   };
 
   // Build event groups
@@ -58,7 +58,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const profileProcessor = new ProfilePermissionProcessor();
   const profiles = profileProcessor.processProfiles(eventTypeGroups, teamPermissionsMap);
 
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(ctx.prisma);
 
   const teamIdsToCheck = filteredEventTypeGroups
     .map((group) => group.teamId)

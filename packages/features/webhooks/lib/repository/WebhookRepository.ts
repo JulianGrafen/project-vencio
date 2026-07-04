@@ -382,7 +382,7 @@ export class WebhookRepository implements IWebhookRepository {
     }
 
     // Use permission service which handles both PBAC and role-based fallbacks
-    const permissionService = new PermissionCheckService();
+    const permissionService = new PermissionCheckService(this.prisma);
 
     // Build webhook groups with proper permissions
     const webhookGroups: WebhookGroup[] = [];
@@ -532,7 +532,7 @@ export class WebhookRepository implements IWebhookRepository {
       }
     } else {
       // No eventTypeId - filter by user and their allowed teams
-      const permissionService = new PermissionCheckService();
+      const permissionService = new PermissionCheckService(this.prisma);
       const teamIds = user?.teams?.map((m) => m.teamId) ?? [];
 
       const allowedTeamIds = (

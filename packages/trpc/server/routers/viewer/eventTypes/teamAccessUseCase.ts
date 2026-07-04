@@ -1,4 +1,5 @@
 import type { Membership, Team } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
 import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
 
 type TeamMembershipWithTeam = Membership & {
@@ -15,7 +16,7 @@ type TeamMembershipWithTeam = Membership & {
 };
 
 export class TeamAccessUseCase {
-  constructor(private permissionCheckService: PermissionCheckService = new PermissionCheckService()) {}
+  constructor(private permissionCheckService: PermissionCheckService = new PermissionCheckService(prisma)) {}
 
   async filterTeamsByEventTypeReadPermission(
     memberships: TeamMembershipWithTeam[],

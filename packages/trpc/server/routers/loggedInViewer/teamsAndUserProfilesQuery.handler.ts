@@ -97,7 +97,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
   // Filter teams based on permission if provided
   let hasPermissionForFiltered: boolean[] = [];
   if (input?.withPermission) {
-    const permissionService = new PermissionCheckService();
+    const permissionService = new PermissionCheckService(ctx.prisma);
     const { permission, fallbackRoles } = input.withPermission;
 
     const permissionChecks = await Promise.all(

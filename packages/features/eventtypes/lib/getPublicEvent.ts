@@ -522,7 +522,7 @@ export const getPublicEvent = async (
   }
   let canViewPrivateTeamMembers = false;
   if (currentUserId && event.teamId) {
-    const permissionCheckService = new PermissionCheckService();
+    const permissionCheckService = new PermissionCheckService(prisma);
     canViewPrivateTeamMembers = await permissionCheckService.checkPermission({
       userId: currentUserId,
       teamId: event.teamId,

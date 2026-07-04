@@ -151,7 +151,7 @@ export const createEventPbacProcedure = (
         }
       } else {
         // Team event - check PBAC/fallback permissions
-        const permissionCheckService = new PermissionCheckService();
+        const permissionCheckService = new PermissionCheckService(ctx.prisma);
         const hasPermission = await permissionCheckService.checkPermission({
           userId: ctx.user.id,
           teamId: event.teamId,

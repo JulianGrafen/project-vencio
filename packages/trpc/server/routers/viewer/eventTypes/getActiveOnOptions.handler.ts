@@ -208,7 +208,7 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(ctx.prisma);
   const teamIdsWithEventTypeUpdatePermission = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
     permission: "eventType.update",

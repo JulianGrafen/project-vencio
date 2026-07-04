@@ -99,7 +99,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
   const teamsWithWritePermission = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
     permission: "team.update",

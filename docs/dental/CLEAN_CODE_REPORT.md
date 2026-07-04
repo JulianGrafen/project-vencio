@@ -181,7 +181,7 @@ packages/pvs-connector/src/
 | **Recall cron** | `loadTeamConfigs()` + `RECALL_DEFAULT_*` constants instead of magic `6`/`3` |
 | **Recall mailer** | Uses `RecallTemplateContext` from `constants.ts`; history persistence via repository |
 | **Team resolver** | Extended `TeamLookupStore.booking` for UID lookup — removed `as never` casts |
-| **Settings UI** | Split Smart-Fill pool → hook + form/list/dialog; Recall → settings form + pending/history lists |
+| **Settings UI** | Split Smart-Fill pool → hook + form/list/dialog; Recall → settings form + pending/history lists; Treatment Resources → hook + form/list/dialog |
 | **Shared UI** | `formatDeDate()` for German date formatting across dental settings |
 | **Landing** | `#automation` section wired to `SMART_AUTOMATION` content (nav link fix) |
 
@@ -211,6 +211,48 @@ packages/pvs-connector/src/
 
 ---
 
+## 12. Round 4 — Security (2026-07-03)
+
+| Area | Change |
+|------|--------|
+| **PermissionCheckService** | Real role-based membership checks (replaced stubs); injectable `MembershipDb` |
+| **Smart-Fill webhook** | Twilio signature required; JSON mock only in dev with `SMART_FILL_SMS_MOCK_WEBHOOK=true` |
+| **PVS connector** | Global API key disabled in production unless `PVS_CONNECTOR_ALLOW_GLOBAL_KEY=true` |
+| **Recall opt-out** | HTML escaping + uniform error responses |
+| **Cron** | Rejects `apiKey` query param in production |
+| **2FA** | Required for all practice team members in compliance mode |
+| **PBAC** | `dentalTeamMemberProcedure` uses `dentalAuthedProcedure` |
+
+**Bugfix:** `PermissionCheckService` used global `prisma` instead of injected instance → `ECONNREFUSED` in tests. Fixed via constructor injection at all call sites.
+
+---
+
+## 13. Round 5 — Desloppify & Permission Injection (2026-07-04)
+
+| Area | Change |
+|------|--------|
+| **Desloppify** | `desloppify[full]`, skill at `agents/rules/desloppify.md`, Yarn scripts (`desloppify:scan`, `desloppify:status`, `desloppify:next`) |
+| **Dental scan** | Objective ~90.8%, Security 100%, all T1 items cleared |
+| **PermissionCheckService** | All call sites pass `ctx.prisma` / `prisma` / `this.prisma` (no global Prisma) |
+| **TreatmentResourcesSettingsView** | Split into hook + form + list + deactivate dialog (~255 → ~35 LOC orchestrator) |
+
+**New modules (round 5):** `treatment-resources.constants.ts`, `useTreatmentResourcesSettings.ts`, `TreatmentResourceForm.tsx`, `TreatmentResourceList.tsx`, `TreatmentResourceDeactivateDialog.tsx`
+
+**Test count after round 5:** 145 passing (dental/PVS suite + `get.handler.test.ts` + `permission-check.service.test.ts`).
+
+---
+
+## 14. Remaining Optional Work
+
+| Priority | Item | Status |
+|----------|------|--------|
+| P3 | Desloppify subjective review (`desloppify review --prepare`) | Deferred — 20 dimensions unassessed |
+| P3 | Playwright E2E booker → outbox row | Deferred |
+| P3 | SmartFillPatient PII field encryption | Deferred — compliance follow-up |
+| P3 | Further large settings views | Deferred |
+
+---
+
 ## 8. Files Changed (Round 1–2)
 
 - `docs/dental/CLEAN_CODE_REPORT.md`
@@ -229,7 +271,8 @@ packages/pvs-connector/src/
 ## 9. Verification
 
 ```bash
-yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector apps/web/app/api/pvs/outbox/__tests__
+yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector apps/web/app/api/pvs/outbox/__tests__ packages/trpc/server/routers/viewer/bookings/get.handler.test.ts packages/lib/dental/permission-check.service.test.ts
+yarn desloppify:scan
 ```
 
 All tests must pass before deploy (see `dental-critical-path.yml` CI gate).

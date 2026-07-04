@@ -3,7 +3,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
 
 export const isAdminForUser = async (adminUserId: number, memberUserId: number) => {
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
   const adminTeamIds = await permissionCheckService.getTeamIdsWithPermission({
     userId: adminUserId,
     permission: "ooo.update",

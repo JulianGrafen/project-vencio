@@ -14,7 +14,7 @@ type checkInvalidAppCredentialsOptions = {
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
   const userId = ctx.user.id;
 
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
   const userTeamIds = await permissionCheckService.getTeamIdsWithPermission({
     userId,
     permission: "team.update",

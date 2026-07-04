@@ -91,7 +91,7 @@ export function getOrganizationWatchlistOperationsService(
 ): OrganizationWatchlistOperationsService {
   const watchlistRepo = new WatchlistRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
 
   return new OrganizationWatchlistOperationsService({
     watchlistRepo,
@@ -117,7 +117,7 @@ export function getAdminWatchlistQueryService(): AdminWatchlistQueryService {
 export function getOrganizationWatchlistQueryService(): OrganizationWatchlistQueryService {
   const watchlistRepo = new WatchlistRepository(prisma);
   const userRepo = new UserRepository(prisma);
-  const permissionCheckService = new PermissionCheckService();
+  const permissionCheckService = new PermissionCheckService(prisma);
 
   return new OrganizationWatchlistQueryService({
     watchlistRepo,
