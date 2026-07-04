@@ -2,7 +2,7 @@
 
 import { HAS_ORG_OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
-import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { isDentalClientComplianceMode, shouldHideAppStoreNavigation } from "@calcom/lib/dental/compliance-config";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -361,6 +361,9 @@ const useTabs = ({
         const filtered = tab?.children?.filter(
           (childTab) => permissions?.canUpdateOrganization || childTab.name !== "api_docs"
         );
+        return { ...tab, children: filtered };
+      } else if (tab.href === "/settings/admin" && shouldHideAppStoreNavigation()) {
+        const filtered = tab.children?.filter((childTab) => childTab.name !== "apps");
         return { ...tab, children: filtered };
       }
       return tab;
