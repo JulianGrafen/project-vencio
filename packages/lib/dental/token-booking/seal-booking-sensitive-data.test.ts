@@ -7,6 +7,7 @@ import {
   TOKEN_BOOKING_REFERENCE_KEY,
 } from "./types";
 import { minimizeBookingSensitiveData, sealBookingSensitiveData } from "./seal-booking-sensitive-data";
+import { applyTokenBookingSealToCreateInput } from "./seal-booking-sensitive-data";
 
 describe("seal-booking-sensitive-data", () => {
   const { publicKey } = generateKeyPairSync("rsa", {
@@ -57,5 +58,38 @@ describe("seal-booking-sensitive-data", () => {
     expect(result.metadata[TOKEN_BOOKING_METADATA_KEY]).toBeUndefined();
     expect(result.responses?.email).toBe("patient@example.com");
     expect(result.responses?.name).toBeUndefined();
+  });
+
+  it("applies seal patch to Prisma booking create input", () => {
+    const createInput = {
+      uid: "booking-uid-1",
+      title: baseInput.title,
+      startTime: new Date(baseInput.startTimeIso),
+      endTime: new Date(baseInput.startTimeIso),
+      responses: baseInput.responses,
+      customInputs: baseInput.customInputs,
+      attendees: {
+        createMany: {
+          data: baseInput.attendees.map((attendee) => ({
+            ...attendee,
+            timeZone: "Europe/Berlin",
+            locale: "de",
+          })),
+        },
+      },
+    };
+
+    const sealed = applyTokenBookingSealToCreateInput(createInput, {
+      teamId: 7,
+      bookingUid: "booking-uid-1",
+      practicePublicKey: { teamId: 7, publicKeyPem: publicKey, keyVersion: 1 },
+    });
+
+    expect(sealed.title).toBe(GENERIC_DENTAL_BOOKING_TITLE);
+    expect(sealed.responses).toEqual({
+      email: "patient@example.com",
+      insuranceType: "GESETZLICH",
+    });
+    expect(sealed.attendees?.createMany?.data[0]?.name).toBe("Patient");
   });
 });

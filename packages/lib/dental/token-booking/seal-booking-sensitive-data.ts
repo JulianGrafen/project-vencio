@@ -1,4 +1,4 @@
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 import {
   createBookingReferenceHash,
@@ -25,7 +25,7 @@ export type SealBookingSensitiveDataInput = {
   description?: string | null;
   location?: string | null;
   responses?: Record<string, unknown> | null;
-  customInputs?: Prisma.JsonValue;
+  customInputs?: Prisma.JsonValue | null;
   attendees: Array<{ name: string; email: string; phoneNumber?: string | null }>;
   practicePublicKey: PracticeBookingPublicKey;
 };
@@ -35,10 +35,22 @@ export type SealedBookingStoragePatch = {
   description: string | null;
   location: string | null;
   responses: Record<string, unknown> | null;
-  customInputs: Prisma.JsonValue;
+  customInputs: Prisma.JsonValue | null;
   metadata: Record<string, unknown>;
   attendees: Array<{ name: string; email: string; phoneNumber?: string | null }>;
 };
+
+function toJsonValue(
+  value: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | null | undefined
+): Prisma.JsonValue | null | undefined {
+  if (value === null || value === undefined) {
+    return value ?? null;
+  }
+  if (value === Prisma.DbNull || value === Prisma.JsonNull) {
+    return null;
+  }
+  return value as Prisma.JsonValue;
+}
 
 function pickVerificationResponses(
   responses: Record<string, unknown> | null | undefined
@@ -161,7 +173,7 @@ export function applyTokenBookingSealToCreateInput(
     bookingUid: string;
     practicePublicKey: PracticeBookingPublicKey | null;
   }
-): Promise<Prisma.BookingCreateInput> {
+): Prisma.BookingCreateInput {
   if (!params.teamId) {
     return newBookingData;
   }
@@ -190,7 +202,7 @@ export function applyTokenBookingSealToCreateInput(
       newBookingData.responses && typeof newBookingData.responses === "object"
         ? (newBookingData.responses as Record<string, unknown>)
         : null,
-    customInputs: newBookingData.customInputs ?? null,
+    customInputs: toJsonValue(newBookingData.customInputs),
     attendees,
   };
 
@@ -208,12 +220,12 @@ export function applyTokenBookingSealToCreateInput(
     title: patch.title,
     description: patch.description,
     location: patch.location,
-    responses: patch.responses ?? undefined,
-    customInputs: patch.customInputs ?? undefined,
+    responses: (patch.responses ?? undefined) as Prisma.InputJsonValue | undefined,
+    customInputs: (patch.customInputs ?? undefined) as Prisma.InputJsonValue | undefined,
     metadata: {
       ...existingMetadata,
       ...patch.metadata,
-    },
+    } as Prisma.InputJsonValue,
     attendees: newBookingData.attendees
       ? {
           ...newBookingData.attendees,

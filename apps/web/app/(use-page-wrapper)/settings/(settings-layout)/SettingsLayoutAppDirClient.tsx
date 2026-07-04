@@ -372,13 +372,33 @@ const useTabs = ({
           ...processedTabs.slice(0, 2),
           {
             name: "Praxis-Einstellungen",
-            href: "/settings/practice",
+            href: "/settings/practice-info",
             icon: "building" as const,
             children: [
               {
-                name: "Smart-Fill & Recall",
-                href: "/settings/practice",
-                trackingMetadata: { section: "dental", page: "practice" },
+                name: "Praxisinformationen",
+                href: "/settings/practice-info",
+                trackingMetadata: { section: "dental", page: "practice-info" },
+              },
+              {
+                name: "Smart-Fill",
+                href: "/settings/smart-fill",
+                trackingMetadata: { section: "dental", page: "smart-fill" },
+              },
+              {
+                name: "Recall",
+                href: "/settings/recall",
+                trackingMetadata: { section: "dental", page: "recall" },
+              },
+              {
+                name: "Behandlungsressourcen",
+                href: "/settings/treatment-resources",
+                trackingMetadata: { section: "dental", page: "treatment-resources" },
+              },
+              {
+                name: "PVS Sync",
+                href: "/settings/pvs-connector",
+                trackingMetadata: { section: "dental", page: "pvs-connector" },
               },
             ],
           },
