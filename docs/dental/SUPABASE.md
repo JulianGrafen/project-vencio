@@ -48,16 +48,16 @@ Beispiel (Platzhalter ersetzen):
 
 ```bash
 # Runtime — Transaction pooler
-DATABASE_URL="postgresql://postgres.abcdefghijklmnop:[PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DATABASE_URL="postgresql://postgres.abcdefghijklmnop:[PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require"
 
-# Migrationen — Session pooler oder Direct
-DATABASE_DIRECT_URL="postgresql://postgres.abcdefghijklmnop:[PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+# Migrationen — Session pooler oder Direct (User: postgres, nicht postgres.<ref>)
+DATABASE_DIRECT_URL="postgresql://postgres:[PASSWORD]@db.abcdefghijklmnop.supabase.co:5432/postgres?sslmode=require"
 ```
 
-Direct-Alternative für Migrationen:
+Session-Pooler-Alternative für Migrationen:
 
 ```bash
-DATABASE_DIRECT_URL="postgresql://postgres:[PASSWORD]@db.abcdefghijklmnop.supabase.co:5432/postgres"
+DATABASE_DIRECT_URL="postgresql://postgres.abcdefghijklmnop:[PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require"
 ```
 
 Vorlage: [`scripts/supabase/env.example`](../../scripts/supabase/env.example)
@@ -118,8 +118,11 @@ Das Script [`scripts/supabase/deploy-migrations.sh`](../../scripts/supabase/depl
 | `CALENDSO_ENCRYPTION_KEY` | `openssl rand -base64 24` |
 | `NEXT_PUBLIC_WEBAPP_URL` | `https://deine-app.vercel.app` |
 | `NEXTAUTH_URL` | `https://deine-app.vercel.app/api/auth` |
+| `SKIP_DB_MIGRATIONS` | `1` — **nur wenn** Schema per SQL Editor (Option A) bereits angelegt wurde |
 
-Danach **Redeploy**. Beim Build wendet `@calcom/prisma` automatisch fehlende Migrationen an (`auto-migrations.ts`), sofern beide DB-URLs gesetzt sind.
+Danach **Redeploy**.
+
+**Build-Migrationen:** `@calcom/prisma` führt beim Vercel-Build automatisch `prisma migrate deploy` aus, sofern beide DB-URLs gesetzt sind und `SKIP_DB_MIGRATIONS` nicht `1` ist. Wenn du das Schema bereits per **SQL Editor** (Option A) erstellt hast, setze `SKIP_DB_MIGRATIONS=1`, sonst schlägt der Build oft fehl (doppelte Tabellen oder Direct-URL nicht erreichbar).
 
 ---
 
@@ -156,6 +159,8 @@ Repository Secrets setzen:
 | `P1001: Can't reach database` | IP-Allowlist in Supabase prüfen; „Allow all“ für Serverless |
 | Migration hängt / timeout | `DATABASE_DIRECT_URL` auf Direct (5432) stellen |
 | `prepared statement` Fehler | `DATABASE_URL` muss `?pgbouncer=true` haben |
+| Vercel Build: `@calcom/prisma#build` failed | Nach SQL Editor: `SKIP_DB_MIGRATIONS=1` setzen; sonst Direct-URL + `?sslmode=require` prüfen |
+| `P1001` beim Build | Supabase Network → „Allow all“; `DATABASE_DIRECT_URL` User = `postgres` |
 | `gen_random_uuid does not exist` | `yarn db:supabase-deploy` erneut (bootstrap `pgcrypto`) |
 | App zeigt `/deploy` | Env in Vercel Production prüfen + Redeploy |
 | 500 nach Login | Migrationen fehlen → `yarn db:supabase-deploy` |

@@ -23,9 +23,12 @@ Wenn du **kein Terminal** nutzen willst, kannst du das komplette Schema direkt i
 ## Danach in Vercel
 
 ```env
-DATABASE_DIRECT_URL=postgresql://postgres:...@db.sozarwmazweyiiookfxg.supabase.co:5432/postgres
-DATABASE_URL=<Transaction pooler aus Supabase, Port 6543>
+DATABASE_DIRECT_URL=postgresql://postgres:...@db.sozarwmazweyiiookfxg.supabase.co:5432/postgres?sslmode=require
+DATABASE_URL=postgresql://postgres.sozarwmazweyiiookfxg:...@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require
+SKIP_DB_MIGRATIONS=1
 ```
+
+`SKIP_DB_MIGRATIONS=1` verhindert, dass der Vercel-Build erneut Migrationen ausführt (Schema ist bereits per SQL Editor angelegt).
 
 Redeploy → App unter `/auth/setup` öffnen → ersten Admin anlegen.
 
