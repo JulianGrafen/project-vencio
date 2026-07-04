@@ -183,6 +183,10 @@ yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connec
 # Code quality scan
 yarn desloppify:scan
 
+# Dental Playwright E2E (requires DB seed + web build)
+yarn db-deploy && yarn db-seed && yarn workspace @calcom/web build
+yarn e2e:dental
+
 # Production config (local dry-run — set env vars first)
 CALCOM_ENV=production NODE_ENV=production DENTAL_ENCRYPTION_ENABLED=true \
   node -e "require('@calcom/lib/dental/production-config').assertDentalProductionConfig()"
@@ -197,7 +201,7 @@ CALCOM_ENV=production NODE_ENV=production DENTAL_ENCRYPTION_ENABLED=true \
 | `SmartFillPatient` PII field encryption | **Implemented** — `field-registry`, blind-index phone lookup, Prisma extension |
 | Smart-Fill SMS replies | **Deprecated** — use email confirm/decline links; legacy webhook opt-in via `SMART_FILL_SMS_LEGACY_WEBHOOK=true` |
 | Dampsoft PVS adapter | Stub — real PVS I/O required for sync |
-| Playwright E2E | Not yet automated |
+| Playwright E2E | **Partial** — `apps/web/playwright/dental/` (Smart-Fill confirm, booker→outbox); run `yarn e2e:dental` |
 | Desloppify subjective review | 20 dimensions unassessed |
 
 ---

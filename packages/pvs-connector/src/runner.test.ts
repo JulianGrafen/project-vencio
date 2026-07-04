@@ -71,6 +71,40 @@ describe("processPvsOutboxJob", () => {
     expect(result.externalId).toContain("cancel-");
   });
 
+  it("uses pvsExternalId for cancel when present in payload", async () => {
+    const adapter = new MockPvsAdapter();
+    adapter.cancelAppointment = vi.fn(async () => undefined);
+    const cancelSpy = vi.spyOn(adapter, "cancelAppointment");
+
+    await processPvsOutboxJob(
+      {
+        id: "job-cancel-ext",
+        teamId: 1,
+        bookingUid: "uid-cancel-ext",
+        operation: "CANCEL_APPOINTMENT",
+        payload: {
+          bookingUid: "uid-cancel-ext",
+          pvsExternalId: "ds-appt-42",
+          teamId: 1,
+          patientName: "Max",
+          patientEmail: "max@test.de",
+          startTime: "2026-07-12T10:00:00.000Z",
+          endTime: "2026-07-12T10:30:00.000Z",
+          title: "Kontrolle",
+          source: "booker",
+        },
+        attempts: 1,
+        createdAt: new Date().toISOString(),
+      },
+      adapter as never
+    );
+
+    expect(cancelSpy).toHaveBeenCalledWith(
+      { externalId: "ds-appt-42", provider: "mock" },
+      undefined
+    );
+  });
+
   it("rejects invalid job payload", async () => {
     const adapter = new MockPvsAdapter();
 

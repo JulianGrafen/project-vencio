@@ -26,6 +26,13 @@ function validateOutboxJob(job: PvsOutboxJobDTO): { valid: true; payload: Appoin
   return { valid: true, payload };
 }
 
+function resolvePvsAppointmentRef(payload: AppointmentSyncDTO, provider: string) {
+  return {
+    externalId: payload.pvsExternalId?.trim() || payload.bookingUid,
+    provider,
+  };
+}
+
 export async function processPvsOutboxJob(
   job: PvsOutboxJobDTO,
   adapter: PvsAdapter
@@ -44,7 +51,7 @@ export async function processPvsOutboxJob(
         case PvsSyncOperation.CANCEL_APPOINTMENT: {
           if (adapter.cancelAppointment) {
             await adapter.cancelAppointment(
-              { externalId: payload.bookingUid, provider: adapter.provider },
+              resolvePvsAppointmentRef(payload, adapter.provider),
               payload.cancellationReason
             );
           }
@@ -54,7 +61,7 @@ export async function processPvsOutboxJob(
         case PvsSyncOperation.UPDATE_APPOINTMENT: {
           if (adapter.updateAppointment) {
             await adapter.updateAppointment(
-              { externalId: payload.bookingUid, provider: adapter.provider },
+              resolvePvsAppointmentRef(payload, adapter.provider),
               payload
             );
           }

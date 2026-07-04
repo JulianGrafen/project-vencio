@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { PvsSyncOperation } from "@calcom/prisma/enums";
+import { PvsSyncOperation, PvsSyncOutboxStatus } from "@calcom/prisma/enums";
 
 import type { AppointmentSyncDTO } from "@calcom/pvs-integration";
 
@@ -7,6 +7,26 @@ import { isPvsSyncEnabled } from "./feature-flags";
 import { enqueuePvsAppointmentSync, enqueuePvsOperationIfNotDuplicate } from "./enqueue-pvs-sync";
 
 type PrismaTx = Pick<PrismaClient, "pvsSyncOutbox">;
+
+async function resolvePvsExternalIdForBooking(
+  tx: PrismaTx,
+  teamId: number,
+  bookingUid: string
+): Promise<string | undefined> {
+  const completed = await tx.pvsSyncOutbox.findFirst({
+    where: {
+      teamId,
+      bookingUid,
+      operation: PvsSyncOperation.CREATE_APPOINTMENT,
+      status: PvsSyncOutboxStatus.COMPLETED,
+      externalId: { not: null },
+    },
+    select: { externalId: true },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return completed?.externalId ?? undefined;
+}
 
 export type BookingPvsSyncInput = {
   bookingUid: string;
@@ -51,7 +71,17 @@ async function enqueuePvsBookingOperationIfEnabled(
     return null;
   }
 
-  const dto = toAppointmentSyncDto(input);
+  let dto = toAppointmentSyncDto(input);
+
+  if (
+    operation === PvsSyncOperation.CANCEL_APPOINTMENT ||
+    operation === PvsSyncOperation.UPDATE_APPOINTMENT
+  ) {
+    const pvsExternalId = await resolvePvsExternalIdForBooking(tx, input.teamId, input.bookingUid);
+    if (pvsExternalId) {
+      dto = { ...dto, pvsExternalId };
+    }
+  }
 
   if (operation === PvsSyncOperation.CREATE_APPOINTMENT) {
     const existing = await tx.pvsSyncOutbox.findFirst({

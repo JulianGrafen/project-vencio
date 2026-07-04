@@ -12,6 +12,8 @@ export type AppointmentSyncDTO = {
   smartFillTaskId?: string;
   cancellationReason?: string;
   rescheduledToBookingUid?: string;
+  /** PVS appointment ID from a completed CREATE sync — used for cancel/update. */
+  pvsExternalId?: string;
 };
 
 export type PvsAppointmentRef = {

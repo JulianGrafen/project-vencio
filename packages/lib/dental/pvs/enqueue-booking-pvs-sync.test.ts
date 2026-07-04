@@ -65,9 +65,10 @@ describe("enqueueBookingPvsSyncIfEnabled", () => {
 
   it("creates cancel outbox row", async () => {
     const create = vi.fn().mockResolvedValue({ id: "outbox-cancel" });
+    const findFirst = vi.fn().mockResolvedValue(null);
     const tx = {
       pvsSyncOutbox: {
-        findFirst: vi.fn().mockResolvedValue(null),
+        findFirst,
         create,
       },
     };
@@ -90,6 +91,42 @@ describe("enqueueBookingPvsSyncIfEnabled", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           operation: "CANCEL_APPOINTMENT",
+        }),
+      })
+    );
+  });
+
+  it("includes pvsExternalId on cancel when CREATE sync completed", async () => {
+    const create = vi.fn().mockResolvedValue({ id: "outbox-cancel-ext" });
+    const findFirst = vi
+      .fn()
+      .mockResolvedValueOnce({ externalId: "ds-appt-99" })
+      .mockResolvedValueOnce(null);
+    const tx = {
+      pvsSyncOutbox: {
+        findFirst,
+        create,
+      },
+    };
+
+    const { enqueueBookingPvsCancelIfEnabled } = await import("./enqueue-booking-pvs-sync");
+
+    await enqueueBookingPvsCancelIfEnabled(tx as never, {
+      bookingUid: "uid-cancel-ext",
+      teamId: 5,
+      title: "Kontrolle",
+      startTime: new Date("2026-07-12T10:00:00.000Z"),
+      endTime: new Date("2026-07-12T10:30:00.000Z"),
+      patientName: "Max",
+      patientEmail: "max@test.de",
+    });
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          payload: expect.objectContaining({
+            pvsExternalId: "ds-appt-99",
+          }),
         }),
       })
     );
