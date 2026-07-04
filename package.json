@@ -70,6 +70,7 @@
     "tdd": "vitest watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "e2e:dental": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test apps/web/playwright/dental --project=@calcom/web",
+    "dampsoft-bridge": "yarn workspace @calcom/pvs-connector bridge",
     "e2e:app-store": "NEXT_PUBLIC_IS_E2E=1 QUICK=true yarn playwright test --project=@calcom/app-store",
     "e2e:embed": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/embed-core",
     "e2e:embed-react": "QUICK=true yarn playwright test --project=@calcom/embed-react",

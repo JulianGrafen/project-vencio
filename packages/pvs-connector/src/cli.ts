@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import process from "node:process";
 
-import { DampsoftPvsAdapter } from "@calcom/pvs-integration";
+import { DampsoftPvsAdapter, resolveDampsoftPvsConfigFromEnv } from "@calcom/pvs-integration";
 
 import { PvsConnectorClient, runPvsConnectorOnce } from "./runner";
 
@@ -24,9 +24,15 @@ async function main() {
   }
 
   const client = new PvsConnectorClient({ baseUrl, apiKey, teamId });
-  const adapter = new DampsoftPvsAdapter();
+  const dampsoftConfig = resolveDampsoftPvsConfigFromEnv();
+  const adapter = new DampsoftPvsAdapter(dampsoftConfig);
 
   console.info(`PVS connector started — team=${teamId}, poll every ${intervalMs}ms`);
+  if (dampsoftConfig.apiBaseUrl) {
+    console.info(`Dampsoft HTTP bridge: ${dampsoftConfig.apiBaseUrl}`);
+  } else {
+    console.info("Dampsoft adapter: stub mode (set DAMPSOFT_PVS_API_URL for HTTP bridge)");
+  }
 
   const tick = async () => {
     try {

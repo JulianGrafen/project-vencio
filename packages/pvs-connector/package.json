@@ -3,7 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "main": "./src/runner.ts",
-  "bin": "./src/cli.ts",
+  "bin": {
+    "pvs-connector": "./src/cli.ts",
+    "dampsoft-bridge": "./src/dampsoft-bridge-cli.ts"
+  },
+  "scripts": {
+    "bridge": "node ./src/dampsoft-bridge-cli.ts"
+  },
   "dependencies": {
     "@calcom/pvs-integration": "workspace:*"
   },

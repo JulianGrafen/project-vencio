@@ -98,19 +98,43 @@ Set `CALCOM_ENV=production` so runtime guards and startup validation activate.
 
 The connector polls the cloud outbox and writes appointments to the practice PVS.
 
+### 4a. Dampsoft HTTP bridge (on-prem)
+
+Run the local bridge before the connector when testing or when Dampsoft exposes a REST shim:
+
+```bash
+# Terminal 1 — local bridge (simulates Dampsoft REST until real DB wiring exists)
+DAMPSOFT_BRIDGE_PORT=8090 \
+DAMPSOFT_PVS_API_KEY=dev-bridge-secret \
+yarn workspace @calcom/pvs-connector bridge
+
+# Terminal 2 — cloud outbox poller
+PVS_CLOUD_BASE_URL=https://your-app.example \
+PVS_TEAM_ID=123 \
+PVS_CONNECTOR_API_KEY=... \
+DAMPSOFT_PVS_API_URL=http://127.0.0.1:8090 \
+DAMPSOFT_PVS_API_KEY=dev-bridge-secret \
+yarn workspace @calcom/pvs-connector exec node ./src/cli.ts
+```
+
+Bridge endpoints: `GET /health`, `POST /appointments`, `DELETE /appointments/:externalId`
+
+### 4b. Connector environment
+
 ```bash
 # Connector environment (on-prem)
 PVS_CLOUD_BASE_URL=https://your-app.example
 PVS_TEAM_ID=123
 PVS_CONNECTOR_API_KEY=         # Per-team key from practice settings
 PVS_POLL_INTERVAL_MS=30000
+DAMPSOFT_PVS_API_URL=http://127.0.0.1:8090
+DAMPSOFT_PVS_API_KEY=          # Must match bridge when auth enabled
 ```
 
 Install and run from `packages/pvs-connector`:
 
 ```bash
-yarn workspace @calcom/pvs-connector build
-node packages/pvs-connector/dist/cli.js
+yarn workspace @calcom/pvs-connector exec node ./src/cli.ts
 ```
 
 **Production note:** Set `DAMPSOFT_PVS_API_URL` on the on-prem connector for HTTP bridge mode; otherwise the adapter runs in stub mode (safe for dev only).
