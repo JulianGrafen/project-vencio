@@ -5,6 +5,7 @@ import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocati
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
+import { filterDentalBookingLocations } from "@calcom/lib/dental/booking-locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -41,6 +42,7 @@ export const BookingFields = ({
 }) => {
   const { t, i18n } = useLocale();
   const { watch, setValue, formState } = useFormContext();
+  const dentalLocations = filterDentalBookingLocations(locations);
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   // Identify all phone fields (except location field)
@@ -186,7 +188,7 @@ export const BookingFields = ({
           const optionsInputs = field.optionsInputs;
 
           // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
-          const options = getLocationOptionsForSelect(locations, t);
+          const options = getLocationOptionsForSelect(dentalLocations, t);
           options.forEach((option) => {
             const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
             if (optionInput) {

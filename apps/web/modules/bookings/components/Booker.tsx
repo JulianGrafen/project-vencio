@@ -1,4 +1,5 @@
 import process from "node:process";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
@@ -377,7 +378,7 @@ const BookerComponent = ({
                   isMobile={isMobile}
                   nextSlots={nextSlots}
                   renderOverlay={() => {
-                    if (isEmbed) return null;
+                    if (isEmbed || isDentalClientComplianceMode()) return null;
                     return (
                       <OverlayCalendar
                         isOverlayCalendarEnabled={isOverlayCalendarEnabled}
