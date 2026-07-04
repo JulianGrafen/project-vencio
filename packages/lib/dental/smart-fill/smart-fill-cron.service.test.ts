@@ -1,32 +1,28 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { SmartFillTaskStatus } from "@calcom/prisma/enums";
 
-import { SmartFillCronService } from "./smart-fill-cron.service";
+import { shouldSendSmartFillInvite } from "./smart-fill-cron-invite";
 
-describe("SmartFillCronService invite deduplication", () => {
+describe("shouldSendSmartFillInvite", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("does not send SMS when task already has invites", async () => {
-    const smsSend = vi.fn();
     const prisma = {
-      membership: { findMany: vi.fn(async () => []) },
-      smartFillTask: {
-        updateMany: vi.fn(async () => ({ count: 0 })),
-      },
       smartFillInvite: {
         count: vi.fn(async () => 1),
       },
     };
 
-    const service = new SmartFillCronService(prisma as never, { send: smsSend } as never);
-
-    const shouldInvite = await (
-      service as unknown as {
-        shouldSendInvite: (id: string, status: SmartFillTaskStatus) => Promise<boolean>;
-      }
-    ).shouldSendInvite("task-1", SmartFillTaskStatus.PENDING);
+    const shouldInvite = await shouldSendSmartFillInvite(
+      prisma as never,
+      "task-1",
+      SmartFillTaskStatus.PENDING
+    );
 
     expect(shouldInvite).toBe(false);
-    expect(smsSend).not.toHaveBeenCalled();
   });
 
   it("allows invite when task is pending with zero invites", async () => {
@@ -36,13 +32,11 @@ describe("SmartFillCronService invite deduplication", () => {
       },
     };
 
-    const service = new SmartFillCronService(prisma as never, { send: vi.fn() } as never);
-
-    const shouldInvite = await (
-      service as unknown as {
-        shouldSendInvite: (id: string, status: SmartFillTaskStatus) => Promise<boolean>;
-      }
-    ).shouldSendInvite("task-1", SmartFillTaskStatus.PENDING);
+    const shouldInvite = await shouldSendSmartFillInvite(
+      prisma as never,
+      "task-1",
+      SmartFillTaskStatus.PENDING
+    );
 
     expect(shouldInvite).toBe(true);
   });

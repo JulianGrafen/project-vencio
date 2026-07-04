@@ -1,4 +1,6 @@
-import { BookingStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
+import { SmartFillTaskStatus } from "@calcom/prisma/enums";
+
+import { DENTAL_BLOCKING_BOOKING_STATUSES } from "../constants";
 
 /** Default minimum gap duration to qualify as Smart-Fill candidate. */
 export const SMART_FILL_MIN_GAP_MINUTES = 30;
@@ -34,11 +36,7 @@ export const SMART_FILL_STALE_TASK_STATUSES = [
   SmartFillTaskStatus.INVITED,
 ] as const;
 
-export const SMART_FILL_BUSY_BOOKING_STATUSES = [
-  BookingStatus.ACCEPTED,
-  BookingStatus.PENDING,
-  BookingStatus.AWAITING_HOST,
-] as const;
+export const SMART_FILL_BUSY_BOOKING_STATUSES = DENTAL_BLOCKING_BOOKING_STATUSES;
 
 export const SMART_FILL_ENV = {
   ENABLED: "SMART_FILL_ENABLED",

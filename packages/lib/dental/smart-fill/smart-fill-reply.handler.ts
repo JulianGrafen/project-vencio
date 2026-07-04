@@ -7,10 +7,12 @@ import { finalizeSmartFillBooking } from "./smart-fill-booking-finalizer";
 import {
   isSmartFillConfirmKeyword,
   isSmartFillDeclineKeyword,
+  SMART_FILL_BOOKING_SOURCE,
   SMART_FILL_DEFAULT_BOOKING_TITLE,
 } from "./constants";
 import { declineSmartFillInvite } from "./smart-fill-invite-lifecycle";
 import { normalizePhoneNumber } from "./phone-utils";
+import type { SmartFillActiveInvite } from "./smart-fill-reply.types";
 import { parseSmartFillTaskMetadata } from "./smart-fill-slot-hold";
 
 export type InboundSmsPayload = {
@@ -31,12 +33,7 @@ export class SmartFillReplyHandler {
   constructor(private readonly prisma: PrismaClient) {}
 
   async handleInboundSms(payload: InboundSmsPayload): Promise<SmartFillReplyResult> {
-    const patient = await this.findPatientByPhone(payload.from);
-    if (!patient) {
-      return { action: "ignored", reason: "unknown_patient" };
-    }
-
-    const invite = await this.findActiveInvite(patient.id);
+    const invite = await this.findActiveInviteByPhone(payload.from);
     if (!invite) {
       return { action: "ignored", reason: "no_active_invite" };
     }
@@ -58,24 +55,20 @@ export class SmartFillReplyHandler {
     return { action: "ignored", reason: "unrecognized_reply" };
   }
 
-  private findPatientByPhone(from: string) {
+  /** Resolves invite by phone via active invite chain — avoids cross-team patient mismatch. */
+  private findActiveInviteByPhone(from: string): Promise<SmartFillActiveInvite | null> {
     const normalizedPhone = normalizePhoneNumber(from);
+    const compactPhone = from.replace(/\s+/g, "");
 
-    return this.prisma.smartFillPatient.findFirst({
-      where: {
-        OR: [{ phoneNumber: normalizedPhone }, { phoneNumber: from.replace(/\s+/g, "") }],
-      },
-    });
-  }
-
-  private findActiveInvite(patientId: string) {
     return this.prisma.smartFillInvite.findFirst({
       where: {
-        patientId,
         status: { in: [SmartFillInviteStatus.SENT, SmartFillInviteStatus.DELIVERED] },
         task: {
           status: SmartFillTaskStatus.INVITED,
           startTime: { gt: new Date() },
+        },
+        patient: {
+          OR: [{ phoneNumber: normalizedPhone }, { phoneNumber: compactPhone }],
         },
       },
       orderBy: { sentAt: "desc" },
@@ -87,28 +80,7 @@ export class SmartFillReplyHandler {
   }
 
   private async confirmInvite(
-    invite: {
-      id: string;
-      taskId: string;
-      patient: {
-        id: string;
-        email: string;
-        name: string;
-        phoneNumber: string;
-        locale: string | null;
-      };
-      task: {
-        id: string;
-        teamId: number;
-        userId: number;
-        eventTypeId: number | null;
-        startTime: Date;
-        endTime: Date;
-        metadata: unknown;
-        user: { email: string; name: string | null; timeZone: string };
-        eventType: { title: string } | null;
-      };
-    },
+    invite: SmartFillActiveInvite,
     replyBody: string
   ): Promise<SmartFillReplyResult> {
     const { patient } = invite;
@@ -174,7 +146,7 @@ export class SmartFillReplyHandler {
         endTime: invite.task.endTime,
         title,
         eventTypeId: invite.task.eventTypeId,
-        source: "smart-fill",
+        source: SMART_FILL_BOOKING_SOURCE,
         smartFillTaskId: invite.task.id,
       });
 

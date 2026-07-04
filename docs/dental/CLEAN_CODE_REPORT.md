@@ -1,8 +1,8 @@
 # Clean Code Refactor Report — Dental / PVS / Smart-Fill
 
 **Branch:** `cursor/clean-code-report-7644`  
-**Date:** 2026-07-04  
-**Scope:** `packages/lib/dental`, PVS API routes, `@calcom/pvs-connector`, Smart-Fill cron
+**Date:** 2026-07-04 (updated)  
+**Scope:** `packages/lib/dental`, PVS API routes, `@calcom/pvs-connector`, Smart-Fill cron, tRPC dental routers
 
 ---
 
@@ -17,7 +17,8 @@ This refactor applies **Single Responsibility**, **DRY**, and **consistent bound
 | PVS enqueue entry points | 3 inconsistent paths | 1 dispatcher + shared DTO builder |
 | Smart-Fill PVS sync | Bypassed `isPvsSyncEnabled()` | Uses unified gate |
 | New focused modules | — | 8 files |
-| Unit tests | 97 | 106 (+9) |
+| Unit tests | 97 | 107 (+10) |
+| `smart-fill-cron.service.ts` (round 2) | 206 lines | 96 lines (−53%) |
 
 ---
 
@@ -147,11 +148,31 @@ packages/pvs-connector/src/
 | P2 | Repeated tRPC membership asserts | **Resolved** — PVS + Smart-Fill admin routes use `dentalTeamAdminProcedure` |
 | P3 | Playwright E2E booker → outbox row | Deferred — critical path smoke (not in scope) |
 
-**Test count after debt fixes:** 106 passing.
+**Test count after debt fixes:** 107 passing.
 
 ---
 
-## 7. Files Changed
+## 7. Round 2 Refactors (2026-07-04)
+
+| Area | Change |
+|------|--------|
+| **tRPC procedures** | Added `dentalTeamMemberProcedure`; Smart-Fill reads + treatment-resources routes migrated |
+| **tRPC admin routes** | Treatment-resources admin mutations use `dentalTeamAdminProcedure` (removed 4× manual asserts) |
+| **Smart-Fill reply** | Phone lookup via active-invite chain (fixes cross-team mismatch); `SmartFillActiveInvite` Prisma type |
+| **Smart-Fill patient service** | Team-scoped `updateMany` / `deleteMany`; extracted `smart-fill-patient.select.ts` |
+| **Smart-Fill cron** | Split into `smart-fill-cron-task-upsert.ts` + `smart-fill-cron-invite.ts`; orchestrator ~96 LOC |
+| **Blocking statuses** | Unified `DENTAL_BLOCKING_BOOKING_STATUSES` (re-exported aliases) |
+| **PVS outbox** | `PVS_OUTBOX_JOB_POLL_SELECT`, poll/error constants, discriminated-union ack schema |
+| **PVS runner** | `switch` on `PvsSyncOperation` enum |
+| **UI** | `formatPvsOperationLabel()` replaces fragile string replace |
+
+**New modules (round 2):** `dentalTeamMemberProcedure.ts`, `smart-fill-cron-task-upsert.ts`, `smart-fill-cron-invite.ts`, `smart-fill-reply.types.ts`, `smart-fill-patient.select.ts`, `pvs-outbox.select.ts`, `format-pvs-operation-label.ts`
+
+**Deferred:** Settings UI splits (Smart-Fill patient pool, treatment-resources), Playwright E2E.
+
+---
+
+## 8. Files Changed
 
 **New (8):**
 
@@ -168,7 +189,7 @@ packages/pvs-connector/src/
 
 ---
 
-## 8. Verification
+## 9. Verification
 
 ```bash
 yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector apps/web/app/api/pvs/outbox/__tests__

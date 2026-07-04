@@ -3,11 +3,10 @@ import { TRPCError } from "@trpc/server";
 import { SmartFillDashboardService } from "@calcom/lib/dental/smart-fill";
 import { isSmartFillEnabled } from "@calcom/lib/dental/smart-fill/feature-flags";
 import { SmartFillPatientService } from "@calcom/lib/dental/smart-fill/smart-fill-patient.service";
-import { assertAcceptedTeamMembership } from "@calcom/lib/dental/assert-team-membership";
 import { prisma } from "@calcom/prisma";
 
-import authedProcedure from "../../../procedures/authedProcedure";
 import { dentalTeamAdminProcedure } from "../../../procedures/dentalTeamAdminProcedure";
+import { dentalTeamMemberProcedure } from "../../../procedures/dentalTeamMemberProcedure";
 import { router } from "../../../trpc";
 import {
   ZSmartFillDashboardInput,
@@ -28,9 +27,7 @@ async function requireTeamPatient(teamId: number, patientId: string) {
 }
 
 export const smartFillRouter = router({
-  dashboard: authedProcedure.input(ZSmartFillDashboardInput).query(async ({ ctx, input }) => {
-    await assertAcceptedTeamMembership(ctx.user.id, input.teamId);
-
+  dashboard: dentalTeamMemberProcedure(ZSmartFillDashboardInput).query(async ({ input }) => {
     if (!isSmartFillEnabled()) {
       return {
         enabled: false as const,
@@ -47,8 +44,7 @@ export const smartFillRouter = router({
     return { enabled: true as const, ...stats };
   }),
 
-  listPatients: authedProcedure.input(ZSmartFillPatientListInput).query(async ({ ctx, input }) => {
-    await assertAcceptedTeamMembership(ctx.user.id, input.teamId);
+  listPatients: dentalTeamMemberProcedure(ZSmartFillPatientListInput).query(async ({ input }) => {
     return patientService.listByTeam(input.teamId);
   }),
 
@@ -63,6 +59,7 @@ export const smartFillRouter = router({
 
   deletePatient: dentalTeamAdminProcedure(ZSmartFillPatientDeleteInput).mutation(async ({ input }) => {
     await requireTeamPatient(input.teamId, input.patientId);
-    return patientService.delete(input.patientId).then(() => ({ success: true as const }));
+    await patientService.delete(input.teamId, input.patientId);
+    return { success: true as const };
   }),
 });

@@ -2,12 +2,15 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 export const DEFAULT_EVENT_DURATION_MINUTES = 30;
 
-/** Booking statuses that block a treatment resource from being re-booked. */
-export const TREATMENT_RESOURCE_BLOCKING_STATUSES: BookingStatus[] = [
+/** Booking statuses that block calendar/resource slots from being re-booked. */
+export const DENTAL_BLOCKING_BOOKING_STATUSES: BookingStatus[] = [
   BookingStatus.ACCEPTED,
   BookingStatus.PENDING,
   BookingStatus.AWAITING_HOST,
 ];
+
+/** @deprecated Use DENTAL_BLOCKING_BOOKING_STATUSES */
+export const TREATMENT_RESOURCE_BLOCKING_STATUSES = DENTAL_BLOCKING_BOOKING_STATUSES;
 
 export const TREATMENT_RESOURCE_LIST_SELECT = {
   id: true,

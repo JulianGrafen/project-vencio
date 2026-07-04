@@ -8,9 +8,14 @@ import type {
   PvsOutboxPollResult,
 } from "@calcom/pvs-integration";
 
-import { PVS_OUTBOX_MAX_ATTEMPTS, PVS_OUTBOX_RETRY_BASE_MS } from "./pvs-outbox.constants";
-
-const DEFAULT_POLL_LIMIT = 10;
+import {
+  PVS_OUTBOX_ERROR_MAX_LENGTH,
+  PVS_OUTBOX_MAX_ATTEMPTS,
+  PVS_OUTBOX_POLL_DEFAULT_LIMIT,
+  PVS_OUTBOX_POLL_MAX_LIMIT,
+  PVS_OUTBOX_RETRY_BASE_MS,
+} from "./pvs-outbox.constants";
+import { PVS_OUTBOX_JOB_POLL_SELECT, type PvsOutboxJobPollRow } from "./pvs-outbox.select";
 
 function computeNextRetryAt(attempts: number): Date {
   const exponent = Math.max(0, attempts - 1);
@@ -18,15 +23,7 @@ function computeNextRetryAt(attempts: number): Date {
   return new Date(Date.now() + delayMs);
 }
 
-function toJobDto(row: {
-  id: string;
-  teamId: number;
-  bookingUid: string;
-  operation: PvsOutboxJobDTO["operation"];
-  payload: unknown;
-  attempts: number;
-  createdAt: Date;
-}): PvsOutboxJobDTO {
+function toJobDto(row: PvsOutboxJobPollRow): PvsOutboxJobDTO {
   return {
     id: row.id,
     teamId: row.teamId,
@@ -50,9 +47,12 @@ export class PvsOutboxNotFoundError extends Error {
 export class PvsOutboxService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async pollPending(teamId: number, limit = DEFAULT_POLL_LIMIT): Promise<PvsOutboxPollResult> {
+  async pollPending(
+    teamId: number,
+    limit = PVS_OUTBOX_POLL_DEFAULT_LIMIT
+  ): Promise<PvsOutboxPollResult> {
     const now = new Date();
-    const safeLimit = Math.min(Math.max(1, limit), 50);
+    const safeLimit = Math.min(Math.max(1, limit), PVS_OUTBOX_POLL_MAX_LIMIT);
 
     const candidates = await this.prisma.pvsSyncOutbox.findMany({
       where: {
@@ -62,15 +62,7 @@ export class PvsOutboxService {
       },
       orderBy: { createdAt: "asc" },
       take: safeLimit,
-      select: {
-        id: true,
-        teamId: true,
-        bookingUid: true,
-        operation: true,
-        payload: true,
-        attempts: true,
-        createdAt: true,
-      },
+      select: PVS_OUTBOX_JOB_POLL_SELECT,
     });
 
     if (candidates.length === 0) {
@@ -96,15 +88,7 @@ export class PvsOutboxService {
         teamId,
         status: PvsSyncOutboxStatus.PROCESSING,
       },
-      select: {
-        id: true,
-        teamId: true,
-        bookingUid: true,
-        operation: true,
-        payload: true,
-        attempts: true,
-        createdAt: true,
-      },
+      select: PVS_OUTBOX_JOB_POLL_SELECT,
     });
 
     return { jobs: claimed.map(toJobDto) };
@@ -147,7 +131,7 @@ export class PvsOutboxService {
       where: { id: row.id },
       data: {
         status: isFinalFailure ? PvsSyncOutboxStatus.FAILED : PvsSyncOutboxStatus.PENDING,
-        lastError: error.slice(0, 2000),
+        lastError: error.slice(0, PVS_OUTBOX_ERROR_MAX_LENGTH),
         nextRetryAt,
       },
       select: { id: true, status: true, attempts: true, nextRetryAt: true },

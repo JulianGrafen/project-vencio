@@ -7,7 +7,7 @@ vi.mock("@calcom/lib/dental/pvs/enqueue-booking-pvs-sync", () => ({
 }));
 
 describe("SmartFillReplyHandler", () => {
-  const mockTransaction = vi.fn(async (fn: (tx: unknown) => Promise<{ alreadyConfirmed: boolean; bookingUid: string }>) => {
+  const mockTransaction = vi.fn(async (fn: (tx: unknown) => Promise<{ bookingUid: string }>) => {
     return fn({
       booking: {
         create: vi.fn(async () => ({})),
@@ -25,9 +25,6 @@ describe("SmartFillReplyHandler", () => {
   });
 
   const prisma = {
-    smartFillPatient: {
-      findFirst: vi.fn(),
-    },
     smartFillInvite: {
       findFirst: vi.fn(),
       update: vi.fn(),
@@ -46,11 +43,6 @@ describe("SmartFillReplyHandler", () => {
   });
 
   it("confirms booking when patient replies JA", async () => {
-    prisma.smartFillPatient.findFirst.mockResolvedValue({
-      id: "pat1",
-      phoneNumber: "+491234567890",
-    });
-
     prisma.smartFillInvite.findFirst.mockResolvedValue({
       id: "inv1",
       taskId: "task1",
@@ -90,11 +82,11 @@ describe("SmartFillReplyHandler", () => {
   });
 
   it("ignores unknown phone numbers", async () => {
-    prisma.smartFillPatient.findFirst.mockResolvedValue(null);
+    prisma.smartFillInvite.findFirst.mockResolvedValue(null);
 
     const handler = new SmartFillReplyHandler(prisma as never);
     const result = await handler.handleInboundSms({ from: "+499999", body: "JA" });
 
-    expect(result).toEqual({ action: "ignored", reason: "unknown_patient" });
+    expect(result).toEqual({ action: "ignored", reason: "no_active_invite" });
   });
 });

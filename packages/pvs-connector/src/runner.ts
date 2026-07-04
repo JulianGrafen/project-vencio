@@ -1,6 +1,7 @@
 import type { PvsAdapter } from "@calcom/pvs-integration";
 import type { AppointmentSyncDTO, PvsOutboxJobDTO } from "@calcom/pvs-integration";
 import { DampsoftPvsAdapter } from "@calcom/pvs-integration";
+import { PvsSyncOperation } from "@calcom/prisma/enums";
 
 import { PvsConnectorClient } from "./client";
 
@@ -17,28 +18,32 @@ export async function processPvsOutboxJob(
   const payload = job.payload as AppointmentSyncDTO;
 
   try {
-    if (job.operation === "CANCEL_APPOINTMENT") {
-      if (adapter.cancelAppointment) {
-        await adapter.cancelAppointment(
-          { externalId: payload.bookingUid, provider: adapter.provider },
-          payload.cancellationReason
-        );
+    switch (job.operation) {
+      case PvsSyncOperation.CANCEL_APPOINTMENT: {
+        if (adapter.cancelAppointment) {
+          await adapter.cancelAppointment(
+            { externalId: payload.bookingUid, provider: adapter.provider },
+            payload.cancellationReason
+          );
+        }
+        return { status: "COMPLETED", externalId: `cancel-${payload.bookingUid}` };
       }
-      return { status: "COMPLETED", externalId: `cancel-${payload.bookingUid}` };
-    }
 
-    if (job.operation === "UPDATE_APPOINTMENT") {
-      if (adapter.updateAppointment) {
-        await adapter.updateAppointment(
-          { externalId: payload.bookingUid, provider: adapter.provider },
-          payload
-        );
+      case PvsSyncOperation.UPDATE_APPOINTMENT: {
+        if (adapter.updateAppointment) {
+          await adapter.updateAppointment(
+            { externalId: payload.bookingUid, provider: adapter.provider },
+            payload
+          );
+        }
+        return { status: "COMPLETED", externalId: `update-${payload.bookingUid}` };
       }
-      return { status: "COMPLETED", externalId: `update-${payload.bookingUid}` };
-    }
 
-    const ref = await adapter.createAppointment(payload);
-    return { status: "COMPLETED", externalId: ref.externalId };
+      default: {
+        const ref = await adapter.createAppointment(payload);
+        return { status: "COMPLETED", externalId: ref.externalId };
+      }
+    }
   } catch (error) {
     return {
       status: "FAILED",

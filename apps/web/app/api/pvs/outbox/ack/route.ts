@@ -11,14 +11,7 @@ function acknowledgeOutboxJob(body: PvsOutboxAckBody) {
   const service = new PvsOutboxService(prisma);
 
   if (body.status === "COMPLETED") {
-    if (!body.externalId) {
-      throw new Error("externalId is required when status is COMPLETED");
-    }
     return service.acknowledgeCompleted(body.teamId, body.outboxId, body.externalId);
-  }
-
-  if (!body.error) {
-    throw new Error("error is required when status is FAILED");
   }
 
   return service.acknowledgeFailed(body.teamId, body.outboxId, body.error);

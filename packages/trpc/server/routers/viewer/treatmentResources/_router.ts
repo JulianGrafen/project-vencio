@@ -3,15 +3,10 @@ import {
   TREATMENT_RESOURCE_ADMIN_LIST_SELECT,
   TREATMENT_RESOURCE_LIST_SELECT,
 } from "@calcom/lib/dental/constants";
-import {
-  assertAcceptedTeamMembership,
-  assertAdminOrOwnerTeamMembership,
-} from "@calcom/lib/dental/assert-team-membership";
-import { resolveTeamIdFromEventTypeId } from "@calcom/lib/dental/practice-team-resolver";
 import { TRPCError } from "@trpc/server";
 
-import authedProcedure from "../../../procedures/authedProcedure";
-import { dentalAdminProcedure } from "../../../procedures/dentalAuthedProcedure";
+import { dentalTeamAdminProcedure } from "../../../procedures/dentalTeamAdminProcedure";
+import { dentalTeamMemberProcedure } from "../../../procedures/dentalTeamMemberProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import {
@@ -23,6 +18,7 @@ import {
   ZTreatmentResourceListTeamSchedulesInput,
   ZTreatmentResourceUpdateInput,
 } from "./_schemas";
+import { resolveTeamIdFromEventTypeId } from "@calcom/lib/dental/practice-team-resolver";
 
 async function findTeamResource(resourceId: string, teamId: number) {
   return prisma.treatmentResource.findFirst({
@@ -47,9 +43,7 @@ export const treatmentResourcesRouter = router({
       });
     }),
 
-  list: authedProcedure.input(ZTreatmentResourceListInput).query(async ({ ctx, input }) => {
-    await assertAcceptedTeamMembership(ctx.user.id, input.teamId);
-
+  list: dentalTeamMemberProcedure(ZTreatmentResourceListInput).query(async ({ input }) => {
     return prisma.treatmentResource.findMany({
       where: { teamId: input.teamId, isActive: true },
       orderBy: { name: "asc" },
@@ -57,9 +51,7 @@ export const treatmentResourcesRouter = router({
     });
   }),
 
-  create: dentalAdminProcedure.input(ZTreatmentResourceCreateInput).mutation(async ({ ctx, input }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
+  create: dentalTeamAdminProcedure(ZTreatmentResourceCreateInput).mutation(async ({ input }) => {
     return prisma.treatmentResource.create({
       data: {
         teamId: input.teamId,
@@ -72,9 +64,7 @@ export const treatmentResourcesRouter = router({
     });
   }),
 
-  update: dentalAdminProcedure.input(ZTreatmentResourceUpdateInput).mutation(async ({ ctx, input }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
+  update: dentalTeamAdminProcedure(ZTreatmentResourceUpdateInput).mutation(async ({ input }) => {
     const resource = await findTeamResource(input.resourceId, input.teamId);
     if (!resource) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -92,9 +82,7 @@ export const treatmentResourcesRouter = router({
     });
   }),
 
-  deactivate: dentalAdminProcedure.input(ZTreatmentResourceDeactivateInput).mutation(async ({ ctx, input }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
+  deactivate: dentalTeamAdminProcedure(ZTreatmentResourceDeactivateInput).mutation(async ({ input }) => {
     const resource = await findTeamResource(input.resourceId, input.teamId);
     if (!resource) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -108,11 +96,8 @@ export const treatmentResourcesRouter = router({
   }),
 
   /** Schedules from team members — for assigning availability to a treatment resource. */
-  listTeamSchedules: authedProcedure
-    .input(ZTreatmentResourceListTeamSchedulesInput)
-    .query(async ({ ctx, input }) => {
-      await assertAcceptedTeamMembership(ctx.user.id, input.teamId);
-
+  listTeamSchedules: dentalTeamMemberProcedure(ZTreatmentResourceListTeamSchedulesInput).query(
+    async ({ input }) => {
       const memberships = await prisma.membership.findMany({
         where: { teamId: input.teamId, accepted: true },
         select: { userId: true },
@@ -133,13 +118,11 @@ export const treatmentResourcesRouter = router({
           userId: true,
         },
       });
-    }),
+    }
+  ),
 
-  assignSchedule: dentalAdminProcedure
-    .input(ZTreatmentResourceAssignScheduleInput)
-    .mutation(async ({ ctx, input }) => {
-      await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-
+  assignSchedule: dentalTeamAdminProcedure(ZTreatmentResourceAssignScheduleInput).mutation(
+    async ({ input }) => {
       const resource = await findTeamResource(input.resourceId, input.teamId);
       if (!resource) {
         throw new TRPCError({ code: "NOT_FOUND" });
@@ -170,5 +153,6 @@ export const treatmentResourcesRouter = router({
         data: { scheduleId: input.scheduleId },
         select: TREATMENT_RESOURCE_ADMIN_LIST_SELECT,
       });
-    }),
+    }
+  ),
 });

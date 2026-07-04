@@ -1,6 +1,10 @@
-import type { Prisma, PrismaClient } from "@calcom/prisma/generated/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/generated/prisma/client";
 
 import { normalizePhoneNumber } from "./phone-utils";
+import {
+  SMART_FILL_PATIENT_SELECT,
+  type SmartFillPatientListItem,
+} from "./smart-fill-patient.select";
 
 type CreatePatientInput = {
   teamId: number;
@@ -23,21 +27,12 @@ type UpdatePatientInput = {
   preferredEventTypeId?: number | null;
 };
 
-const SMART_FILL_PATIENT_SELECT = {
-  id: true,
-  name: true,
-  email: true,
-  phoneNumber: true,
-  waitlistEnabled: true,
-  lastVisitAt: true,
-  priorityScore: true,
-  preferredEventTypeId: true,
-  createdAt: true,
-} as const satisfies Prisma.SmartFillPatientSelect;
-
-type SmartFillPatientListItem = Prisma.SmartFillPatientGetPayload<{
-  select: typeof SMART_FILL_PATIENT_SELECT;
-}>;
+export class SmartFillPatientNotFoundError extends Error {
+  constructor(patientId: string, teamId: number) {
+    super(`SmartFill patient not found: ${patientId} (team ${teamId})`);
+    this.name = "SmartFillPatientNotFoundError";
+  }
+}
 
 export class SmartFillPatientService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -71,14 +66,14 @@ export class SmartFillPatientService {
     });
   }
 
-  update(input: UpdatePatientInput): Promise<SmartFillPatientListItem> {
+  async update(input: UpdatePatientInput): Promise<SmartFillPatientListItem> {
     let phoneNumber: string | undefined;
     if (input.phoneNumber !== undefined) {
       phoneNumber = normalizePhoneNumber(input.phoneNumber);
     }
 
-    return this.prisma.smartFillPatient.update({
-      where: { id: input.patientId },
+    const updated = await this.prisma.smartFillPatient.updateMany({
+      where: { id: input.patientId, teamId: input.teamId },
       data: {
         name: input.name,
         email: input.email,
@@ -87,11 +82,30 @@ export class SmartFillPatientService {
         priorityScore: input.priorityScore,
         preferredEventTypeId: input.preferredEventTypeId,
       },
+    });
+
+    if (updated.count === 0) {
+      throw new SmartFillPatientNotFoundError(input.patientId, input.teamId);
+    }
+
+    const patient = await this.prisma.smartFillPatient.findFirst({
+      where: { id: input.patientId, teamId: input.teamId },
       select: SMART_FILL_PATIENT_SELECT,
     });
+    if (!patient) {
+      throw new SmartFillPatientNotFoundError(input.patientId, input.teamId);
+    }
+
+    return patient;
   }
 
-  delete(patientId: string) {
-    return this.prisma.smartFillPatient.delete({ where: { id: patientId } });
+  async delete(teamId: number, patientId: string): Promise<void> {
+    const deleted = await this.prisma.smartFillPatient.deleteMany({
+      where: { id: patientId, teamId },
+    });
+
+    if (deleted.count === 0) {
+      throw new SmartFillPatientNotFoundError(patientId, teamId);
+    }
   }
 }

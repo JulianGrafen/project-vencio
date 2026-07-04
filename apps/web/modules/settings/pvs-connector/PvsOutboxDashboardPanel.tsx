@@ -1,3 +1,5 @@
+import { formatPvsOperationLabel } from "@calcom/lib/dental/pvs/format-pvs-operation-label";
+
 type PvsOutboxDashboardData = {
   pending: number;
   processing: number;
@@ -54,7 +56,7 @@ export function PvsOutboxDashboardPanel({ dashboard, isLoading }: PvsOutboxDashb
               {dashboard.recentJobs.map((job) => (
                 <tr key={job.id} className="border-subtle border-t">
                   <td className="px-3 py-2 font-mono text-xs">{job.bookingUid.slice(0, 10)}…</td>
-                  <td className="px-3 py-2">{job.operation.replace("_APPOINTMENT", "")}</td>
+                  <td className="px-3 py-2">{formatPvsOperationLabel(job.operation)}</td>
                   <td className="px-3 py-2">{job.status}</td>
                   <td className="px-3 py-2">{job.attempts}</td>
                   <td className="text-subtle max-w-[12rem] truncate px-3 py-2 text-xs">
