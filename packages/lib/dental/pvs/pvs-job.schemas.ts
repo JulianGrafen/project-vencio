@@ -15,6 +15,7 @@ export const ZPvsOutboxJobPayload = z.object({
   smartFillTaskId: z.string().optional(),
   cancellationReason: z.string().optional(),
   rescheduledToBookingUid: z.string().optional(),
+  pvsExternalId: z.string().optional(),
 });
 
 export const ZPvsOutboxJobDto = z.object({

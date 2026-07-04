@@ -1,6 +1,6 @@
 import type { PvsAdapter } from "@calcom/pvs-integration";
-import type { AppointmentSyncDTO, PvsOutboxJobDTO } from "@calcom/pvs-integration";
-import { DampsoftPvsAdapter } from "@calcom/pvs-integration";
+import type { PvsOutboxJobDTO } from "@calcom/pvs-integration";
+import { DampsoftPvsAdapter, parseOutboxJob, resolvePvsAppointmentRef } from "@calcom/pvs-integration";
 import { PvsSyncOperation } from "@calcom/prisma/enums";
 
 import { PvsConnectorClient } from "./client";
@@ -12,33 +12,12 @@ export type PvsConnectorRunnerOptions = {
   onJobProcessed?: (jobId: string, status: "COMPLETED" | "FAILED") => void;
 };
 
-function validateOutboxJob(job: PvsOutboxJobDTO): { valid: true; payload: AppointmentSyncDTO } | { valid: false; error: string } {
-  if (!job.id?.trim()) return { valid: false, error: "Missing job id" };
-  if (!job.bookingUid?.trim()) return { valid: false, error: "Missing bookingUid" };
-  if (!job.teamId || job.teamId <= 0) return { valid: false, error: "Invalid teamId" };
-
-  const payload = job.payload as AppointmentSyncDTO;
-  if (!payload?.patientEmail?.trim()) return { valid: false, error: "Missing patientEmail in payload" };
-  if (!payload?.startTime?.trim() || !payload?.endTime?.trim()) {
-    return { valid: false, error: "Missing appointment times in payload" };
-  }
-
-  return { valid: true, payload };
-}
-
-function resolvePvsAppointmentRef(payload: AppointmentSyncDTO, provider: string) {
-  return {
-    externalId: payload.pvsExternalId?.trim() || payload.bookingUid,
-    provider,
-  };
-}
-
 export async function processPvsOutboxJob(
   job: PvsOutboxJobDTO,
   adapter: PvsAdapter
 ): Promise<{ status: "COMPLETED" | "FAILED"; externalId?: string; error?: string }> {
-  const validated = validateOutboxJob(job);
-  if (!validated.valid) {
+  const validated = parseOutboxJob(job);
+  if (!validated.ok) {
     return { status: "FAILED", error: validated.error };
   }
 

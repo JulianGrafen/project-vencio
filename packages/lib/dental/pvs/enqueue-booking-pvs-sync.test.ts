@@ -132,3 +132,31 @@ describe("enqueueBookingPvsSyncIfEnabled", () => {
     );
   });
 });
+
+describe("bookingToPvsSyncInput", () => {
+  it("selects booker attendee by email and applies fallback phone", async () => {
+    const { bookingToPvsSyncInput } = await import("./enqueue-booking-pvs-sync");
+
+    const input = bookingToPvsSyncInput(
+      5,
+      {
+        uid: "uid-booker",
+        title: "Kontrolle",
+        startTime: new Date("2026-07-12T10:00:00.000Z"),
+        endTime: new Date("2026-07-12T10:30:00.000Z"),
+        eventTypeId: 3,
+        attendees: [
+          { name: "Organizer Guest", email: "org@example.com", phoneNumber: null },
+          { name: "Anna Patient", email: "anna@test.de", phoneNumber: null },
+        ],
+      },
+      { bookerEmail: "anna@test.de", fallbackPhone: "+491701234567" }
+    );
+
+    expect(input).toMatchObject({
+      patientName: "Anna Patient",
+      patientEmail: "anna@test.de",
+      patientPhone: "+491701234567",
+    });
+  });
+});

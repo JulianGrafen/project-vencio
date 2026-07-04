@@ -137,17 +137,29 @@ export type BookingRecordForPvsSync = {
   }>;
 };
 
+export function resolveBookerAttendee(
+  attendees: BookingRecordForPvsSync["attendees"],
+  bookerEmail?: string
+) {
+  if (bookerEmail) {
+    return attendees.find((attendee) => attendee.email === bookerEmail) ?? attendees[0];
+  }
+  return attendees[0];
+}
+
 export function bookingToPvsSyncInput(
   teamId: number,
   booking: BookingRecordForPvsSync,
   extras?: {
+    bookerEmail?: string;
+    fallbackPhone?: string | null;
     cancellationReason?: string | null;
     rescheduledToBookingUid?: string;
     source?: AppointmentSyncDTO["source"];
     smartFillTaskId?: string;
   }
 ): BookingPvsSyncInput | null {
-  const attendee = booking.attendees[0];
+  const attendee = resolveBookerAttendee(booking.attendees, extras?.bookerEmail);
   if (!attendee) {
     return null;
   }
@@ -161,7 +173,7 @@ export function bookingToPvsSyncInput(
     eventTypeId: booking.eventTypeId,
     patientName: attendee.name,
     patientEmail: attendee.email,
-    patientPhone: attendee.phoneNumber,
+    patientPhone: attendee.phoneNumber ?? extras?.fallbackPhone ?? undefined,
     source: extras?.source ?? "booker",
     smartFillTaskId: extras?.smartFillTaskId,
     cancellationReason: extras?.cancellationReason,

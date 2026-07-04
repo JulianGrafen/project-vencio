@@ -12,8 +12,9 @@ import {
   shouldCountBookingForTrial,
 } from "@calcom/lib/dental/trial/trial.service";
 import {
-  enqueueBookingPvsSyncIfEnabled,
+  bookingToPvsSyncInput,
   enqueueBookingPvsCancelIfEnabled,
+  enqueueBookingPvsSyncIfEnabled,
 } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type short from "short-uuid";
@@ -179,23 +180,25 @@ async function saveBooking(
     }
 
     if (pvsSyncContext?.teamId && pvsSyncContext.isAccepted) {
-      const booker =
-        booking.attendees.find((attendee) => attendee.email === pvsSyncContext.bookerEmail) ??
-        booking.attendees[0];
-
-      if (booker) {
-        await enqueueBookingPvsSyncIfEnabled(tx, {
-          bookingUid: booking.uid,
-          teamId: pvsSyncContext.teamId,
+      const pvsInput = bookingToPvsSyncInput(
+        pvsSyncContext.teamId,
+        {
+          uid: booking.uid,
           title: booking.title,
           startTime: booking.startTime,
           endTime: booking.endTime,
           eventTypeId: pvsSyncContext.eventTypeId,
-          patientName: booker.name,
-          patientEmail: booker.email,
-          patientPhone: booker.phoneNumber ?? pvsSyncContext.smsReminderNumber,
+          attendees: booking.attendees,
+        },
+        {
+          bookerEmail: pvsSyncContext.bookerEmail,
+          fallbackPhone: pvsSyncContext.smsReminderNumber,
           source: "booker",
-        });
+        }
+      );
+
+      if (pvsInput) {
+        await enqueueBookingPvsSyncIfEnabled(tx, pvsInput);
       }
     }
 
@@ -204,26 +207,26 @@ async function saveBooking(
       originalRescheduledBooking?.uid &&
       originalBookingUpdateDataForCancellation
     ) {
-      const rescheduledAttendee =
-        originalRescheduledBooking.attendees?.find(
-          (attendee) => attendee.email === pvsSyncContext.bookerEmail
-        ) ?? originalRescheduledBooking.attendees?.[0];
-
-      if (rescheduledAttendee) {
-        await enqueueBookingPvsCancelIfEnabled(tx, {
-          bookingUid: originalRescheduledBooking.uid,
-          teamId: pvsSyncContext.teamId,
+      const cancelInput = bookingToPvsSyncInput(
+        pvsSyncContext.teamId,
+        {
+          uid: originalRescheduledBooking.uid,
           title: originalRescheduledBooking.title ?? booking.title,
           startTime: originalRescheduledBooking.startTime,
           endTime: originalRescheduledBooking.endTime,
           eventTypeId: pvsSyncContext.eventTypeId,
-          patientName: rescheduledAttendee.name,
-          patientEmail: rescheduledAttendee.email,
-          patientPhone: rescheduledAttendee.phoneNumber,
-          source: "booker",
+          attendees: originalRescheduledBooking.attendees ?? [],
+        },
+        {
+          bookerEmail: pvsSyncContext.bookerEmail,
           cancellationReason: createBookingObj.data.cancellationReason as string | undefined,
           rescheduledToBookingUid: booking.uid,
-        });
+          source: "booker",
+        }
+      );
+
+      if (cancelInput) {
+        await enqueueBookingPvsCancelIfEnabled(tx, cancelInput);
       }
     }
 

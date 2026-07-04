@@ -113,7 +113,14 @@ yarn workspace @calcom/pvs-connector build
 node packages/pvs-connector/dist/cli.js
 ```
 
-**Production note:** The Dampsoft adapter is currently a stub. Wire a real PVS integration before relying on appointment sync in production.
+**Production note:** Set `DAMPSOFT_PVS_API_URL` on the on-prem connector for HTTP bridge mode; otherwise the adapter runs in stub mode (safe for dev only).
+
+| Connector env | Purpose |
+|---------------|---------|
+| `DAMPSOFT_PVS_API_URL` | Local Dampsoft bridge base URL (e.g. `http://127.0.0.1:8090`) |
+| `DAMPSOFT_PVS_API_KEY` | Optional Bearer token for the bridge |
+| `PVS_CLOUD_BASE_URL` | Cal.com cloud URL |
+| `PVS_CONNECTOR_API_KEY` | Per-practice API key from Settings → PVS Connector |
 
 ---
 
@@ -200,7 +207,7 @@ CALCOM_ENV=production NODE_ENV=production DENTAL_ENCRYPTION_ENABLED=true \
 |------|--------|
 | `SmartFillPatient` PII field encryption | **Implemented** — `field-registry`, blind-index phone lookup, Prisma extension |
 | Smart-Fill SMS replies | **Deprecated** — use email confirm/decline links; legacy webhook opt-in via `SMART_FILL_SMS_LEGACY_WEBHOOK=true` |
-| Dampsoft PVS adapter | Stub — real PVS I/O required for sync |
+| Dampsoft PVS adapter | HTTP bridge via `DAMPSOFT_PVS_API_URL` or stub fallback |
 | Playwright E2E | **Partial** — `apps/web/playwright/dental/` (Smart-Fill confirm, booker→outbox); run `yarn e2e:dental` |
 | Desloppify subjective review | 20 dimensions unassessed |
 
