@@ -190,3 +190,17 @@ export async function runPvsBookingSyncInTransaction(
     await enqueueFn(tx, input);
   });
 }
+
+export async function enqueuePvsSyncForCancelledBooking(
+  prisma: Pick<PrismaClient, "$transaction">,
+  teamId: number,
+  booking: BookingRecordForPvsSync,
+  cancellationReason?: string | null
+): Promise<void> {
+  const input = bookingToPvsSyncInput(teamId, booking, { cancellationReason });
+  if (!input) {
+    return;
+  }
+
+  await runPvsBookingSyncInTransaction(prisma, input, enqueueBookingPvsCancelIfEnabled);
+}

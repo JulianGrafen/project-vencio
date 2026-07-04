@@ -1,7 +1,10 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { type RecallChannel, RecallHistoryStatus } from "@calcom/prisma/enums";
 
-const ACTIVE_RECALL_STATUSES = [RecallHistoryStatus.SENT, RecallHistoryStatus.PENDING] as const;
+const ACTIVE_RECALL_STATUSES: RecallHistoryStatus[] = [
+  RecallHistoryStatus.SENT,
+  RecallHistoryStatus.PENDING,
+];
 
 export type CreateRecallHistoryInput = {
   teamId: number;
@@ -26,11 +29,11 @@ export class RecallHistoryService {
       patientId: string;
       recallDueDate: Date;
       channel?: RecallChannel;
-      status: { in: typeof ACTIVE_RECALL_STATUSES };
+      status: { in: RecallHistoryStatus[] };
     } = {
       patientId: params.patientId,
       recallDueDate: params.recallDueDate,
-      status: { in: [...ACTIVE_RECALL_STATUSES] },
+      status: { in: ACTIVE_RECALL_STATUSES },
     };
 
     if (params.channel) {

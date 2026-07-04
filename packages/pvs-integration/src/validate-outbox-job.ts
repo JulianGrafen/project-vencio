@@ -1,5 +1,5 @@
-import type { AppointmentSyncDTO } from "./appointment-sync.dto";
-import type { PvsOutboxJobDTO } from "./outbox.dto";
+import type { AppointmentSyncDTO } from "./types/appointment-sync.dto";
+import type { PvsOutboxJobDTO } from "./types/outbox.dto";
 
 export function parseOutboxJob(
   job: PvsOutboxJobDTO

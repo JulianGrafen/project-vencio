@@ -2,7 +2,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import authedProcedure from "./authedProcedure";
-import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
+import { PermissionCheckService, type PermissionString } from "@calcom/lib/dental/permission-check.service";
 
 /**
  * Creates a procedure that checks team-level PBAC permissions.

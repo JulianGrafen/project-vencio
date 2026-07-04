@@ -26,10 +26,12 @@ Startup validation runs automatically via `apps/web/instrumentation.ts`. Invalid
 
 | Setting | Value |
 |---------|-------|
-| Root directory | `apps/web` |
-| Build command | `cd ../.. && yarn build` (in `vercel.json`) |
+| Root directory | `apps/web` (recommended) or repo root (supported via root `vercel.json`) |
+| Build command | `cd ../.. && yarn build` when Root Directory is `apps/web`; `yarn build` at repo root |
 | Node.js | 20.x |
 | Plan | Pro (cron + function limits) |
+
+If the Vercel project was imported without a Root Directory, the repository root `vercel.json` sets `framework: nextjs` and `outputDirectory: apps/web/.next` so the build is packaged correctly. For new projects, prefer **Root Directory = `apps/web`** and use `apps/web/vercel.json` (Cal.com upstream convention).
 
 ### Required environment variables
 

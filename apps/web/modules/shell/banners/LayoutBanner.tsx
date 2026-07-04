@@ -20,8 +20,8 @@ import {
 type BannerTypeProps = {
   verifyEmailBanner: VerifyEmailBannerProps;
   adminPasswordBanner: AdminPasswordBannerProps;
-  dentalTwoFactorBanner: boolean | null;
-  practiceTrialBanner: PracticeTrialBannerData | null;
+  dentalTwoFactorBanner: { data: boolean | null };
+  practiceTrialBanner: { data: PracticeTrialBannerData | null };
   calendarCredentialBanner: CalendarCredentialBannerProps;
   invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
 };
@@ -29,7 +29,7 @@ type BannerTypeProps = {
 type BannerType = keyof BannerTypeProps;
 
 type BannerComponent = {
-  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element;
+  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element | null;
 };
 
 export type AllBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };

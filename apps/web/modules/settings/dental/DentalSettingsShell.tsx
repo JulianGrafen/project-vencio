@@ -27,7 +27,7 @@ export function DentalSettingsShell({
   children,
   headerAction,
 }: DentalSettingsShellProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
   return (
     <SettingsHeader title={title} description={description} CTA={headerAction}>

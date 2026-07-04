@@ -14,8 +14,16 @@ type TeamScopedInput = {
  * Input must be registered before the membership middleware runs.
  */
 export function dentalTeamAdminProcedure<TSchema extends z.ZodType<TeamScopedInput>>(schema: TSchema) {
-  return dentalAdminProcedure.input(schema).use(dentalTrialMiddleware).use(async ({ ctx, input, next }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
-    return next();
-  });
+  return dentalAdminProcedure
+    .input(schema)
+    .use(dentalTrialMiddleware as never)
+    .use((async (opts: unknown) => {
+      const { ctx, input, next } = opts as {
+        ctx: { user: { id: number } };
+        input: TeamScopedInput;
+        next: () => Promise<unknown>;
+      };
+      await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
+      return next();
+    }) as never);
 }

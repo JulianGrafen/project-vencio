@@ -3,10 +3,12 @@ import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipRole as Role } from "@calcom/prisma/enums";
 
+export type PermissionString = string;
+
 type CheckPermissionParams = {
   userId: number;
   teamId: number;
-  permission: string;
+  permission: PermissionString;
   fallbackRoles?: MembershipRole[];
 };
 

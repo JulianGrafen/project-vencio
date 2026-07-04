@@ -33,6 +33,7 @@ import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { isCancellationReasonRequired } from "@calcom/features/bookings/lib/cancellationReason";
 import { enqueuePvsSyncForCancelledBooking } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import { resolveTeamIdFromEventTypeRecord } from "@calcom/lib/dental/practice-team-resolver";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";

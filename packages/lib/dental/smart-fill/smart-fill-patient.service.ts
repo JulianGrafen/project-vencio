@@ -3,6 +3,7 @@ import type { PrismaClient } from "@calcom/prisma/generated/prisma/client";
 import { isDentalEncryptionEnabled } from "../feature-flags";
 import { normalizePhoneNumber, resolveSmartFillPatientPhone } from "./phone-utils";
 import {
+  resolveSmartFillPatientPhoneBlindIndex,
   resolveSmartFillPatientPhoneLookupKey,
 } from "./smart-fill-patient-phone-index";
 import {
@@ -57,10 +58,10 @@ export class SmartFillPatientService {
     });
   }
 
-  create(input: CreatePatientInput): Promise<SmartFillPatientListItem> {
+  async create(input: CreatePatientInput): Promise<SmartFillPatientListItem> {
     const phoneNumber = resolveSmartFillPatientPhone(input.phoneNumber, input.email);
     const phoneBlindIndex = isDentalEncryptionEnabled()
-      ? undefined
+      ? await resolveSmartFillPatientPhoneBlindIndex(this.prisma, input.teamId, phoneNumber)
       : resolveSmartFillPatientPhoneLookupKey(phoneNumber);
 
     return this.prisma.smartFillPatient.create({
@@ -69,7 +70,7 @@ export class SmartFillPatientService {
         name: input.name,
         email: input.email,
         phoneNumber,
-        ...(phoneBlindIndex ? { phoneBlindIndex } : {}),
+        phoneBlindIndex,
         waitlistEnabled: input.waitlistEnabled,
         recallEnabled: input.recallEnabled ?? true,
         priorityScore: input.priorityScore,
@@ -84,9 +85,9 @@ export class SmartFillPatientService {
     let phoneBlindIndex: string | undefined;
     if (input.phoneNumber !== undefined) {
       phoneNumber = normalizePhoneNumber(input.phoneNumber);
-      if (!isDentalEncryptionEnabled()) {
-        phoneBlindIndex = resolveSmartFillPatientPhoneLookupKey(phoneNumber);
-      }
+      phoneBlindIndex = isDentalEncryptionEnabled()
+        ? await resolveSmartFillPatientPhoneBlindIndex(this.prisma, input.teamId, phoneNumber)
+        : resolveSmartFillPatientPhoneLookupKey(phoneNumber);
     }
 
     const updated = await this.prisma.smartFillPatient.updateMany({
