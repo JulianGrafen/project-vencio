@@ -1,18 +1,18 @@
-import type { PvsOutboxJobDTO } from "@calcom/pvs-integration";
-import type { AppointmentSyncDTO } from "@calcom/pvs-integration";
+import type { PvsAdapter } from "@calcom/pvs-integration";
+import type { AppointmentSyncDTO, PvsOutboxJobDTO } from "@calcom/pvs-integration";
 import { DampsoftPvsAdapter } from "@calcom/pvs-integration";
 
 import { PvsConnectorClient } from "./client";
 
 export type PvsConnectorRunnerOptions = {
   client: PvsConnectorClient;
-  adapter?: DampsoftPvsAdapter;
+  adapter?: PvsAdapter;
   onJobProcessed?: (jobId: string, status: "COMPLETED" | "FAILED") => void;
 };
 
 export async function processPvsOutboxJob(
   job: PvsOutboxJobDTO,
-  adapter: DampsoftPvsAdapter
+  adapter: PvsAdapter
 ): Promise<{ status: "COMPLETED" | "FAILED"; externalId?: string; error?: string }> {
   const payload = job.payload as AppointmentSyncDTO;
 

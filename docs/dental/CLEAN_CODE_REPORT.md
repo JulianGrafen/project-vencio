@@ -17,7 +17,7 @@ This refactor applies **Single Responsibility**, **DRY**, and **consistent bound
 | PVS enqueue entry points | 3 inconsistent paths | 1 dispatcher + shared DTO builder |
 | Smart-Fill PVS sync | Bypassed `isPvsSyncEnabled()` | Uses unified gate |
 | New focused modules | — | 8 files |
-| Unit tests | 97 | 103 (+6) |
+| Unit tests | 97 | 106 (+9) |
 
 ---
 
@@ -132,19 +132,22 @@ packages/pvs-connector/src/
 | `enqueue-confirmed-booking-pvs-sync.test.ts` | Skip pending; enqueue accepted |
 | Updated `smart-fill-reply.handler.test.ts` | Mock path aligned to unified enqueue |
 
-**Total dental/PVS/connector tests:** 103 passing.
+**Total dental/PVS/connector tests:** 106 passing.
 
 ---
 
-## 6. Remaining Technical Debt (Not in Scope)
+## 6. Remaining Technical Debt
 
-| Priority | Item | Recommendation |
-|----------|------|----------------|
-| P1 | Settings UI monoliths (`PvsConnectorSettingsView` 213 LOC) | Extract `PvsOutboxStatsGrid`, `PvsCredentialList` |
-| P1 | API route integration tests | Mock `handlePvsConnectorPost` + services |
-| P2 | `dentalAdminProcedure` vs `authedProcedure` on PVS dashboard | Align 2FA/tenant policy |
-| P2 | `teamAdminProcedure` middleware | DRY membership asserts in tRPC routers |
-| P3 | Playwright E2E booker → outbox row | Critical path smoke |
+| Priority | Item | Status |
+|----------|------|--------|
+| P1 | Settings UI monoliths (`PvsConnectorSettingsView`) | **Resolved** — split into `PvsOutboxDashboardPanel`, `PvsCredentialManager`; view ~86 LOC |
+| P1 | API route integration tests | **Resolved** — `apps/web/app/api/pvs/outbox/__tests__/route.test.ts` |
+| P1 | Shared settings cross-links | **Resolved** — `DentalSettingsCrossLinks` reused in PVS, Smart-Fill, treatment-resources |
+| P2 | `dentalAdminProcedure` vs `authedProcedure` on PVS dashboard | **Resolved** — `dentalTeamAdminProcedure` (2FA + tenant + admin membership) |
+| P2 | Repeated tRPC membership asserts | **Resolved** — PVS + Smart-Fill admin routes use `dentalTeamAdminProcedure` |
+| P3 | Playwright E2E booker → outbox row | Deferred — critical path smoke (not in scope) |
+
+**Test count after debt fixes:** 106 passing.
 
 ---
 
@@ -168,7 +171,7 @@ packages/pvs-connector/src/
 ## 8. Verification
 
 ```bash
-yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector
+yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector apps/web/app/api/pvs/outbox/__tests__
 ```
 
 All tests must pass before deploy (see `dental-critical-path.yml` CI gate).

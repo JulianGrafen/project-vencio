@@ -3,14 +3,11 @@ import { TRPCError } from "@trpc/server";
 import { SmartFillDashboardService } from "@calcom/lib/dental/smart-fill";
 import { isSmartFillEnabled } from "@calcom/lib/dental/smart-fill/feature-flags";
 import { SmartFillPatientService } from "@calcom/lib/dental/smart-fill/smart-fill-patient.service";
-import {
-  assertAcceptedTeamMembership,
-  assertAdminOrOwnerTeamMembership,
-} from "@calcom/lib/dental/assert-team-membership";
+import { assertAcceptedTeamMembership } from "@calcom/lib/dental/assert-team-membership";
 import { prisma } from "@calcom/prisma";
 
 import authedProcedure from "../../../procedures/authedProcedure";
-import { dentalAdminProcedure } from "../../../procedures/dentalAuthedProcedure";
+import { dentalTeamAdminProcedure } from "../../../procedures/dentalTeamAdminProcedure";
 import { router } from "../../../trpc";
 import {
   ZSmartFillDashboardInput,
@@ -55,19 +52,16 @@ export const smartFillRouter = router({
     return patientService.listByTeam(input.teamId);
   }),
 
-  createPatient: dentalAdminProcedure.input(ZSmartFillPatientCreateInput).mutation(async ({ ctx, input }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
+  createPatient: dentalTeamAdminProcedure.input(ZSmartFillPatientCreateInput).mutation(async ({ input }) => {
     return patientService.create(input);
   }),
 
-  updatePatient: dentalAdminProcedure.input(ZSmartFillPatientUpdateInput).mutation(async ({ ctx, input }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
+  updatePatient: dentalTeamAdminProcedure.input(ZSmartFillPatientUpdateInput).mutation(async ({ input }) => {
     await requireTeamPatient(input.teamId, input.patientId);
     return patientService.update(input);
   }),
 
-  deletePatient: dentalAdminProcedure.input(ZSmartFillPatientDeleteInput).mutation(async ({ ctx, input }) => {
-    await assertAdminOrOwnerTeamMembership(ctx.user.id, input.teamId);
+  deletePatient: dentalTeamAdminProcedure.input(ZSmartFillPatientDeleteInput).mutation(async ({ input }) => {
     await requireTeamPatient(input.teamId, input.patientId);
     return patientService.delete(input.patientId).then(() => ({ success: true as const }));
   }),
