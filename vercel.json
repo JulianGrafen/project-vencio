@@ -23,10 +23,10 @@
     }
   ],
   "functions": {
-    "apps/web/app/api/trpc/**": {
+    "app/api/trpc/**": {
       "maxDuration": 60
     },
-    "apps/web/pages/api/trpc/**": {
+    "pages/api/trpc/**": {
       "maxDuration": 60
     }
   }
