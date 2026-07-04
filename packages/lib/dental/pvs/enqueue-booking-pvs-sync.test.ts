@@ -62,4 +62,36 @@ describe("enqueueBookingPvsSyncIfEnabled", () => {
       })
     );
   });
+
+  it("creates cancel outbox row", async () => {
+    const create = vi.fn().mockResolvedValue({ id: "outbox-cancel" });
+    const tx = {
+      pvsSyncOutbox: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create,
+      },
+    };
+
+    const { enqueueBookingPvsCancelIfEnabled } = await import("./enqueue-booking-pvs-sync");
+
+    const result = await enqueueBookingPvsCancelIfEnabled(tx as never, {
+      bookingUid: "uid-cancel",
+      teamId: 5,
+      title: "Kontrolle",
+      startTime: new Date("2026-07-12T10:00:00.000Z"),
+      endTime: new Date("2026-07-12T10:30:00.000Z"),
+      patientName: "Max",
+      patientEmail: "max@test.de",
+      cancellationReason: "Abgesagt",
+    });
+
+    expect(result?.outboxId).toBe("outbox-cancel");
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          operation: "CANCEL_APPOINTMENT",
+        }),
+      })
+    );
+  });
 });

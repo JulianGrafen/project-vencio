@@ -23,6 +23,11 @@ export function PvsConnectorSettingsView({ teamId }: PvsConnectorSettingsViewPro
     { enabled }
   );
 
+  const { data: dashboard, isLoading: dashboardLoading } = trpc.viewer.pvsConnector.dashboard.useQuery(
+    { teamId },
+    { enabled, refetchInterval: 30_000 }
+  );
+
   const createMutation = trpc.viewer.pvsConnector.createCredential.useMutation({
     onSuccess: async (result) => {
       setRevealedKey(result.rawApiKey);
@@ -52,10 +57,73 @@ export function PvsConnectorSettingsView({ teamId }: PvsConnectorSettingsViewPro
 
       <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
         <p className="font-medium">Connector-Endpunkte</p>
+        <p className="font-medium">Lokaler Connector</p>
+        <p className="mt-1 text-xs">
+          Start: <code>PVS_CLOUD_BASE_URL=… PVS_CONNECTOR_API_KEY=… PVS_TEAM_ID={teamId} yarn pvs-connector</code>
+        </p>
         <ul className="mt-2 list-inside list-disc space-y-1 text-xs">
           <li>POST /api/pvs/outbox/poll — ausstehende Termine abholen</li>
           <li>POST /api/pvs/outbox/ack — Erfolg/Fehler bestätigen</li>
         </ul>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-emphasis font-medium">Sync-Outbox Status</h3>
+        {dashboardLoading || !dashboard ? (
+          <p className="text-subtle text-sm">Laden…</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-md border p-3">
+                <p className="text-subtle text-xs">Ausstehend</p>
+                <p className="text-emphasis text-2xl font-bold">{dashboard.pending}</p>
+              </div>
+              <div className="rounded-md border p-3">
+                <p className="text-subtle text-xs">In Bearbeitung</p>
+                <p className="text-emphasis text-2xl font-bold">{dashboard.processing}</p>
+              </div>
+              <div className="rounded-md border p-3">
+                <p className="text-subtle text-xs">Fehlgeschlagen</p>
+                <p className="text-2xl font-bold text-red-700">{dashboard.failed}</p>
+              </div>
+              <div className="rounded-md border p-3">
+                <p className="text-subtle text-xs">Abgeschlossen</p>
+                <p className="text-2xl font-bold text-green-700">{dashboard.completed}</p>
+              </div>
+            </div>
+
+            {dashboard.recentJobs.length > 0 ? (
+              <div className="overflow-x-auto rounded-md border">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-subtle text-subtle text-xs uppercase">
+                    <tr>
+                      <th className="px-3 py-2">Termin</th>
+                      <th className="px-3 py-2">Operation</th>
+                      <th className="px-3 py-2">Status</th>
+                      <th className="px-3 py-2">Versuche</th>
+                      <th className="px-3 py-2">Fehler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboard.recentJobs.map((job) => (
+                      <tr key={job.id} className="border-subtle border-t">
+                        <td className="px-3 py-2 font-mono text-xs">{job.bookingUid.slice(0, 10)}…</td>
+                        <td className="px-3 py-2">{job.operation.replace("_APPOINTMENT", "")}</td>
+                        <td className="px-3 py-2">{job.status}</td>
+                        <td className="px-3 py-2">{job.attempts}</td>
+                        <td className="text-subtle max-w-[12rem] truncate px-3 py-2 text-xs">
+                          {job.lastError ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-subtle text-sm">Noch keine Sync-Jobs in der Outbox.</p>
+            )}
+          </>
+        )}
       </div>
 
       {revealedKey ? (

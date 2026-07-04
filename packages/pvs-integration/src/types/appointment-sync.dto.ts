@@ -10,6 +10,8 @@ export type AppointmentSyncDTO = {
   eventTypeId?: number | null;
   source: "smart-fill" | "booker" | "api";
   smartFillTaskId?: string;
+  cancellationReason?: string;
+  rescheduledToBookingUid?: string;
 };
 
 export type PvsAppointmentRef = {

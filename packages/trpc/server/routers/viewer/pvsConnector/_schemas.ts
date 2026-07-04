@@ -4,6 +4,10 @@ export const ZPvsConnectorListInput = z.object({
   teamId: z.number().int().positive(),
 });
 
+export const ZPvsConnectorDashboardInput = z.object({
+  teamId: z.number().int().positive(),
+});
+
 export const ZPvsConnectorCreateInput = z.object({
   teamId: z.number().int().positive(),
   label: z.string().trim().min(1).max(64).default("default"),

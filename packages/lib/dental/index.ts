@@ -16,6 +16,7 @@ export * from "./assert-two-factor-enabled";
 export * from "./pvs/feature-flags";
 export * from "./pvs/enqueue-booking-pvs-sync";
 export * from "./pvs/enqueue-confirmed-booking-pvs-sync";
+export * from "./pvs/pvs-outbox-dashboard.service";
 export * from "./pvs/enqueue-pvs-sync";
 export * from "./pvs/pvs-outbox.constants";
 export * from "./pvs/pvs-connector-key";

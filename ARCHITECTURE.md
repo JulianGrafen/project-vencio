@@ -169,8 +169,8 @@ Implementations: `DampsoftAdapter`, `Z1Adapter`, `EvidentAdapter` — each behin
 ### 6.3 Latency Strategy
 
 1. **Cloud:** optimistic booking + slot lock (existing Cal.com reservation flow).
-2. **Async:** enqueue `PvsSyncOutbox` row in same DB transaction as booking.
-3. **Connector:** polls or receives push; writes to PVS; acks with external appointment ID.
+2. **Async:** enqueue `PvsSyncOutbox` row in same DB transaction as booking (create/cancel/reschedule).
+3. **Connector:** `@calcom/pvs-connector` polls `/api/pvs/outbox/poll`; writes to PVS via adapter; acks result.
 4. **Reconciliation:** on failure, retry with exponential backoff; alert practice admin after N attempts.
 
 See sequence diagram in §8.

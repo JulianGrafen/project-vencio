@@ -28,7 +28,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **PVS adapter interface** — `PvsAdapter` + `MockPvsAdapter` with contract tests.
 - **PVS admin UI** — `/settings/pvs-connector?teamId=` for connector API key management.
 - **Booker PVS enqueue** — outbox row on accepted booking create + on manual confirm.
-- **DampsoftPvsAdapter** stub with contract tests (connector-side reference).
+- **PVS connector CLI** — `@calcom/pvs-connector` polls outbox and syncs via DampsoftAdapter.
+- **Outbox dashboard** — KPI + recent jobs in PVS Connector settings; tRPC `pvsConnector.dashboard`.
+- **Cancel/reschedule PVS sync** — `CANCEL_APPOINTMENT` outbox on booking cancel and reschedule.
 
 ### Changed
 

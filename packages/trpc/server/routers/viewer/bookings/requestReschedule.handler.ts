@@ -16,6 +16,8 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
+import { resolveTeamIdFromEventTypeId } from "@calcom/lib/dental/practice-team-resolver";
+import { enqueuePvsSyncForCancelledBooking } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -84,6 +86,29 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     cancellationReason,
     cancelledBy: user.email,
   });
+
+  if (bookingToReschedule.eventTypeId) {
+    const teamId = await resolveTeamIdFromEventTypeId(prisma, bookingToReschedule.eventTypeId);
+    if (teamId) {
+      try {
+        await enqueuePvsSyncForCancelledBooking(
+          prisma,
+          teamId,
+          {
+            uid: bookingToReschedule.uid,
+            title: bookingToReschedule.title ?? "",
+            startTime: bookingToReschedule.startTime,
+            endTime: bookingToReschedule.endTime,
+            eventTypeId: bookingToReschedule.eventTypeId,
+            attendees: bookingToReschedule.attendees,
+          },
+          cancellationReason
+        );
+      } catch (error) {
+        log.error("PVS cancel enqueue failed on reschedule request", safeStringify({ error }));
+      }
+    }
+  }
 
   // delete scheduled jobs of previous booking
   const webhookPromises = [];

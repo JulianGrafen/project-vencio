@@ -34,4 +34,4 @@ jobs:
         run: yarn install --immutable
 
       - name: Run dental + PVS unit tests
-        run: yarn vitest run packages/lib/dental packages/pvs-integration --reporter=dot
+        run: yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector --reporter=dot

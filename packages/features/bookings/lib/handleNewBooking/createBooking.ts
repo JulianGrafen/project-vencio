@@ -7,7 +7,10 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { enqueueBookingPvsSyncIfEnabled } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
+import {
+  enqueueBookingPvsSyncIfEnabled,
+  enqueueBookingPvsCancelIfEnabled,
+} from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type short from "short-uuid";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
@@ -184,6 +187,34 @@ async function saveBooking(
           patientEmail: booker.email,
           patientPhone: booker.phoneNumber ?? pvsSyncContext.smsReminderNumber,
           source: "booker",
+        });
+      }
+    }
+
+    if (
+      pvsSyncContext?.teamId &&
+      originalRescheduledBooking?.uid &&
+      originalBookingUpdateDataForCancellation
+    ) {
+      const rescheduledAttendee =
+        originalRescheduledBooking.attendees?.find(
+          (attendee) => attendee.email === pvsSyncContext.bookerEmail
+        ) ?? originalRescheduledBooking.attendees?.[0];
+
+      if (rescheduledAttendee) {
+        await enqueueBookingPvsCancelIfEnabled(tx, {
+          bookingUid: originalRescheduledBooking.uid,
+          teamId: pvsSyncContext.teamId,
+          title: originalRescheduledBooking.title ?? booking.title,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+          eventTypeId: pvsSyncContext.eventTypeId,
+          patientName: rescheduledAttendee.name,
+          patientEmail: rescheduledAttendee.email,
+          patientPhone: rescheduledAttendee.phoneNumber,
+          source: "booker",
+          cancellationReason: createBookingObj.data.cancellationReason as string | undefined,
+          rescheduledToBookingUid: booking.uid,
         });
       }
     }

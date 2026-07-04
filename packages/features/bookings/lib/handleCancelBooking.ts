@@ -33,7 +33,8 @@ import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { isCancellationReasonRequired } from "./cancellationReason";
+import { enqueuePvsSyncForCancelledBooking } from "@calcom/lib/dental/pvs/enqueue-booking-pvs-sync";
+import { resolveTeamIdFromEventTypeRecord } from "@calcom/lib/dental/practice-team-resolver";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -514,6 +515,28 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   } catch (error) {
     log.error("Error deleting event", error);
   }
+
+  try {
+    const teamId = await resolveTeamIdFromEventTypeRecord(prismaClient, bookingToDelete.eventType);
+    if (teamId) {
+      await enqueuePvsSyncForCancelledBooking(
+        prismaClient,
+        teamId,
+        {
+          uid: bookingToDelete.uid,
+          title: bookingToDelete.title ?? "",
+          startTime: bookingToDelete.startTime,
+          endTime: bookingToDelete.endTime,
+          eventTypeId: bookingToDelete.eventTypeId,
+          attendees: bookingToDelete.attendees,
+        },
+        cancellationReason
+      );
+    }
+  } catch (error) {
+    log.error("PVS cancel enqueue failed", safeStringify({ error }));
+  }
+
   return {
     success: true,
     message: "Booking successfully cancelled.",

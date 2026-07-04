@@ -1,0 +1,16 @@
+{
+  "name": "@calcom/pvs-connector",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./src/runner.ts",
+  "bin": {
+    "pvs-connector": "./src/cli.ts"
+  },
+  "dependencies": {
+    "@calcom/pvs-integration": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "workspace:*",
+    "typescript": "5.9.3"
+  }
+}
