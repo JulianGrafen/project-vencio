@@ -901,24 +901,28 @@ model RecallSettings {
 
 /// Audit log for each recall outreach attempt (DSGVO accountability).
 model RecallHistory {
-  id            String              @id @default(cuid())
-  teamId        Int
-  team          Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  patientId     String
-  patient       SmartFillPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  channel       RecallChannel
-  status        RecallHistoryStatus @default(PENDING)
+  id                  String              @id @default(cuid())
+  teamId              Int
+  team                Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  patientId           String
+  patient             SmartFillPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  channel             RecallChannel
+  status              RecallHistoryStatus @default(PENDING)
   /// Calculated due date for this recall cycle (dedup key).
-  recallDueDate DateTime
-  sentAt        DateTime?
-  error         String?
-  optOutToken   String?             @unique
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  recallDueDate       DateTime
+  sentAt              DateTime?
+  error               String?
+  optOutToken         String?             @unique
+  /// Conversion attribution: booking created via the recall link (dashboard KPI).
+  convertedBookingUid String?
+  convertedAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   @@unique([patientId, recallDueDate, channel])
   @@index([teamId, status, recallDueDate])
   @@index([teamId, createdAt])
+  @@index([teamId, convertedAt])
 }
 
 // ---------------------------------------------------------------------------

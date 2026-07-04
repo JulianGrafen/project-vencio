@@ -12,6 +12,13 @@ export const RECALL_ENV = {
   EMAIL_PROVIDER: "RECALL_EMAIL_PROVIDER",
 } as const;
 
+/**
+ * Booking metadata key carrying the recall reference (= optOutToken of the
+ * RecallHistory row). The web booker maps `metadata[recallRef]` query params
+ * into booking metadata, which enables conversion attribution.
+ */
+export const RECALL_METADATA_KEY = "recallRef";
+
 export const RECALL_TEMPLATE_VARIABLES = {
   PATIENT_NAME: "[PatientenName]",
   BOOKING_LINK: "[TerminLink]",

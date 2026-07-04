@@ -16,6 +16,11 @@ import {
   extractInsuranceTypeFromResponses,
 } from "@calcom/lib/dental/medical-categories/booking-insurance";
 import {
+  extractRecallRefFromMetadata,
+  RecallConversionService,
+} from "@calcom/lib/dental/recall/recall-conversion.service";
+import logger from "@calcom/lib/logger";
+import {
   bookingToPvsSyncInput,
   enqueueBookingPvsCancelIfEnabled,
   enqueueBookingPvsSyncIfEnabled,
@@ -111,7 +116,7 @@ const _createBooking = async ({
     insuranceType,
   });
 
-  return await saveBooking(
+  const booking = await saveBooking(
     bookingAndAssociatedData,
     originalRescheduledBooking,
     eventType.paymentAppData,
@@ -124,7 +129,25 @@ const _createBooking = async ({
       isAccepted: eventType.isConfirmedByDefault,
     }
   );
+
+  await attributeBookingToRecall(reqBody.metadata, booking.uid);
+
+  return booking;
 };
+
+/** Recall conversion KPI — attribution failures must never block the booking. */
+async function attributeBookingToRecall(metadata: unknown, bookingUid: string): Promise<void> {
+  const recallRef = extractRecallRefFromMetadata(metadata);
+  if (!recallRef) {
+    return;
+  }
+
+  try {
+    await new RecallConversionService(prisma).attributeBooking(recallRef, bookingUid);
+  } catch (error) {
+    logger.getSubLogger({ prefix: ["recall-conversion"] }).error("Recall attribution failed", error);
+  }
+}
 
 export const createBooking = withReporting(_createBooking, "createBooking");
 

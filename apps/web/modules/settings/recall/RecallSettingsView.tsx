@@ -11,6 +11,7 @@ import { DentalCard, DentalSectionHeader } from "~/settings/dental/dental-ui";
 import { RecallHistoryList } from "./RecallHistoryList";
 import { RecallPendingList } from "./RecallPendingList";
 import { RecallSettingsForm } from "./RecallSettingsForm";
+import { RecallStatsWidget } from "./RecallStatsWidget";
 
 type RecallSettingsViewProps = {
   teamId: number;
@@ -80,6 +81,7 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
         </DentalCard>
 
         <div className="space-y-6 lg:col-span-3">
+          <RecallStatsWidget teamId={teamId} enabled={enabled} />
           <RecallPendingList items={pending?.items} isLoading={pendingLoading} />
           <RecallHistoryList history={history} isLoading={historyLoading} />
         </div>

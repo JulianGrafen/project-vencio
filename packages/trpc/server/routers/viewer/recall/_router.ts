@@ -1,4 +1,5 @@
 import { RecallPendingService } from "@calcom/lib/dental/recall";
+import { RecallConversionService } from "@calcom/lib/dental/recall/recall-conversion.service";
 import { RecallSettingsService } from "@calcom/lib/dental/recall/recall-settings.service";
 import { isRecallEnabled } from "@calcom/lib/dental/recall/feature-flags";
 import { prisma } from "@calcom/prisma";
@@ -10,6 +11,7 @@ import { ZRecallHistoryInput, ZRecallPendingInput, ZRecallSettingsUpdateInput } 
 
 const pendingService = new RecallPendingService(prisma);
 const settingsService = new RecallSettingsService(prisma);
+const conversionService = new RecallConversionService(prisma);
 
 export const recallRouter = router({
   /** Pending recalls for the upcoming week — practice dashboard. */
@@ -20,6 +22,16 @@ export const recallRouter = router({
 
     const items = await pendingService.listPendingForTeam(input.teamId);
     return { enabled: true as const, items };
+  }),
+
+  /** Monthly KPI: recalls sent and bookings generated via recall links. */
+  stats: dentalTeamMemberProcedure(ZRecallPendingInput).query(async ({ input }) => {
+    if (!isRecallEnabled()) {
+      return { enabled: false as const, sentThisMonth: 0, convertedThisMonth: 0 };
+    }
+
+    const stats = await conversionService.getMonthlyStats(input.teamId);
+    return { enabled: true as const, ...stats };
   }),
 
   /** Recent recall history for audit / accountability. */
