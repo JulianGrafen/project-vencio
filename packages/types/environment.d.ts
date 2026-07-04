@@ -85,5 +85,18 @@ declare namespace NodeJS {
     readonly SMART_FILL_ENABLED: string | undefined;
     readonly SMART_FILL_SMS_PROVIDER: string | undefined;
     readonly SMART_FILL_MOCK_SMS_LOG: string | undefined;
+    readonly SMART_FILL_SMS_MOCK_WEBHOOK: string | undefined;
+    readonly RECALL_ENABLED: string | undefined;
+    readonly RECALL_EMAIL_PROVIDER: string | undefined;
+    readonly RECALL_MOCK_EMAIL_LOG: string | undefined;
+    readonly PVS_SYNC_ENABLED: string | undefined;
+    readonly PVS_CONNECTOR_API_KEY: string | undefined;
+    readonly PVS_CONNECTOR_ALLOW_GLOBAL_KEY: string | undefined;
+    readonly TWILIO_SID: string | undefined;
+    readonly TWILIO_TOKEN: string | undefined;
+    readonly TWILIO_PHONE_NUMBER: string | undefined;
+    readonly CRON_SECRET: string | undefined;
+    readonly CALCOM_ENV: string | undefined;
+    readonly DENTAL_SKIP_PRODUCTION_VALIDATION: string | undefined;
   }
 }

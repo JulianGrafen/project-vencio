@@ -16,6 +16,7 @@ export * from "./attendee-blind-index-filter";
 export * from "./infer-tenant-operation";
 export * from "./two-factor-policy";
 export * from "./assert-two-factor-enabled";
+export * from "./production-config";
 export * from "./pvs/feature-flags";
 export * from "./pvs/enqueue-booking-pvs-sync";
 export * from "./pvs/enqueue-confirmed-booking-pvs-sync";

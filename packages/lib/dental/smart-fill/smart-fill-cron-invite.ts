@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { SmartFillTaskStatus } from "@calcom/prisma/enums";
 
+import { createDentalLogger } from "../resilience/dental-logger";
 import type { SmartFillCronHost } from "./smart-fill-cron-host-loader";
 import {
   lockSmartFillTaskForInvite,
@@ -9,6 +10,8 @@ import {
 import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
 import { buildSmartFillInviteSmsBody } from "./smart-fill-sms-message";
 import type { SmsService } from "./sms/sms-service.interface";
+
+const inviteLog = createDentalLogger({ module: "smart-fill-cron-invite" });
 
 /** Only invite once per task — prevents duplicate SMS on every cron run. */
 export async function shouldSendSmartFillInvite(
@@ -79,7 +82,13 @@ export async function invitePatientsForSmartFillTask(
     });
 
     return 1;
-  } catch {
+  } catch (error) {
+    inviteLog.warn("Smart-Fill SMS invite failed — rolling back", {
+      taskId,
+      teamId: host.teamId,
+      patientId: patient.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
     await prisma.$transaction((tx) =>
       rollbackSmartFillInvite(tx, {
         taskId,

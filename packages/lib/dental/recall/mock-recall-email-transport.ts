@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 
+import { assertProductionProvider } from "../production-config";
 import { createDentalLogger } from "../resilience/dental-logger";
+import { RECALL_ENV } from "./constants";
 import type { RecallEmailPayload, RecallEmailTransport } from "./recall-email-transport.interface";
 import { NodemailerRecallEmailTransport } from "./nodemailer-recall-email-transport";
 
@@ -26,7 +28,8 @@ export class MockRecallEmailTransport implements RecallEmailTransport {
 }
 
 export function createRecallEmailTransport(): RecallEmailTransport {
-  const provider = process.env.RECALL_EMAIL_PROVIDER ?? "mock";
+  const provider = process.env[RECALL_ENV.EMAIL_PROVIDER] ?? "mock";
+  assertProductionProvider(provider, RECALL_ENV.EMAIL_PROVIDER, ["nodemailer"]);
 
   if (provider === "mock") {
     return new MockRecallEmailTransport();

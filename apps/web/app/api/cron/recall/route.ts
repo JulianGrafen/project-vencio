@@ -5,7 +5,10 @@ import { NextResponse } from "next/server";
 import { assertCronAuthorized } from "@calcom/lib/dental/cron-auth";
 import { RecallCronService } from "@calcom/lib/dental/recall";
 import { isRecallEnabled } from "@calcom/lib/dental/recall/feature-flags";
+import { createDentalLogger } from "@calcom/lib/dental/resilience/dental-logger";
 import { prisma } from "@calcom/prisma";
+
+const log = createDentalLogger({ module: "cron-recall" });
 
 /**
  * Vercel Cron — runs daily.
@@ -17,11 +20,16 @@ async function postHandler(request: NextRequest) {
   }
 
   if (!isRecallEnabled()) {
+    log.info("Recall cron skipped — feature disabled");
     return NextResponse.json({ message: "Recall disabled", skipped: true });
   }
 
   const service = new RecallCronService(prisma);
   const result = await service.run();
+
+  if (result.errors.length > 0) {
+    log.warn("Recall cron completed with errors", { errorCount: result.errors.length });
+  }
 
   return NextResponse.json(result);
 }

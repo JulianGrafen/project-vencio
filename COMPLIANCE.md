@@ -216,6 +216,8 @@
    - `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true`
 6. **Migrationen:** vor dem ersten Deploy `yarn db-deploy` gegen die Production-DB ausführen
 7. `NEXT_PUBLIC_WEBAPP_URL` / `NEXTAUTH_URL` auf die Vercel-Domain setzen (Preview: wird aus `VERCEL_URL` abgeleitet)
+8. **Production-Validierung:** Startup prüft Konfiguration automatisch; Health-Probe: `GET /api/health/dental` (siehe `docs/dental/DEPLOYMENT.md`)
+9. **Self-hosted:** `CALCOM_ENV=production` setzen; Mock-SMS/E-Mail-Provider sind in Production blockiert
 
 ---
 

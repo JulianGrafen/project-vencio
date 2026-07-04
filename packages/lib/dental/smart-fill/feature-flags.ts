@@ -1,4 +1,5 @@
 import { parseBooleanEnv } from "../env";
+import { isDentalEncryptionEnabled } from "../feature-flags";
 import { SMART_FILL_ENV } from "./constants";
 
 /**
@@ -6,5 +7,8 @@ import { SMART_FILL_ENV } from "./constants";
  * is active (B2B dental deployments default to on).
  */
 export function isSmartFillEnabled(): boolean {
-  return parseBooleanEnv(process.env[SMART_FILL_ENV.ENABLED]);
+  if (parseBooleanEnv(process.env[SMART_FILL_ENV.ENABLED])) {
+    return true;
+  }
+  return isDentalEncryptionEnabled();
 }

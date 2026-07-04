@@ -249,7 +249,24 @@ packages/pvs-connector/src/
 | P3 | Desloppify subjective review (`desloppify review --prepare`) | Deferred — 20 dimensions unassessed |
 | P3 | Playwright E2E booker → outbox row | Deferred |
 | P3 | SmartFillPatient PII field encryption | Deferred — compliance follow-up |
+| P3 | Real Dampsoft PVS adapter (currently stub) | Deferred — required for live PVS sync |
 | P3 | Further large settings views | Deferred |
+
+---
+
+## 15. Production Readiness (2026-07-04)
+
+| Area | Change |
+|------|--------|
+| **Production config** | `production-config.ts` — fail-fast startup validation + health probe |
+| **Mock providers** | SMS/email mock blocked in production runtime |
+| **Smart-Fill flag** | Auto-enables with `DENTAL_ENCRYPTION_ENABLED` (aligned with Recall/PVS) |
+| **Logging** | Structured logs for Smart-Fill cron + invite rollback |
+| **Health endpoint** | `GET /api/health/dental` — 200/503 readiness probe |
+| **CI** | Expanded `dental-critical-path.yml` (API route + handler tests) |
+| **Deployment docs** | `docs/dental/DEPLOYMENT.md` — Vercel, self-hosted, connector, env matrix |
+
+**Test count after production readiness:** 154+ passing.
 
 ---
 
@@ -271,8 +288,9 @@ packages/pvs-connector/src/
 ## 9. Verification
 
 ```bash
-yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector apps/web/app/api/pvs/outbox/__tests__ packages/trpc/server/routers/viewer/bookings/get.handler.test.ts packages/lib/dental/permission-check.service.test.ts
+yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector apps/web/app/api/pvs/outbox/__tests__ packages/trpc/server/routers/viewer/bookings/get.handler.test.ts packages/lib/dental/production-config.test.ts
 yarn desloppify:scan
+curl -s https://your-domain/api/health/dental
 ```
 
 All tests must pass before deploy (see `dental-critical-path.yml` CI gate).

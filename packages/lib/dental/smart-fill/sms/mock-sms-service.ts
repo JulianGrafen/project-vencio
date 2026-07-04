@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { assertProductionProvider } from "../../production-config";
 import { createDentalLogger } from "../../resilience/dental-logger";
 import { SMART_FILL_ENV } from "../constants";
 import type { SmsSendParams, SmsSendResult, SmsService } from "./sms-service.interface";
@@ -34,6 +35,7 @@ export class MockSmsService implements SmsService {
 
 export function createSmsService(): SmsService {
   const provider = process.env.SMART_FILL_SMS_PROVIDER ?? "mock";
+  assertProductionProvider(provider, "SMART_FILL_SMS_PROVIDER", ["twilio"]);
   if (provider === "mock") {
     return new MockSmsService();
   }

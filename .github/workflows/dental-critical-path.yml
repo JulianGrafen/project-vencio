@@ -6,24 +6,41 @@ on:
       - "packages/lib/dental/**"
       - "packages/lib/encryption/**"
       - "packages/pvs-integration/**"
+      - "packages/pvs-connector/**"
       - "packages/trpc/server/procedures/dentalAuthedProcedure.ts"
+      - "packages/trpc/server/procedures/dentalTeamMemberProcedure.ts"
+      - "packages/trpc/server/procedures/dentalTeamAdminProcedure.ts"
       - "packages/trpc/server/routers/viewer/bookings/**"
       - "packages/trpc/server/routers/viewer/smartFill/**"
       - "packages/trpc/server/routers/viewer/recall/**"
+      - "packages/trpc/server/routers/viewer/pvsConnector/**"
+      - "packages/trpc/server/routers/viewer/treatmentResources/**"
       - "apps/web/app/api/pvs/**"
       - "apps/web/app/api/webhooks/smart-fill/**"
       - "apps/web/app/api/cron/recall/**"
+      - "apps/web/app/api/cron/smart-fill/**"
       - "apps/web/app/api/recall/**"
+      - "apps/web/app/api/health/dental/**"
+      - "apps/web/instrumentation.ts"
+      - "docs/dental/**"
+      - ".github/workflows/dental-critical-path.yml"
   push:
     branches:
       - master
+      - main
     paths:
       - "packages/lib/dental/**"
       - "packages/lib/encryption/**"
       - "packages/pvs-integration/**"
+      - "packages/pvs-connector/**"
+      - "apps/web/app/api/pvs/**"
+      - "apps/web/app/api/cron/smart-fill/**"
+      - "apps/web/app/api/cron/recall/**"
+      - "apps/web/app/api/health/dental/**"
 
 jobs:
   dental-tests:
+    name: Dental + PVS critical path
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,5 +53,12 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Run dental + PVS unit tests
-        run: yarn vitest run packages/lib/dental packages/pvs-integration packages/pvs-connector --reporter=dot
+      - name: Run dental + PVS + API route tests
+        run: |
+          yarn vitest run \
+            packages/lib/dental \
+            packages/pvs-integration \
+            packages/pvs-connector \
+            apps/web/app/api/pvs/outbox/__tests__ \
+            packages/trpc/server/routers/viewer/bookings/get.handler.test.ts \
+            --reporter=dot

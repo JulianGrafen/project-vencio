@@ -2,6 +2,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { SmartFillTaskStatus } from "@calcom/prisma/enums";
 import { randomUUID } from "node:crypto";
 
+import { createDentalLogger } from "../resilience/dental-logger";
 import { SMART_FILL_STALE_TASK_STATUSES } from "./constants";
 import { invitePatientsForSmartFillTask, shouldSendSmartFillInvite } from "./smart-fill-cron-invite";
 import { loadSmartFillEligibleHosts } from "./smart-fill-cron-host-loader";
@@ -26,6 +27,7 @@ export type SmartFillCronResult = {
  * 3. Select patients and send SMS invites
  */
 export class SmartFillCronService {
+  private readonly log = createDentalLogger({ module: "smart-fill-cron" });
   private readonly patientSelection: SmartFillPatientSelectionService;
   private readonly sms: SmsService;
 
@@ -44,6 +46,7 @@ export class SmartFillCronService {
     let invitesSent = 0;
 
     const hosts = await loadSmartFillEligibleHosts(this.prisma);
+    this.log.info("Smart-Fill cron started", { scanRunId, hostCount: hosts.length });
 
     for (const host of hosts) {
       try {
@@ -62,13 +65,15 @@ export class SmartFillCronService {
           }
         }
       } catch (error) {
-        errors.push(
-          `team=${host.teamId} user=${host.userId}: ${error instanceof Error ? error.message : String(error)}`
-        );
+        const message = `team=${host.teamId} user=${host.userId}: ${error instanceof Error ? error.message : String(error)}`;
+        errors.push(message);
+        this.log.error("Smart-Fill cron host failed", { scanRunId, teamId: host.teamId, error: message });
       }
     }
 
     await this.expireStaleTasks();
+
+    this.log.info("Smart-Fill cron finished", { scanRunId, tasksCreated, invitesSent, errorCount: errors.length });
 
     return { scanRunId, tasksCreated, invitesSent, errors };
   }
