@@ -19,7 +19,6 @@ import { Steps } from "@calcom/ui/components/form";
 import { LoaderIcon } from "@coss/ui/icons";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
-import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
@@ -28,7 +27,6 @@ const INITIAL_STEP = "user-settings";
 const BASE_STEPS = [
   "user-settings",
   "connected-calendar",
-  "connected-video",
   "setup-availability",
   "user-profile",
 ] as const;
@@ -49,11 +47,6 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
       title: t("connect_your_calendar"),
       subtitle: [t("connect_your_calendar_instructions")],
       skipText: t("connect_calendar_later"),
-    },
-    {
-      title: t("connect_your_video_app"),
-      subtitle: [t("connect_your_video_app_instructions")],
-      skipText: t("set_up_later"),
     },
     {
       title: t("set_availability"),
@@ -102,7 +95,8 @@ const OnboardingPage = (props: PageProps) => {
     step: Array.isArray(params.step) ? params.step : [params.step],
   });
 
-  const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
+  const currentStepRaw = result.success ? result.data.step[0] : INITIAL_STEP;
+  const currentStep = currentStepRaw === "connected-video" ? "setup-availability" : currentStepRaw;
   const from = result.success ? result.data.from : "";
 
   // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
@@ -182,10 +176,6 @@ const OnboardingPage = (props: PageProps) => {
                 )}
                 {currentStep === "connected-calendar" && (
                   <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
-                )}
-
-                {currentStep === "connected-video" && (
-                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} user={user} />
                 )}
 
                 {currentStep === "setup-availability" && (
