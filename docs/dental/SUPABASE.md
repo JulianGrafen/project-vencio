@@ -66,7 +66,15 @@ Vorlage: [`scripts/supabase/env.example`](../../scripts/supabase/env.example)
 
 ## 3. Schema auf Supabase deployen
 
-Lokal (einmalig oder bei jedem Schema-Update):
+### Option A — Supabase SQL Editor (ohne Yarn, empfohlen wenn kein Terminal)
+
+1. Datei `scripts/supabase/supabase-sql-editor-setup.sql` aus dem Repo öffnen
+2. Supabase → **SQL Editor** → New query → Inhalt einfügen → **Run**
+3. **Table Editor** prüfen
+
+Details: [SUPABASE-SQL-EDITOR.md](./SUPABASE-SQL-EDITOR.md)
+
+### Option B — Terminal (`yarn db:supabase-deploy`)
 
 ```bash
 # 1. Env anlegen
