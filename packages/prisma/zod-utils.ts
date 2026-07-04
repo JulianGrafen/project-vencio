@@ -398,6 +398,13 @@ export const userMetadata = z
         revertTime: z.string().optional(),
       })
       .optional(),
+    dental: z
+      .object({
+        practiceName: z.string().optional(),
+        practiceAddress: z.string().optional(),
+        emergencyPhone: z.string().optional(),
+      })
+      .optional(),
   })
   .nullable();
 

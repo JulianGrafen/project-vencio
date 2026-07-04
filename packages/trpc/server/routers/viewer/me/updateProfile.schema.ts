@@ -6,11 +6,23 @@ import { z } from "zod";
 export type TUpdateUserMetadataAllowedKeys = {
   sessionTimeout?: number;
   defaultBookerLayouts?: z.infer<typeof bookerLayouts>;
+  dental?: {
+    practiceName?: string;
+    practiceAddress?: string;
+    emergencyPhone?: string;
+  };
 };
 
 export const updateUserMetadataAllowedKeys: z.ZodType<TUpdateUserMetadataAllowedKeys> = z.object({
   sessionTimeout: z.number().optional(), // Minutes
   defaultBookerLayouts: bookerLayouts.optional(),
+  dental: z
+    .object({
+      practiceName: z.string().optional(),
+      practiceAddress: z.string().optional(),
+      emergencyPhone: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type TUpdateProfileInputSchemaInput = {

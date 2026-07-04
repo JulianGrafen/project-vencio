@@ -24,11 +24,16 @@ const LEGACY_ONBOARDING_EVENT_TYPE_KEYS = [
  * legacy Cal.com meeting templates otherwise.
  */
 export function getOnboardingEventTypeCreates(
-  translate: (key: string) => string
+  translate: (key: string) => string,
+  options?: { practiceAddress?: string }
 ): OnboardingEventTypeCreateInput[] {
   if (isDentalClientComplianceMode()) {
     return DENTAL_DEFAULT_EVENT_TYPES.map((definition) =>
-      buildDentalEventTypeCreatePayload(definition, translate(definition.titleKey))
+      buildDentalEventTypeCreatePayload(
+        definition,
+        translate(definition.titleKey),
+        options?.practiceAddress
+      )
     );
   }
 

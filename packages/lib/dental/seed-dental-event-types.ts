@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 
+import { buildDentalInPersonLocation } from "./booking-location-policy";
 import {
   buildDentalEventTypeCreatePayload,
   DENTAL_DEFAULT_EVENT_TYPES,
@@ -20,13 +21,41 @@ export function getDentalEventTypeTitle(titleKey: string, locale = "de"): string
 }
 
 /**
+ * Sets all user-owned event types to in-practice location with the clinic address.
+ */
+export async function syncDentalEventTypeLocationsForUser(
+  prisma: PrismaClient,
+  userId: number,
+  practiceAddress: string
+): Promise<number> {
+  const location = buildDentalInPersonLocation(practiceAddress);
+  const eventTypes = await prisma.eventType.findMany({
+    where: { userId },
+    select: { id: true },
+  });
+
+  if (eventTypes.length === 0) {
+    return 0;
+  }
+
+  await prisma.eventType.updateMany({
+    where: { userId },
+    data: {
+      locations: [location],
+    },
+  });
+
+  return eventTypes.length;
+}
+
+/**
  * Seeds standard dental event types for a user when none exist.
  * Safe to call after onboarding — skips if user already has event types.
  */
 export async function seedDentalEventTypesForUser(
   prisma: PrismaClient,
   userId: number,
-  options?: { locale?: string }
+  options?: { locale?: string; practiceAddress?: string }
 ): Promise<number> {
   const existingCount = await prisma.eventType.count({
     where: { userId },
@@ -41,7 +70,7 @@ export async function seedDentalEventTypesForUser(
 
   for (const definition of DENTAL_DEFAULT_EVENT_TYPES) {
     const title = getDentalEventTypeTitle(definition.titleKey, locale);
-    const payload = buildDentalEventTypeCreatePayload(definition, title);
+    const payload = buildDentalEventTypeCreatePayload(definition, title, options?.practiceAddress);
 
     await prisma.eventType.create({
       data: {

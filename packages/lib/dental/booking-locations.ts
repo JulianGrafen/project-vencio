@@ -4,6 +4,7 @@ import {
 } from "@calcom/app-store/locations";
 
 import { isDentalComplianceMode } from "./compliance-config";
+import { applyDentalLocationPolicyToEventLocations } from "./booking-location-policy";
 
 const VIDEO_LOCATION_PREFIX = "integrations:";
 
@@ -33,21 +34,13 @@ export function isDentalPracticeLocationType(type: string): boolean {
 /**
  * Restricts bookable locations to in-practice options when dental compliance mode is on.
  */
-export function filterDentalBookingLocations(locations: LocationObject[]): LocationObject[] {
+export function filterDentalBookingLocations(
+  locations: LocationObject[],
+  practiceAddress?: string | null
+): LocationObject[] {
   if (!isDentalComplianceMode()) {
     return locations;
   }
 
-  const practiceLocations = locations.filter((location) => isDentalPracticeLocationType(location.type));
-
-  if (practiceLocations.length > 0) {
-    return practiceLocations;
-  }
-
-  return [
-    {
-      type: DefaultEventLocationTypeEnum.InPerson,
-      address: "",
-    },
-  ];
+  return applyDentalLocationPolicyToEventLocations(locations, practiceAddress);
 }

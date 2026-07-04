@@ -1,5 +1,10 @@
 import process from "node:process";
-import { sanitizeBookingTracking } from "@calcom/lib/dental/compliance-config";
+import { sanitizeBookingTracking, isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import {
+  isDentalVideoBookingLocation,
+  resolveDentalBookingLocation,
+  resolveDentalPracticeAddressForBooking,
+} from "@calcom/lib/dental/booking-location-policy";
 import { runWithDentalPracticeContextForEventType } from "@calcom/lib/dental/run-with-dental-context";
 import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
@@ -1182,6 +1187,11 @@ async function handler(
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
 
   const isManagedEventType = !!eventType.parentId;
+  const dentalPracticeAddress = resolveDentalPracticeAddressForBooking({
+    teamMetadata: eventType.team?.metadata,
+    userMetadata: organizerUser.metadata,
+    eventTypeLocations: eventType.locations,
+  });
 
   // If location passed is empty , use default location of event
   // If location of event is not set , use host default
@@ -1193,13 +1203,21 @@ async function handler(
     }
   }
 
+  if (isDentalComplianceMode() && isDentalVideoBookingLocation(locationBodyString)) {
+    locationBodyString = resolveDentalBookingLocation({
+      location: locationBodyString,
+      practiceAddress: dentalPracticeAddress,
+    });
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl = dentalPracticeAddress;
+  }
+
   // use host default
   if (locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     const defaultApp = organizerMetadata?.defaultConferencingApp;
 
-    if (defaultApp?.appSlug) {
+    if (defaultApp?.appSlug && !dentalPracticeAddress) {
       const app = getAppFromSlug(defaultApp.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
 
@@ -1211,6 +1229,12 @@ async function handler(
       } else if (isManagedEventType || isTeamEventType) {
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl = defaultApp?.appLink;
       }
+    } else if (isDentalComplianceMode() && dentalPracticeAddress) {
+      locationBodyString = resolveDentalBookingLocation({
+        location: locationBodyString,
+        practiceAddress: dentalPracticeAddress,
+      });
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl = dentalPracticeAddress;
     } else {
       locationBodyString = "integrations:daily";
     }

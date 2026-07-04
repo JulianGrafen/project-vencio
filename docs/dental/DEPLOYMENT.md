@@ -93,6 +93,8 @@ When `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true` (or `DENTAL_ENCRYPTION_ENABLED=tr
 
 `Zusätzliche Notizen` and `Weitere Gäste` are hidden (DSGVO Art. 9).
 
+During onboarding (**Settings → personal details**), the dentist must enter **Adresse der Praxis**. That address is used as the **„Wo“** location in booking confirmations — in-practice only, never Cal Video.
+
 ```bash
 NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true
 DENTAL_ENCRYPTION_ENABLED=true

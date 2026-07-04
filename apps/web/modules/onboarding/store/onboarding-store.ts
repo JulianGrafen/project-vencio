@@ -63,6 +63,7 @@ export interface PersonalDetails {
   timezone: string;
   bio: string;
   avatar: string | null;
+  practiceAddress: string;
 }
 
 export interface OnboardingState {
@@ -149,6 +150,7 @@ const initialState = {
     timezone: "",
     bio: "",
     avatar: null,
+    practiceAddress: "",
   },
 };
 

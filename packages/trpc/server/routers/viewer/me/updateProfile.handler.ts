@@ -5,7 +5,10 @@ import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
-import { seedDentalEventTypesForUser } from "@calcom/lib/dental/seed-dental-event-types";
+import {
+  seedDentalEventTypesForUser,
+  syncDentalEventTypeLocationsForUser,
+} from "@calcom/lib/dental/seed-dental-event-types";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
@@ -191,7 +194,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
 
     if (isDentalComplianceMode()) {
-      await seedDentalEventTypesForUser(prisma, user.id, { locale });
+      const parsedMetadata = userMetadataSchema.parse(userMetadata);
+      const practiceAddress = parsedMetadata?.dental?.practiceAddress?.trim();
+      await seedDentalEventTypesForUser(prisma, user.id, { locale, practiceAddress });
+      if (practiceAddress) {
+        await syncDentalEventTypeLocationsForUser(prisma, user.id, practiceAddress);
+      }
     }
   }
 

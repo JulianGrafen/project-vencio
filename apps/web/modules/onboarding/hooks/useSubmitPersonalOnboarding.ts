@@ -7,6 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { setShowWelcomeToCalcomModalFlag } from "@calcom/web/modules/shell/hooks/useWelcomeToCalcomModal";
 
+import { useOnboardingStore } from "../store/onboarding-store";
+
 const ONBOARDING_REDIRECT_KEY = "onBoardingRedirect";
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
 
@@ -14,6 +16,7 @@ export const useSubmitPersonalOnboarding = () => {
   const router = useRouter();
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const practiceAddress = useOnboardingStore((state) => state.personalDetails.practiceAddress);
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
@@ -23,7 +26,9 @@ export const useSubmitPersonalOnboarding = () => {
       try {
         // Create default event types if user has none
         if (eventTypes?.length === 0) {
-          const defaultEventTypes = getOnboardingEventTypeCreates((key) => t(key));
+          const defaultEventTypes = getOnboardingEventTypeCreates((key) => t(key), {
+            practiceAddress: practiceAddress?.trim() || undefined,
+          });
           await Promise.all(
             defaultEventTypes.map(async (event) => {
               return createEventType.mutateAsync({

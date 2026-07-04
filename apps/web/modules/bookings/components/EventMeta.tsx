@@ -164,6 +164,7 @@ export const EventMeta = ({
       ? resolveDentalPracticeInfo({
           teamName: event.team?.name,
           teamMetadata: event.team?.metadata,
+          userMetadata: event.profile?.metadata,
           profileName: event.profile?.name,
         })
       : null;

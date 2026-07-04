@@ -1,6 +1,7 @@
 "use client";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -45,6 +46,8 @@ export const PersonalSettingsView = ({
     }
   }, [personalDetails.avatar, user]);
 
+  const isDentalOnboarding = isDentalClientComplianceMode();
+
   const formSchema = z.object({
     name: z
       .string()
@@ -53,6 +56,9 @@ export const PersonalSettingsView = ({
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
     bio: z.string().optional(),
+    practiceAddress: isDentalOnboarding
+      ? z.string().trim().min(1, "Bitte geben Sie die Adresse Ihrer Praxis an.")
+      : z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -60,6 +66,7 @@ export const PersonalSettingsView = ({
     defaultValues: {
       name: personalDetails.name || userName || "",
       bio: personalDetails.bio || "",
+      practiceAddress: personalDetails.practiceAddress || "",
     },
   });
 
@@ -91,16 +98,25 @@ export const PersonalSettingsView = ({
   }
 
   const handleContinue = form.handleSubmit(async (data) => {
-    // Save to store
     setPersonalDetails({
       name: data.name,
       bio: data.bio || "",
+      practiceAddress: data.practiceAddress?.trim() || "",
     });
 
-    // Save to backend
     await mutation.mutateAsync({
       name: data.name,
       bio: data.bio || "",
+      ...(isDentalOnboarding && data.practiceAddress
+        ? {
+            metadata: {
+              dental: {
+                practiceAddress: data.practiceAddress.trim(),
+                practiceName: data.name.trim(),
+              },
+            },
+          }
+        : {}),
     });
 
     router.push("/onboarding/personal/calendar");
@@ -205,6 +221,25 @@ export const PersonalSettingsView = ({
                   <p className="text-error text-sm">{form.formState.errors.bio.message}</p>
                 )}
               </div>
+
+              {isDentalOnboarding ? (
+                <div className="flex w-full flex-col gap-1.5">
+                  <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
+                    Adresse der Praxis
+                  </Label>
+                  <TextArea
+                    {...form.register("practiceAddress")}
+                    className="min-h-[88px]"
+                    placeholder="Musterstraße 1, 12345 Musterstadt"
+                  />
+                  <p className="text-subtle text-xs">
+                    Wird als Ort („Wo“) in der Terminbestätigung angezeigt — Praxisbesuch, kein Video-Call.
+                  </p>
+                  {form.formState.errors.practiceAddress && (
+                    <p className="text-error text-sm">{form.formState.errors.practiceAddress.message}</p>
+                  )}
+                </div>
+              ) : null}
             </form>
           </FormProvider>
         </OnboardingCard>

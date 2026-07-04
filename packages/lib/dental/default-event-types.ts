@@ -1,6 +1,5 @@
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
-
 import type { DentalEventCategory } from "./event-type-categories";
+import { buildDentalInPersonLocation } from "./booking-location-policy";
 
 export type DentalDefaultEventTypeDefinition = {
   /** i18n key passed to t() */
@@ -10,11 +9,6 @@ export type DentalDefaultEventTypeDefinition = {
   dentalCategory: DentalEventCategory;
   hidden?: boolean;
 };
-
-export const DENTAL_IN_PERSON_LOCATION = {
-  type: DefaultEventLocationTypeEnum.InPerson,
-  address: "",
-} as const;
 
 /**
  * Default Behandlungsarten for new dental practices (replaces Cal.com meeting templates).
@@ -48,14 +42,15 @@ export const DENTAL_DEFAULT_EVENT_TYPES: DentalDefaultEventTypeDefinition[] = [
 
 export function buildDentalEventTypeCreatePayload(
   definition: DentalDefaultEventTypeDefinition,
-  title: string
+  title: string,
+  practiceAddress?: string
 ) {
   return {
     title,
     slug: definition.slug,
     length: definition.length,
     hidden: definition.hidden ?? false,
-    locations: [DENTAL_IN_PERSON_LOCATION],
+    locations: [buildDentalInPersonLocation(practiceAddress)],
     metadata: {
       dentalCategory: definition.dentalCategory,
       hideDurationSelectorInBookingPage: true,
