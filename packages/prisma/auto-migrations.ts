@@ -34,22 +34,26 @@ function isDatabaseUnreachable(output: string): boolean {
 }
 
 function printVercelMigrationHelp(): void {
-  console.error(
+  console.warn(
     [
       "",
-      "Vercel build: database migrations failed.",
+      "Vercel build: could not run database migrations (direct connection unreachable).",
+      "Skipping migrations so the build can continue — runtime uses DATABASE_URL (pooler).",
       "",
-      "If you already created tables via Supabase SQL Editor (scripts/supabase/supabase-sql-editor-setup.sql),",
-      "set SKIP_DB_MIGRATIONS=1 in Vercel → Environment Variables and redeploy.",
+      "If you created tables via Supabase SQL Editor, also set SKIP_DB_MIGRATIONS=1 to silence this.",
       "",
-      "Otherwise check:",
-      "- DATABASE_DIRECT_URL uses user postgres (not postgres.<project-ref>) on port 5432",
-      "- Password is URL-encoded if it contains special characters",
+      "To enable build-time migrations, fix DATABASE_DIRECT_URL:",
+      "- User must be postgres (not postgres.<project-ref>) on port 5432",
+      "- Password URL-encoded if it contains special characters",
       "- Append ?sslmode=require if missing",
       "- Supabase → Database → Network: allow connections from anywhere",
       "",
     ].join("\n")
   );
+}
+
+function shouldSkipUnreachableMigrationsOnVercel(output: string): boolean {
+  return process.env.VERCEL === "1" && isDatabaseUnreachable(output);
 }
 
 async function runPrismaCommand(command: string): Promise<{ stdout: string; stderr: string }> {
@@ -103,8 +107,9 @@ async function main(): Promise<void> {
   }
 
   if (isDatabaseUnreachable(statusOutput) && !hasPendingMigrations(statusOutput)) {
-    if (process.env.VERCEL === "1") {
+    if (shouldSkipUnreachableMigrationsOnVercel(statusOutput)) {
       printVercelMigrationHelp();
+      return;
     }
     throw new Error("Cannot reach database for prisma migrate status");
   }
@@ -124,8 +129,9 @@ async function main(): Promise<void> {
       return;
     }
 
-    if (process.env.VERCEL === "1") {
+    if (shouldSkipUnreachableMigrationsOnVercel(deployOutput)) {
       printVercelMigrationHelp();
+      return;
     }
 
     throw error;
