@@ -18,12 +18,21 @@ export const ZPvsOutboxJobPayload = z.object({
   pvsExternalId: z.string().optional(),
 });
 
+export const ZPvsSealedPayloadStub = z.object({
+  _sealed: z.literal(true),
+  bookingUid: z.string().min(1),
+  teamId: z.number().int().positive(),
+  payloadVersion: z.number().int().positive(),
+});
+
 export const ZPvsOutboxJobDto = z.object({
   id: z.string().min(1),
   teamId: z.number().int().positive(),
   bookingUid: z.string().min(1),
   operation: z.enum(["CREATE_APPOINTMENT", "UPDATE_APPOINTMENT", "CANCEL_APPOINTMENT"]),
-  payload: ZPvsOutboxJobPayload,
+  payload: z.union([ZPvsOutboxJobPayload, ZPvsSealedPayloadStub]),
+  encryptedPayload: z.string().optional(),
+  payloadVersion: z.number().int().positive().optional(),
   attempts: z.number().int().nonnegative(),
   createdAt: z.string().min(1),
 });

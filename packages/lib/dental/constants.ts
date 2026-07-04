@@ -1,7 +1,14 @@
 import { BookingStatus } from "@calcom/prisma/enums";
 
-/** PraxisTermin / dental UI brand accent (teal). */
-export const DENTAL_BRAND_TEAL = "#0d9488";
+/** PraxisTermin / teeth.al brand accent — Medical Trust palette primary. */
+export const DENTAL_BRAND_TEAL = "#0F4C81";
+
+/** Medical Trust palette tokens for teeth.al UI (Phase 2 theming). */
+export const MEDICAL_TRUST_COLORS = {
+  primary: "#0F4C81",
+  background: "#F8FAFC",
+  success: "#059669",
+} as const;
 
 export const DEFAULT_EVENT_DURATION_MINUTES = 30;
 

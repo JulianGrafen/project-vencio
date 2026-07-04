@@ -5,7 +5,10 @@ export type PvsOutboxJobDTO = {
   teamId: number;
   bookingUid: string;
   operation: "CREATE_APPOINTMENT" | "UPDATE_APPOINTMENT" | "CANCEL_APPOINTMENT";
-  payload: AppointmentSyncDTO;
+  payload: AppointmentSyncDTO | Record<string, unknown>;
+  /** Present when payload is a sealed stub — decrypt with practice private key on-premise. */
+  encryptedPayload?: string;
+  payloadVersion?: number;
   attempts: number;
   createdAt: string;
 };
