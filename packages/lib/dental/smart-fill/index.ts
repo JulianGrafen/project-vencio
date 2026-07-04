@@ -12,6 +12,7 @@ export * from "./smart-fill-invite-lifecycle";
 export * from "./smart-fill-invite-confirm";
 export * from "./smart-fill-action-messages";
 export * from "./smart-fill-patient.service";
+export * from "./sync-patient-last-visit";
 export * from "./smart-fill-invite-action.service";
 export * from "./smart-fill-invite-email";
 export * from "./email/smart-fill-invite-email-transport.interface";

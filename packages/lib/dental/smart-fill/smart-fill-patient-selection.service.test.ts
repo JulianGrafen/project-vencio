@@ -3,6 +3,30 @@ import { describe, expect, it, vi } from "vitest";
 import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
 
 describe("SmartFillPatientSelectionService", () => {
+  it("only selects patients on the waitlist", async () => {
+    const findMany = vi.fn(async () => [
+      {
+        id: "p2",
+        name: "Waitlist",
+        email: "b@test.de",
+        phoneNumber: "+492222",
+        waitlistEnabled: true,
+        lastVisitAt: new Date("2026-06-01"),
+        priorityScore: 0,
+      },
+    ]);
+
+    const prisma = { smartFillPatient: { findMany } };
+    const service = new SmartFillPatientSelectionService(prisma as never);
+    await service.selectCandidates({ teamId: 1, limit: 2 });
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ waitlistEnabled: true }),
+      })
+    );
+  });
+
   it("prioritizes waitlist patients over recall-only patients", async () => {
     const prisma = {
       smartFillPatient: {

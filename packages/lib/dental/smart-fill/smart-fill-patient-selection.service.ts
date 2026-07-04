@@ -36,6 +36,7 @@ export class SmartFillPatientSelectionService {
     const patients = await this.prisma.smartFillPatient.findMany({
       where: {
         teamId: params.teamId,
+        waitlistEnabled: true,
         ...(params.eventTypeId
           ? {
               OR: [{ preferredEventTypeId: null }, { preferredEventTypeId: params.eventTypeId }],

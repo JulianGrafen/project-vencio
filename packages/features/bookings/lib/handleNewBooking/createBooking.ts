@@ -1,8 +1,13 @@
 import { sanitizeBookingTracking, isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
 import {
-  applyTokenBookingSealToCreateInput,
+  prepareTokenBookingCreate,
+  persistTokenBookingPayload,
   resolvePracticeBookingPublicKey,
 } from "@calcom/lib/dental/token-booking";
+import {
+  shouldSyncPatientLastVisit,
+  syncSmartFillPatientLastVisitFromBooking,
+} from "@calcom/lib/dental/smart-fill/sync-patient-last-visit";
 import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -206,14 +211,18 @@ async function saveBooking(
   }
 
   let bookingCreateData = createBookingObj.data;
+  let tokenBookingPayloadRow: Awaited<ReturnType<typeof prepareTokenBookingCreate>>["tokenBookingPayload"] =
+    null;
 
   if (isDentalComplianceMode() && pvsSyncContext?.teamId) {
     const practicePublicKey = await resolvePracticeBookingPublicKey(pvsSyncContext.teamId);
-    bookingCreateData = applyTokenBookingSealToCreateInput(bookingCreateData, {
+    const prepared = prepareTokenBookingCreate(bookingCreateData, {
       teamId: pvsSyncContext.teamId,
       bookingUid: String(bookingCreateData.uid),
       practicePublicKey,
     });
+    bookingCreateData = prepared.bookingData;
+    tokenBookingPayloadRow = prepared.tokenBookingPayload;
   }
 
   return prisma.$transaction(async (tx) => {
@@ -225,6 +234,22 @@ async function saveBooking(
       ...createBookingObj,
       data: bookingCreateData,
     });
+
+    if (tokenBookingPayloadRow) {
+      await persistTokenBookingPayload(tx, booking.uid, tokenBookingPayloadRow);
+    }
+
+    if (
+      pvsSyncContext?.teamId &&
+      shouldSyncPatientLastVisit(booking.status) &&
+      pvsSyncContext.bookerEmail
+    ) {
+      await syncSmartFillPatientLastVisitFromBooking(tx, {
+        teamId: pvsSyncContext.teamId,
+        bookerEmail: pvsSyncContext.bookerEmail,
+        startTime: booking.startTime,
+      });
+    }
 
     if (pvsSyncContext?.teamId && shouldCountBookingForTrial(booking.status)) {
       await new PracticeTrialService(tx).recordAcceptedBooking(pvsSyncContext.teamId);

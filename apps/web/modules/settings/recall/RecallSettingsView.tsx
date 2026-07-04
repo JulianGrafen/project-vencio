@@ -65,7 +65,22 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
         <DentalCard padding="lg" className="space-y-4 lg:col-span-2">
           <DentalSectionHeader title="Einstellungen" description="Intervall, Kanäle und Aktivierung." />
           {settings ? (
-            <RecallSettingsForm teamId={teamId} settings={settings} isLoading={settingsLoading} />
+            <RecallSettingsForm
+              teamId={teamId}
+              settings={{
+                enabled: settings.enabled,
+                intervalMonths: settings.intervalMonths,
+                toleranceDays: settings.toleranceDays,
+                smsEnabled: settings.smsEnabled,
+                practiceName: settings.practiceName ?? "",
+                bookingSlug: settings.bookingSlug,
+                emailSubject: settings.emailSubject,
+                emailHtmlTemplate: settings.emailHtmlTemplate,
+                emailTextTemplate: settings.emailTextTemplate,
+                smsTemplate: settings.smsTemplate,
+              }}
+              isLoading={settingsLoading}
+            />
           ) : (
             <RecallSettingsForm
               teamId={teamId}
@@ -74,6 +89,12 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
                 intervalMonths: 6,
                 toleranceDays: 3,
                 smsEnabled: false,
+                practiceName: "",
+                bookingSlug: null,
+                emailSubject: "Zeit für Ihre Prophylaxe",
+                emailHtmlTemplate: "",
+                emailTextTemplate: null,
+                smsTemplate: null,
               }}
               isLoading={settingsLoading}
             />
