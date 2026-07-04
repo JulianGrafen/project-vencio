@@ -8,7 +8,7 @@ import { prisma } from "@calcom/prisma";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 /**
- * Entry point for Praxis settings — redirects to Smart-Fill with the user's first team.
+ * Entry point for Praxis settings — redirects to practice info with the user's first team.
  */
 const Page = async () => {
   if (!isDentalComplianceMode()) {
@@ -31,10 +31,10 @@ const Page = async () => {
   });
 
   if (!membership) {
-    redirect("/settings/smart-fill");
+    redirect("/settings/practice-info");
   }
 
-  redirect(`/settings/smart-fill?teamId=${membership.teamId}`);
+  redirect(`/settings/practice-info?teamId=${membership.teamId}`);
 };
 
 export default Page;

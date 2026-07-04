@@ -436,6 +436,9 @@ export type BookerStore = {
    */
   isSlotSelectionModalVisible: boolean;
   setIsSlotSelectionModalVisible: (visible: boolean) => void;
+  /** Dental: Versicherungsart selected before the calendar step. */
+  selectedInsuranceType: string | null;
+  setSelectedInsuranceType: (insuranceType: string | null) => void;
 };
 
 /**
@@ -709,6 +712,10 @@ export const createBookerStore = () =>
     isSlotSelectionModalVisible: false,
     setIsSlotSelectionModalVisible: (isSlotSelectionModalVisible: boolean) => {
       set({ isSlotSelectionModalVisible });
+    },
+    selectedInsuranceType: null,
+    setSelectedInsuranceType: (selectedInsuranceType: string | null) => {
+      set({ selectedInsuranceType });
     },
   }));
 

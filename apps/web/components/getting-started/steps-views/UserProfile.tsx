@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getOnboardingEventTypeCreates } from "@calcom/lib/dental/onboarding-event-types";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -56,9 +57,17 @@ const UserProfile = ({ user }: UserProfileProps) => {
     onSuccess: async () => {
       try {
         if (eventTypes?.length === 0) {
+          const defaultEventTypes = getOnboardingEventTypeCreates((key) => t(key));
           await Promise.all(
-            DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate(event);
+            defaultEventTypes.map(async (event) => {
+              return createEventType.mutateAsync({
+                title: event.title,
+                slug: event.slug,
+                length: event.length,
+                hidden: event.hidden,
+                locations: event.locations,
+                metadata: event.metadata,
+              });
             })
           );
         }
@@ -94,25 +103,6 @@ const UserProfile = ({ user }: UserProfileProps) => {
       avatarUrl: newAvatar,
     });
   }
-
-  const DEFAULT_EVENT_TYPES = [
-    {
-      title: t("15min_meeting"),
-      slug: "15min",
-      length: 15,
-    },
-    {
-      title: t("30min_meeting"),
-      slug: "30min",
-      length: 30,
-    },
-    {
-      title: t("secret_meeting"),
-      slug: "secret",
-      length: 15,
-      hidden: true,
-    },
-  ];
 
   return (
     <form onSubmit={onSubmit}>

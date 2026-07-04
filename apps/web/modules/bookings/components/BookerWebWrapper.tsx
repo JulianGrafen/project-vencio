@@ -92,6 +92,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
   });
 
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
+  const selectedInsuranceType = useBookerStoreContext((state) => state.selectedInsuranceType);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -125,6 +126,14 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     extraOptions: routerQuery,
     prefillFormParams,
   });
+
+  useEffect(() => {
+    if (!selectedInsuranceType) return;
+    bookerForm.bookingForm.setValue("responses.insuranceType", selectedInsuranceType, {
+      shouldValidate: true,
+    });
+  }, [selectedInsuranceType, bookerForm.bookingForm]);
+
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
     email: bookerForm.formEmail,

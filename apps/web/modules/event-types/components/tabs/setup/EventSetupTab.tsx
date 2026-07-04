@@ -28,6 +28,7 @@ import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
+import { DentalCategoryField } from "@calcom/web/modules/event-types/components/DentalCategoryField";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
@@ -363,6 +364,7 @@ export const EventSetupTab = (
             </div>
           )}
         </div>
+        <DentalCategoryField />
         <Tooltip
           content={t("locations_disabled_per_host_enabled")}
           side="top"

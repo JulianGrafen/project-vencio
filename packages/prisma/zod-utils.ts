@@ -184,6 +184,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     })
     .optional(),
   bookerLayouts: bookerLayouts.optional(),
+  dentalCategory: z.enum(["PROPHYLAXE", "SCHMERZ", "KONTROLLE", "SONSTIGES"]).optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
@@ -435,6 +436,15 @@ const baseTeamMetadataSchema = z.object({
     })
     .optional(),
   billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+  dental: z
+    .object({
+      practiceName: z.string().optional(),
+      practiceAddress: z.string().optional(),
+      emergencyPhone: z.string().optional(),
+      bookingPublicKeyPem: z.string().optional(),
+      bookingPublicKeyVersion: z.number().int().positive().optional(),
+    })
+    .optional(),
 });
 
 export const teamMetadataSchema = baseTeamMetadataSchema.partial().nullable();

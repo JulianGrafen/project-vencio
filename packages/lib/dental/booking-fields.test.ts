@@ -36,6 +36,9 @@ describe("booking-fields", () => {
     expect(result.some((f) => f.name === "insuranceType")).toBe(true);
     expect(result.some((f) => f.name === "dateOfBirth")).toBe(true);
     expect(result.some((f) => f.name === "isNewPatient")).toBe(true);
+
+    const insurance = result.find((f) => f.name === "insuranceType");
+    expect(insurance?.hidden).toBe(true);
   });
 
   it("passes through unchanged when compliance mode is off", () => {

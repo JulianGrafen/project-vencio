@@ -13,6 +13,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 import { getDentalBookerRootProps } from "@calcom/lib/dental/booker/dental-booker-theme";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { DentalEventTypeGrid } from "@calcom/web/modules/bookings/components/DentalEventTypeGrid";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/web/modules/event-types/components";
 import EmptyPage from "@calcom/web/modules/event-types/components/EmptyPage";
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
@@ -52,6 +54,7 @@ export function UserPage(props: PageProps) {
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
+  const showDentalEventGrid = isDentalClientComplianceMode() && !isEventListEmpty;
 
   return (
     <>
@@ -115,9 +118,17 @@ export function UserPage(props: PageProps) {
           </div>
 
           <div
-            className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
+            className={classNames("rounded-md ", !isEventListEmpty && !showDentalEventGrid && "border-subtle border")}
             data-testid="event-types">
-            {eventTypes.map((type) => (
+            {showDentalEventGrid ? (
+              <DentalEventTypeGrid
+                username={user.profile.username}
+                eventTypes={eventTypes}
+                query={query}
+                listItemStyles={eventTypeListItemEmbedStyles}
+              />
+            ) : (
+              eventTypes.map((type) => (
               <Link
                 key={type.id}
                 style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
@@ -146,7 +157,8 @@ export function UserPage(props: PageProps) {
                   <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                 </div>
               </Link>
-            ))}
+              ))
+            )}
           </div>
 
           {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}

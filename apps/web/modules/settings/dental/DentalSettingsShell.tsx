@@ -46,14 +46,14 @@ export function DentalSettingsShell({
                     className={classNames(
                       "shrink-0 rounded-lg px-3 py-2.5 text-sm transition",
                       isActive
-                        ? "bg-teal-700 font-medium text-white shadow-sm"
+                        ? "bg-[#0F4C81] font-medium text-white shadow-sm"
                         : "text-subtle hover:bg-subtle hover:text-emphasis"
                     )}>
                     <span className="block">{tab.label}</span>
                     <span
                       className={classNames(
                         "mt-0.5 block text-[11px] leading-tight",
-                        isActive ? "text-teal-100" : "text-subtle"
+                        isActive ? "text-blue-100" : "text-subtle"
                       )}>
                       {tab.description}
                     </span>

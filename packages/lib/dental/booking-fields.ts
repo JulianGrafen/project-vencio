@@ -68,5 +68,8 @@ export function applyDentalBookingFieldPolicy(bookingFields: BookingField[]): Bo
     }
   }
 
-  return fields;
+  // Collected in InsuranceTypeStep before the calendar — keep out of the booking form.
+  return fields.map((field) =>
+    field.name === "insuranceType" ? { ...field, hidden: true, required: true } : field
+  );
 }
