@@ -3597,6 +3597,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/pvs-connector@workspace:packages/pvs-connector":
+  version: 0.0.0-use.local
+  resolution: "@calcom/pvs-connector@workspace:packages/pvs-connector"
+  dependencies:
+    "@calcom/pvs-integration": "workspace:*"
+    "@calcom/tsconfig": "workspace:*"
+    typescript: "npm:5.9.3"
+  bin:
+    pvs-connector: ./src/cli.ts
+  languageName: unknown
+  linkType: soft
+
 "@calcom/pvs-integration@workspace:*, @calcom/pvs-integration@workspace:packages/pvs-integration":
   version: 0.0.0-use.local
   resolution: "@calcom/pvs-integration@workspace:packages/pvs-integration"
