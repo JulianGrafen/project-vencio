@@ -58,7 +58,7 @@ export function SmartFillDashboardCard({ teamId }: SmartFillDashboardCardProps) 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
             <DentalStatTile label="Offene Slots" value={data.openSlots} />
-            <DentalStatTile label="SMS ausstehend" value={data.pendingInvites} highlight />
+            <DentalStatTile label="E-Mail ausstehend" value={data.pendingInvites} highlight />
           </div>
           <Button href={settingsHref} color="secondary">
             Patientenpool

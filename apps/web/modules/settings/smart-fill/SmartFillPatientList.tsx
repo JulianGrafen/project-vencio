@@ -55,7 +55,7 @@ export function SmartFillPatientList({ teamId, pool }: SmartFillPatientListProps
                   <p className="text-subtle text-xs">
                     {patient.lastVisitAt
                       ? `Letzter Besuch: ${formatDeDate(patient.lastVisitAt)}`
-                      : "Letzter Besuch: wird nach Smart-Fill-Termin gesetzt"}
+                      : "Letzter Besuch: wird nach Terminbuchung gesetzt"}
                   </p>
                 </div>
               </div>

@@ -4,6 +4,10 @@ import {
   persistTokenBookingPayload,
   resolvePracticeBookingPublicKey,
 } from "@calcom/lib/dental/token-booking";
+import {
+  shouldSyncPatientLastVisit,
+  syncSmartFillPatientLastVisitFromBooking,
+} from "@calcom/lib/dental/smart-fill/sync-patient-last-visit";
 import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -203,6 +207,18 @@ async function saveBooking(
 
     if (tokenBookingPayloadRow) {
       await persistTokenBookingPayload(tx, booking.uid, tokenBookingPayloadRow);
+    }
+
+    if (
+      pvsSyncContext?.teamId &&
+      shouldSyncPatientLastVisit(booking.status) &&
+      pvsSyncContext.bookerEmail
+    ) {
+      await syncSmartFillPatientLastVisitFromBooking(tx, {
+        teamId: pvsSyncContext.teamId,
+        bookerEmail: pvsSyncContext.bookerEmail,
+        startTime: booking.startTime,
+      });
     }
 
     if (pvsSyncContext?.teamId && shouldCountBookingForTrial(booking.status)) {

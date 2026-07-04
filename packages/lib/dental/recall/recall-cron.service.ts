@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { RecallChannel, RecallHistoryStatus } from "@calcom/prisma/enums";
+import { RecallHistoryStatus } from "@calcom/prisma/enums";
 
 import { createDentalLogger } from "../resilience/dental-logger";
 import {
@@ -75,7 +75,6 @@ export class RecallCronService {
           const alreadySent = await this.historyService.hasActiveRecall({
             patientId: candidate.patientId,
             recallDueDate: candidate.recallDueDate,
-            channel: RecallChannel.EMAIL,
           });
 
           if (alreadySent) {
