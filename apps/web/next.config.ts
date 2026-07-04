@@ -1,5 +1,6 @@
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
@@ -60,8 +61,25 @@ if (isDentalComplianceBuild) {
   env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = "true";
 }
 
-if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
-if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+function ensureRequiredSecret(name: string, byteLength = 32): void {
+  if (process.env[name]) {
+    return;
+  }
+
+  if (process.env.VERCEL) {
+    env[name] = randomBytes(byteLength).toString("base64");
+    console.warn(
+      `⚠️  ${name} is not set. Using an ephemeral build placeholder on Vercel. ` +
+        "Configure it in Project Settings → Environment Variables before production use."
+    );
+    return;
+  }
+
+  throw new Error(`Please set ${name}`);
+}
+
+ensureRequiredSecret("NEXTAUTH_SECRET");
+ensureRequiredSecret("CALENDSO_ENCRYPTION_KEY", 24);
 
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
