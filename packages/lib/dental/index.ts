@@ -14,4 +14,7 @@ export * from "./infer-tenant-operation";
 export * from "./two-factor-policy";
 export * from "./assert-two-factor-enabled";
 export * from "./pvs/enqueue-pvs-sync";
+export * from "./pvs/pvs-outbox.constants";
+export * from "./pvs/pvs-connector-auth";
+export * from "./pvs/pvs-outbox.service";
 export * from "./smart-fill";

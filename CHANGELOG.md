@@ -19,6 +19,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Mandatory 2FA** for practice OWNER/ADMIN in compliance mode (`DENTAL_REQUIRE_2FA`).
 - PVS integration target structure documented (implementation pending in `packages/pvs-integration`).
 
+### Added
+
+- **PVS connector API** — `POST /api/pvs/outbox/poll` and `POST /api/pvs/outbox/ack` for local connector polling (Bearer `PVS_CONNECTOR_API_KEY`).
+- **Twilio webhook validation** — Smart-Fill SMS inbound route verifies `X-Twilio-Signature` on form posts.
+- **CI** — `dental-critical-path.yml` runs dental + PVS unit tests on relevant PRs.
+
 ### Changed
 
 - **Clean Code refactor** — Smart-Fill modules split into focused services (invite lifecycle, booking finalizer, patient repository, SMS templates); deduplicated dental tRPC middleware.

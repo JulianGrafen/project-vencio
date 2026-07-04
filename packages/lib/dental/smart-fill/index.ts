@@ -13,3 +13,4 @@ export * from "./smart-fill-patient.service";
 export * from "./sms/sms-service.interface";
 export * from "./sms/mock-sms-service";
 export * from "./sms/twilio-sms-service";
+export * from "./sms/validate-twilio-webhook";
