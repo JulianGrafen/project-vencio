@@ -1,4 +1,9 @@
-export type DentalSettingsTabId = "smart-fill" | "recall" | "pvs-connector" | "treatment-resources";
+export type DentalSettingsTabId =
+  | "smart-fill"
+  | "recall"
+  | "pvs-connector"
+  | "treatment-resources"
+  | "medical-categories";
 
 export type DentalSettingsTab = {
   id: DentalSettingsTabId;
@@ -25,6 +30,12 @@ export const DENTAL_SETTINGS_TABS: DentalSettingsTab[] = [
     label: "Ressourcen",
     description: "Stühle & Räume",
     href: (teamId) => `/settings/treatment-resources?teamId=${teamId}`,
+  },
+  {
+    id: "medical-categories",
+    label: "Kategorien",
+    description: "Behandlungsarten & Versicherung",
+    href: (teamId) => `/settings/medical-categories?teamId=${teamId}`,
   },
   {
     id: "pvs-connector",
