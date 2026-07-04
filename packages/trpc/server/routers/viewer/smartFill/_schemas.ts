@@ -12,7 +12,7 @@ export const ZSmartFillPatientCreateInput = z.object({
   teamId: z.number(),
   name: z.string().min(1),
   email: z.string().email(),
-  phoneNumber: z.string().min(5),
+  phoneNumber: z.string().max(32).optional().default(""),
   waitlistEnabled: z.boolean().default(false),
   recallEnabled: z.boolean().default(true),
   priorityScore: z.number().int().min(0).max(1000).default(0),

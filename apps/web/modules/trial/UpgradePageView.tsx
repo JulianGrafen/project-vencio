@@ -12,7 +12,7 @@ const FEATURES = [
   },
   {
     title: "Smart-Fill AI",
-    description: "Leere Slots per SMS an Wartelisten-Patienten — mehr Auslastung.",
+    description: "Leere Slots per E-Mail an Wartelisten-Patienten — mehr Auslastung.",
     icon: "zap" as const,
   },
   {

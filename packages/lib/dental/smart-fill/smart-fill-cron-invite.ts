@@ -8,12 +8,12 @@ import {
   rollbackSmartFillInvite,
 } from "./smart-fill-invite-lifecycle";
 import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
-import { buildSmartFillInviteSmsBody } from "./smart-fill-sms-message";
-import type { SmsService } from "./sms/sms-service.interface";
+import { buildSmartFillInviteEmail } from "./smart-fill-invite-email";
+import type { SmartFillInviteEmailTransport } from "./email/smart-fill-invite-email-transport.interface";
 
 const inviteLog = createDentalLogger({ module: "smart-fill-cron-invite" });
 
-/** Only invite once per task — prevents duplicate SMS on every cron run. */
+/** Only invite once per task — prevents duplicate emails on every cron run. */
 export async function shouldSendSmartFillInvite(
   prisma: PrismaClient,
   taskId: string,
@@ -33,8 +33,9 @@ export async function shouldSendSmartFillInvite(
 export async function invitePatientsForSmartFillTask(
   prisma: PrismaClient,
   deps: {
-    sms: SmsService;
+    email: SmartFillInviteEmailTransport;
     patientSelection: SmartFillPatientSelectionService;
+    practiceName?: string | null;
   },
   taskId: string,
   host: SmartFillCronHost
@@ -49,6 +50,15 @@ export async function invitePatientsForSmartFillTask(
 
   const patient = patients[0];
 
+  if (!patient.email?.trim()) {
+    inviteLog.warn("Smart-Fill invite skipped — patient has no email", {
+      taskId,
+      teamId: host.teamId,
+      patientId: patient.id,
+    });
+    return 0;
+  }
+
   const lockedInvite = await prisma.$transaction((tx) =>
     lockSmartFillTaskForInvite(tx, {
       taskId,
@@ -61,29 +71,27 @@ export async function invitePatientsForSmartFillTask(
     return 0;
   }
 
-  const body = buildSmartFillInviteSmsBody({
+  const emailPayload = buildSmartFillInviteEmail({
     patientName: patient.name,
+    patientEmail: patient.email,
     slotStart: lockedInvite.task.startTime,
     timeZone: host.timeZone,
     treatmentTitle: host.eventTypeTitle,
+    practiceName: deps.practiceName,
+    confirmToken: lockedInvite.confirmToken,
   });
 
   try {
-    const smsResult = await deps.sms.send({
-      to: patient.phoneNumber,
-      body,
-      teamId: host.teamId,
-      metadata: { taskId, patientId: patient.id },
-    });
+    const emailResult = await deps.email.send(emailPayload);
 
     await prisma.smartFillInvite.update({
       where: { id: lockedInvite.inviteId },
-      data: { messageSid: smsResult.messageSid },
+      data: { messageSid: emailResult.messageId },
     });
 
     return 1;
   } catch (error) {
-    inviteLog.warn("Smart-Fill SMS invite failed — rolling back", {
+    inviteLog.warn("Smart-Fill email invite failed — rolling back", {
       taskId,
       teamId: host.teamId,
       patientId: patient.id,

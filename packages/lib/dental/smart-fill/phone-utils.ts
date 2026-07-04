@@ -12,3 +12,12 @@ export function normalizePhoneNumber(phone: string): string {
   }
   return trimmed;
 }
+
+/** Placeholder when phone is omitted — Smart-Fill uses email; keeps unique constraint satisfied. */
+export function resolveSmartFillPatientPhone(phone: string | undefined, email: string): string {
+  if (phone?.trim()) {
+    return normalizePhoneNumber(phone);
+  }
+  const slug = email.trim().toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12).padEnd(12, "0");
+  return `+499${slug}`;
+}

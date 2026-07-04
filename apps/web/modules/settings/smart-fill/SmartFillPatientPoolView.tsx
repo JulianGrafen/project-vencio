@@ -29,7 +29,7 @@ export function SmartFillPatientPoolView({ teamId }: SmartFillPatientPoolViewPro
       teamId={teamId}
       activeTab="smart-fill"
       title="Smart-Fill Patientenpool"
-      description="Warteliste und Recall-Kandidaten — automatische SMS bei freien Terminen."
+      description="Warteliste und Recall-Kandidaten — E-Mail bei freien Nachrückterminen."
       headerAction={
         hasPatients ? (
           <Button

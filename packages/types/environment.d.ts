@@ -83,6 +83,8 @@ declare namespace NodeJS {
     readonly AWS_KMS_KEY_ARN: string | undefined;
     readonly AWS_KMS_REGION: string | undefined;
     readonly SMART_FILL_ENABLED: string | undefined;
+    readonly SMART_FILL_EMAIL_PROVIDER: string | undefined;
+    readonly SMART_FILL_MOCK_EMAIL_LOG: string | undefined;
     readonly SMART_FILL_SMS_PROVIDER: string | undefined;
     readonly SMART_FILL_MOCK_SMS_LOG: string | undefined;
     readonly SMART_FILL_SMS_MOCK_WEBHOOK: string | undefined;

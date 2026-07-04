@@ -800,16 +800,18 @@ model SmartFillTask {
 
 /// SMS/WhatsApp invite sent to a patient for a specific SmartFillTask.
 model SmartFillInvite {
-  id         String                @id @default(cuid())
-  taskId     String
-  task       SmartFillTask         @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  patientId  String
-  patient    SmartFillPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  status     SmartFillInviteStatus @default(SENT)
-  messageSid String?
-  sentAt     DateTime              @default(now())
-  repliedAt  DateTime?
-  replyBody  String?
+  id           String                @id @default(cuid())
+  taskId       String
+  task         SmartFillTask         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  patientId    String
+  patient      SmartFillPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  status       SmartFillInviteStatus @default(SENT)
+  messageSid   String?
+  /// One-click confirm/decline token for email invites.
+  confirmToken String?               @unique
+  sentAt       DateTime              @default(now())
+  repliedAt    DateTime?
+  replyBody    String?
 
   @@index([taskId])
   @@index([messageSid])

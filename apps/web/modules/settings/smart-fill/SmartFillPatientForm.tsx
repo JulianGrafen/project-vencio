@@ -22,7 +22,7 @@ export function SmartFillPatientForm({ pool }: SmartFillPatientFormProps) {
         }}>
         <DentalSectionHeader
           title="Neuen Patienten anlegen"
-          description="E-Mail und Telefon für Smart-Fill-SMS und Recall-Erinnerungen."
+          description="E-Mail für Nachrücktermine (Smart-Fill) und Recall-Erinnerungen."
         />
 
         <div className={dentalDesign.formGrid}>
@@ -46,10 +46,9 @@ export function SmartFillPatientForm({ pool }: SmartFillPatientFormProps) {
             />
           </div>
           <div>
-            <Label htmlFor="sf-phone">Telefon (SMS)</Label>
+            <Label htmlFor="sf-phone">Telefon (optional, Recall-SMS)</Label>
             <TextField
               id="sf-phone"
-              required
               value={pool.phoneNumber}
               onChange={(e) => pool.setPhoneNumber(e.target.value)}
               placeholder="+49 170 …"
@@ -72,7 +71,7 @@ export function SmartFillPatientForm({ pool }: SmartFillPatientFormProps) {
         <div className="space-y-3 rounded-lg border border-subtle bg-default/80 p-4">
           <SettingsToggle
             title="Smart-Fill Warteliste"
-            description="SMS-Einladung bei kurzfristig freigewordenen Terminen"
+            description="E-Mail-Einladung bei kurzfristig freigewordenen Terminen (Nachrücktermine)"
             checked={pool.waitlistEnabled}
             onCheckedChange={pool.setWaitlistEnabled}
           />

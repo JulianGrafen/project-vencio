@@ -19,10 +19,7 @@ function setProductionDentalEnv(overrides: Record<string, string | undefined> = 
   process.env.DENTAL_ENCRYPTION_ENABLED = "true";
   process.env.DENTAL_KMS_MASTER_KEY = "test-master-key-base64==";
   process.env.CRON_API_KEY = "cron-secret";
-  process.env.SMART_FILL_SMS_PROVIDER = "twilio";
-  process.env.TWILIO_SID = "AC123";
-  process.env.TWILIO_TOKEN = "token";
-  process.env.TWILIO_PHONE_NUMBER = "+491234567890";
+  process.env.SMART_FILL_EMAIL_PROVIDER = "nodemailer";
   process.env.RECALL_EMAIL_PROVIDER = "nodemailer";
   process.env.EMAIL_FROM = "noreply@example.com";
   process.env.EMAIL_SERVER_HOST = "smtp.example.com";
@@ -75,11 +72,11 @@ describe("production-config", () => {
     expect(result.checks.some((item) => item.id === "kms-master-key" && !item.ok)).toBe(true);
   });
 
-  it("fails when Smart-Fill uses mock SMS in production", () => {
-    setProductionDentalEnv({ SMART_FILL_SMS_PROVIDER: "mock" });
+  it("fails when Smart-Fill uses mock email in production", () => {
+    setProductionDentalEnv({ SMART_FILL_EMAIL_PROVIDER: "mock" });
     const result = validateDentalProductionConfig();
     expect(result.ready).toBe(false);
-    expect(result.checks.some((item) => item.id === "smart-fill-sms-provider" && !item.ok)).toBe(true);
+    expect(result.checks.some((item) => item.id === "smart-fill-email-provider" && !item.ok)).toBe(true);
   });
 
   it("fails when Recall uses mock email in production", () => {
@@ -98,7 +95,7 @@ describe("production-config", () => {
     process.env.NODE_ENV = "production";
     process.env.CALCOM_ENV = "production";
     expect(() =>
-      assertProductionProvider("mock", "SMART_FILL_SMS_PROVIDER", ["twilio"])
+      assertProductionProvider("mock", "SMART_FILL_EMAIL_PROVIDER", ["nodemailer"])
     ).toThrow(/not allowed in production/);
   });
 });

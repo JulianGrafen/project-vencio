@@ -30,7 +30,7 @@ export function SmartFillPatientList({ teamId, pool }: SmartFillPatientListProps
         <EmptyScreen
           Icon="users"
           headline="Noch keine Patienten im Pool"
-          description="Legen Sie Patienten an, die automatisch per SMS eingeladen werden sollen."
+          description="Legen Sie Patienten an, die automatisch per E-Mail eingeladen werden sollen."
           buttonText="Ersten Patienten anlegen"
           buttonOnClick={() => pool.setShowAddForm(true)}
         />

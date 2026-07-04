@@ -10,8 +10,8 @@ import { scanSmartFillSlotsForHost } from "./smart-fill-cron-slot-scan";
 import { upsertSmartFillTask } from "./smart-fill-cron-task-upsert";
 import { SmartFillPatientSelectionService } from "./smart-fill-patient-selection.service";
 import { releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
-import type { SmsService } from "./sms/sms-service.interface";
-import { createSmsService } from "./sms/mock-sms-service";
+import type { SmartFillInviteEmailTransport } from "./email/smart-fill-invite-email-transport.interface";
+import { createSmartFillInviteEmailTransport } from "./email/mock-smart-fill-invite-email-transport";
 
 export type SmartFillCronResult = {
   scanRunId: string;
@@ -24,19 +24,19 @@ export type SmartFillCronResult = {
  * Orchestrates the Smart-Fill cron pipeline:
  * 1. Scan calendars for gaps within lookahead window
  * 2. Persist SmartFillTask rows
- * 3. Select patients and send SMS invites
+ * 3. Select patients and send email invites
  */
 export class SmartFillCronService {
   private readonly log = createDentalLogger({ module: "smart-fill-cron" });
   private readonly patientSelection: SmartFillPatientSelectionService;
-  private readonly sms: SmsService;
+  private readonly email: SmartFillInviteEmailTransport;
 
   constructor(
     private readonly prisma: PrismaClient,
-    smsService?: SmsService
+    emailTransport?: SmartFillInviteEmailTransport
   ) {
     this.patientSelection = new SmartFillPatientSelectionService(prisma);
-    this.sms = smsService ?? createSmsService();
+    this.email = emailTransport ?? createSmartFillInviteEmailTransport();
   }
 
   async run(): Promise<SmartFillCronResult> {
@@ -50,6 +50,10 @@ export class SmartFillCronService {
 
     for (const host of hosts) {
       try {
+        const team = await this.prisma.team.findUnique({
+          where: { id: host.teamId },
+          select: { name: true },
+        });
         const slots = await scanSmartFillSlotsForHost(this.prisma, host);
         for (const slot of slots) {
           const task = await upsertSmartFillTask(this.prisma, host, slot, scanRunId);
@@ -58,7 +62,11 @@ export class SmartFillCronService {
           if (await shouldSendSmartFillInvite(this.prisma, task.task.id, task.task.status)) {
             invitesSent += await invitePatientsForSmartFillTask(
               this.prisma,
-              { sms: this.sms, patientSelection: this.patientSelection },
+              {
+                email: this.email,
+                patientSelection: this.patientSelection,
+                practiceName: team?.name,
+              },
               task.task.id,
               host
             );

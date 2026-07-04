@@ -12,7 +12,7 @@ const log = createDentalLogger({ module: "cron-smart-fill" });
 
 /**
  * Vercel Cron — runs every 6 hours.
- * Scans calendars for Smart-Fill candidate slots and sends patient SMS invites.
+ * Scans calendars for Smart-Fill candidate slots and sends patient email invites.
  */
 async function postHandler(request: NextRequest) {
   if (!assertCronAuthorized(request)) {

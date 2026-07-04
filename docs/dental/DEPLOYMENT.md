@@ -13,10 +13,9 @@ Before pointing production traffic at a dental deployment:
 - [ ] `DENTAL_ENCRYPTION_ENABLED=true` and `DENTAL_KMS_MASTER_KEY` set (32-byte secret)
 - [ ] `CALCOM_ENV=production` set (self-hosted) or deploy to Vercel **Production** environment
 - [ ] `CRON_API_KEY` or `CRON_SECRET` configured (Vercel Cron uses Bearer auth)
-- [ ] Real SMS provider: `SMART_FILL_SMS_PROVIDER=twilio` + Twilio credentials
-- [ ] Real email provider: `RECALL_EMAIL_PROVIDER=nodemailer` + SMTP (`EMAIL_*` vars)
-- [ ] Per-team PVS connector credentials configured in practice settings
-- [ ] **Do not set** in production: `SMART_FILL_SMS_PROVIDER=mock`, `RECALL_EMAIL_PROVIDER=mock`, `SMART_FILL_SMS_MOCK_WEBHOOK=true`, `PVS_CONNECTOR_ALLOW_GLOBAL_KEY=true`
+- [ ] Smart-Fill E-Mail: `SMART_FILL_EMAIL_PROVIDER=nodemailer` + SMTP (`EMAIL_*`)
+- [ ] Recall E-Mail: `RECALL_EMAIL_PROVIDER=nodemailer` + SMTP
+- [ ] **Do not set** in production: `SMART_FILL_EMAIL_PROVIDER=mock`, `RECALL_EMAIL_PROVIDER=mock`, `PVS_CONNECTOR_ALLOW_GLOBAL_KEY=true`
 - [ ] Health probe returns 200: `GET /api/health/dental`
 
 Startup validation runs automatically via `apps/web/instrumentation.ts`. Invalid production config **fails fast** with a clear error message.
@@ -52,13 +51,7 @@ NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true
 CALCOM_ENV=production
 
 # Smart-Fill (auto-enabled when DENTAL_ENCRYPTION_ENABLED=true)
-SMART_FILL_SMS_PROVIDER=twilio
-TWILIO_SID=
-TWILIO_TOKEN=
-TWILIO_PHONE_NUMBER=
-
-# Recall (auto-enabled when DENTAL_ENCRYPTION_ENABLED=true)
-RECALL_EMAIL_PROVIDER=nodemailer
+SMART_FILL_EMAIL_PROVIDER=nodemailer
 EMAIL_FROM=
 EMAIL_SERVER_HOST=
 EMAIL_SERVER_PORT=
@@ -73,7 +66,7 @@ EMAIL_SERVER_PASSWORD=
 
 | Path | Schedule | Purpose |
 |------|----------|---------|
-| `/api/cron/smart-fill` | Every 6 hours | Scan gaps, send SMS invites |
+| `/api/cron/smart-fill` | Every 6 hours | Scan gaps, send email invites |
 | `/api/cron/recall` | Daily 07:00 UTC | Prophylaxis recall emails |
 
 Vercel sends `Authorization: Bearer $CRON_SECRET` when `CRON_SECRET` is set; otherwise configure `CRON_API_KEY`.
@@ -169,12 +162,9 @@ Structured dental logs use `createDentalLogger()` with module tags:
 
 ## 7. Security hardening (already implemented)
 
-- Twilio webhook signature validation (Smart-Fill SMS replies)
-- Cron: query-string `apiKey` rejected in production
-- PVS: global connector key disabled in production unless explicit escape hatch
-- 2FA required for practice team members in compliance mode
+- Smart-Fill invite emails with one-click confirm/decline links (`/api/smart-fill/confirm`, `/api/smart-fill/decline`)
 - Recall opt-out: HTML escaping, uniform error responses
-- Mock SMS/email providers blocked at runtime in production
+- Mock email providers blocked at runtime in production
 
 See `COMPLIANCE.md` for DSGVO mapping.
 

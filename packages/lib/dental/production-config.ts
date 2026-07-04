@@ -48,14 +48,6 @@ function hasSmtpConfigured(): boolean {
   );
 }
 
-function hasTwilioConfigured(): boolean {
-  return Boolean(
-    process.env.TWILIO_SID?.trim() &&
-      process.env.TWILIO_TOKEN?.trim() &&
-      process.env.TWILIO_PHONE_NUMBER?.trim()
-  );
-}
-
 function check(id: string, ok: boolean, message: string): DentalProductionCheck {
   return { id, ok, message };
 }
@@ -141,19 +133,19 @@ export function validateDentalProductionConfig(): DentalProductionReadiness {
   );
 
   if (isSmartFillEnabled()) {
-    const smsProvider = process.env.SMART_FILL_SMS_PROVIDER ?? "mock";
+    const emailProvider = process.env[SMART_FILL_ENV.EMAIL_PROVIDER] ?? "mock";
     checks.push(
       check(
-        "smart-fill-sms-provider",
-        smsProvider === "twilio",
-        "SMART_FILL_SMS_PROVIDER must be twilio when Smart-Fill is enabled in production"
+        "smart-fill-email-provider",
+        emailProvider === "nodemailer",
+        "SMART_FILL_EMAIL_PROVIDER must be nodemailer when Smart-Fill is enabled in production"
       )
     );
     checks.push(
       check(
-        "twilio-credentials",
-        hasTwilioConfigured(),
-        "TWILIO_SID, TWILIO_TOKEN, and TWILIO_PHONE_NUMBER are required for Smart-Fill SMS"
+        "smart-fill-smtp",
+        hasSmtpConfigured(),
+        "EMAIL_FROM, EMAIL_SERVER_HOST, and EMAIL_SERVER_PORT are required for Smart-Fill invite emails"
       )
     );
   }

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { SmartFillInviteStatus, SmartFillTaskStatus } from "@calcom/prisma/enums";
+import { randomUUID } from "node:crypto";
 
 import { SMART_FILL_DEFAULT_TREATMENT_TITLE } from "./constants";
 import { createSmartFillHoldBooking, releaseSmartFillHoldBooking } from "./smart-fill-slot-hold";
@@ -14,6 +15,7 @@ type InviteLockHost = {
 type InviteLockResult = {
   task: { id: string; startTime: Date; endTime: Date; metadata: unknown };
   inviteId: string;
+  confirmToken: string;
 };
 
 export async function lockSmartFillTaskForInvite(
@@ -55,10 +57,11 @@ export async function lockSmartFillTaskForInvite(
       taskId: task.id,
       patientId: params.patientId,
       status: SmartFillInviteStatus.SENT,
+      confirmToken: randomUUID(),
     },
   });
 
-  return { task, inviteId: invite.id };
+  return { task, inviteId: invite.id, confirmToken: invite.confirmToken! };
 }
 
 export async function rollbackSmartFillInvite(

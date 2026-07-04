@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma/generated/prisma/client";
 
 import { isDentalEncryptionEnabled } from "../feature-flags";
-import { normalizePhoneNumber } from "./phone-utils";
+import { normalizePhoneNumber, resolveSmartFillPatientPhone } from "./phone-utils";
 import {
   resolveSmartFillPatientPhoneLookupKey,
 } from "./smart-fill-patient-phone-index";
@@ -58,7 +58,7 @@ export class SmartFillPatientService {
   }
 
   create(input: CreatePatientInput): Promise<SmartFillPatientListItem> {
-    const phoneNumber = normalizePhoneNumber(input.phoneNumber);
+    const phoneNumber = resolveSmartFillPatientPhone(input.phoneNumber, input.email);
     const phoneBlindIndex = isDentalEncryptionEnabled()
       ? undefined
       : resolveSmartFillPatientPhoneLookupKey(phoneNumber);
