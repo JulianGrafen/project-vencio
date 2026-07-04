@@ -28,6 +28,18 @@ export default function DeploySetupPage() {
           ))}
         </ul>
 
+        <div className="border-destructive bg-destructive/10 mt-6 rounded-lg border p-4">
+          <p className="text-emphasis text-sm font-medium">Nicht NEXT_PUBLIC_SUPABASE_URL verwenden</p>
+          <p className="text-default mt-2 text-sm leading-6">
+            In Vercel müssen die Variablen exakt{" "}
+            <code className="text-xs">DATABASE_URL</code> und{" "}
+            <code className="text-xs">DATABASE_DIRECT_URL</code> heißen — mit einer{" "}
+            <code className="text-xs">postgresql://…</code> URI aus Supabase → Settings → Database.
+            <code className="text-xs"> NEXT_PUBLIC_SUPABASE_URL</code> ist nur{" "}
+            <code className="text-xs">https://….supabase.co</code> (API) und funktioniert nicht mit Prisma.
+          </p>
+        </div>
+
         <div className="bg-muted mt-8 rounded-lg p-4">
           <p className="text-emphasis text-sm font-medium">Supabase (empfohlen)</p>
           <ol className="text-default mt-3 list-decimal space-y-2 pl-5 text-sm leading-6">

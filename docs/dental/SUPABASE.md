@@ -28,6 +28,22 @@ Im Supabase Dashboard: **Project Settings → Database → Connection string**
 - `DATABASE_URL` muss `?pgbouncer=true` enthalten (Transaction-Modus)
 - `DATABASE_DIRECT_URL` darf **nicht** den Transaction-Pooler (6543 + pgbouncer) für Migrationen nutzen — Session (5432) oder Direct Host
 
+### Häufiger Fehler in Vercel
+
+| Falsch | Richtig |
+|--------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` als Datenbank | `DATABASE_URL` + `DATABASE_DIRECT_URL` |
+| `https://xxxx.supabase.co` | `postgresql://postgres.[ref]:[pass]@…pooler.supabase.com:6543/postgres?pgbouncer=true` |
+
+`NEXT_PUBLIC_SUPABASE_URL` ist nur die **HTTP-API-URL** für den Supabase JavaScript-Client — **nicht** für Prisma/PostgreSQL. Dieses Projekt nutzt Prisma direkt; du brauchst die **Connection string**-URIs aus dem Database-Tab.
+
+In Vercel **zwei separate Variablen** anlegen (Sensitive, Production + Preview):
+
+1. **Name:** `DATABASE_URL` → Transaction pooler URI  
+2. **Name:** `DATABASE_DIRECT_URL` → Session/Direct URI  
+
+`NEXT_PUBLIC_SUPABASE_URL` kannst du löschen, sofern du den Supabase JS-Client nicht verwendest.
+
 Beispiel (Platzhalter ersetzen):
 
 ```bash
