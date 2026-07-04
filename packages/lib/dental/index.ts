@@ -17,6 +17,7 @@ export * from "./infer-tenant-operation";
 export * from "./two-factor-policy";
 export * from "./assert-two-factor-enabled";
 export * from "./production-config";
+export * from "./brand";
 export * from "./trial";
 export * from "./pvs/feature-flags";
 export * from "./pvs/enqueue-booking-pvs-sync";
