@@ -33,6 +33,23 @@ Startup validation runs automatically via `apps/web/instrumentation.ts`. Invalid
 
 If the Vercel project was imported without a Root Directory, the repository root `vercel.json` sets `framework: nextjs` and `outputDirectory: apps/web/.next` so the build is packaged correctly. For new projects, prefer **Root Directory = `apps/web`** and use `apps/web/vercel.json` (Cal.com upstream convention).
 
+### Vercel Hobby — minimum env vars (fixes runtime 500)
+
+Until these are set, the app redirects to `/deploy` with a setup checklist:
+
+```bash
+DATABASE_URL=              # Neon, Supabase, or Vercel Postgres
+DATABASE_DIRECT_URL=     # same as DATABASE_URL without pooler
+NEXTAUTH_SECRET=           # openssl rand -base64 32
+CALENDSO_ENCRYPTION_KEY=   # openssl rand -base64 24
+NEXT_PUBLIC_WEBAPP_URL=https://your-project.vercel.app
+NEXTAUTH_URL=https://your-project.vercel.app/api/auth
+```
+
+Then run migrations: `DATABASE_URL=... yarn db-deploy`
+
+Health check: `GET /api/health/deployment`
+
 ### Required environment variables
 
 ```bash

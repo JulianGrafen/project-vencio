@@ -1,5 +1,6 @@
 import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { isDeploymentReady } from "@calcom/lib/deployment/readiness";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
@@ -10,6 +11,15 @@ import { getCsrfToken } from "next-auth/react";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, query } = context;
+
+  if (!isDeploymentReady()) {
+    return {
+      redirect: {
+        destination: "/deploy",
+        permanent: false,
+      },
+    };
+  }
 
   const session = await getServerSession({ req });
 

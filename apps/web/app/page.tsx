@@ -1,4 +1,5 @@
 import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { isDeploymentReady } from "@calcom/lib/deployment/readiness";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -8,6 +9,10 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const RedirectPage = async () => {
+  if (!isDeploymentReady()) {
+    redirect("/deploy");
+  }
+
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {

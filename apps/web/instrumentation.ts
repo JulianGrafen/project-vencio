@@ -1,10 +1,25 @@
 import * as Sentry from "@sentry/nextjs";
 import { type Instrumentation } from "next";
 
+import { bootstrapRuntimeEnv } from "./lib/bootstrap-runtime-env";
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    bootstrapRuntimeEnv();
+
     const { assertDentalProductionConfig } = await import("@calcom/lib/dental/production-config");
-    assertDentalProductionConfig();
+    try {
+      assertDentalProductionConfig();
+    } catch (error) {
+      const { isDeploymentReady } = await import("@calcom/lib/deployment/readiness");
+      if (isDeploymentReady()) {
+        throw error;
+      }
+      console.error(
+        "Dental production config is invalid, but core deployment env is also incomplete — skipping fail-fast until DATABASE_URL is set.",
+        error
+      );
+    }
   }
 
   if (process.env.NODE_ENV === "production") {
