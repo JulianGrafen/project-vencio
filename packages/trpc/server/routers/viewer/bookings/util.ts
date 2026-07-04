@@ -13,10 +13,10 @@ import { runWithDentalPracticeContext } from "@calcom/lib/dental/run-with-dental
 
 import { TRPCError } from "@trpc/server";
 
-import authedProcedure from "../../../procedures/authedProcedure";
+import dentalAuthedProcedure from "../../../procedures/dentalAuthedProcedure";
 import { commonBookingSchema } from "./types";
 
-export const bookingsProcedure = authedProcedure
+export const bookingsProcedure = dentalAuthedProcedure
   .input(commonBookingSchema)
   .use(async ({ ctx, input, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input

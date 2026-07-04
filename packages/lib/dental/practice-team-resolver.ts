@@ -5,6 +5,7 @@ export type PracticeTeamLookupInput = {
   eventTypeId?: unknown;
   bookingId?: unknown;
   uid?: unknown;
+  bookingUid?: unknown;
   filters?: {
     teamIds?: unknown[];
   };
@@ -149,6 +150,10 @@ export async function resolveTeamIdFromInput(
 
   if (typeof input.uid === "string") {
     return resolveTeamIdFromBookingUid(prisma as never, input.uid);
+  }
+
+  if (typeof input.bookingUid === "string") {
+    return resolveTeamIdFromBookingUid(prisma as never, input.bookingUid);
   }
 
   const filterTeamIds = input.filters?.teamIds;

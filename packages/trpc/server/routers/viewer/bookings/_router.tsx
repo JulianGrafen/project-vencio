@@ -30,7 +30,9 @@ export const bookingsRouter = router({
     });
   }),
 
-  requestReschedule: authedProcedure.input(ZRequestRescheduleInputSchema).mutation(async ({ input, ctx }) => {
+  requestReschedule: dentalAuthedProcedure
+    .input(ZRequestRescheduleInputSchema)
+    .mutation(async ({ input, ctx }) => {
     const { requestRescheduleHandler } = await import("./requestReschedule.handler");
 
     return requestRescheduleHandler({
@@ -50,7 +52,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  addGuests: authedProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
+  addGuests: dentalAuthedProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
     const { addGuestsHandler } = await import("./addGuests.handler");
 
     return addGuestsHandler({
@@ -69,7 +71,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  getBookingAttendees: authedProcedure
+  getBookingAttendees: dentalAuthedProcedure
     .input(ZGetBookingAttendeesInputSchema)
     .query(async ({ input, ctx }) => {
       const { getBookingAttendeesHandler } = await import("./getBookingAttendees.handler");
@@ -126,7 +128,7 @@ export const bookingsRouter = router({
         input,
       });
     }),
-  getBookingHistory: authedProcedure.input(ZGetBookingHistoryInputSchema).query(async ({ input, ctx }) => {
+  getBookingHistory: dentalAuthedProcedure.input(ZGetBookingHistoryInputSchema).query(async ({ input, ctx }) => {
     const { getBookingHistoryHandler } = await import("./getBookingHistory.handler");
 
     return getBookingHistoryHandler({

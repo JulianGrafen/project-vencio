@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import {
   PvsConnectorAuthError,
-  assertPvsConnectorAuthorized,
+  assertPvsConnectorAuthorizedForTeam,
 } from "@calcom/lib/dental/pvs/pvs-connector-auth";
 import { PvsOutboxService } from "@calcom/lib/dental/pvs/pvs-outbox.service";
 import { prisma } from "@calcom/prisma";
@@ -16,8 +16,10 @@ const ZPollBody = z.object({
 });
 
 async function postHandler(request: NextRequest) {
+  const body = ZPollBody.parse(await request.json());
+
   try {
-    assertPvsConnectorAuthorized(request.headers.get("authorization"));
+    await assertPvsConnectorAuthorizedForTeam(prisma, request.headers.get("authorization"), body.teamId);
   } catch (error) {
     if (error instanceof PvsConnectorAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
@@ -25,7 +27,6 @@ async function postHandler(request: NextRequest) {
     throw error;
   }
 
-  const body = ZPollBody.parse(await request.json());
   const service = new PvsOutboxService(prisma);
   const result = await service.pollPending(body.teamId, body.limit);
 

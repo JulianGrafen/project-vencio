@@ -1,10 +1,11 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
 import {
   PvsConnectorAuthError,
   assertPvsConnectorAuthorized,
-  resolvePvsConnectorApiKey,
+  assertPvsConnectorAuthorizedForTeam,
 } from "./pvs-connector-auth";
+import { hashPvsConnectorApiKey } from "./pvs-connector-key";
 
 describe("pvs-connector-auth", () => {
   const originalKey = process.env.PVS_CONNECTOR_API_KEY;
@@ -21,22 +22,58 @@ describe("pvs-connector-auth", () => {
     }
   });
 
-  it("resolves configured API key", () => {
-    expect(resolvePvsConnectorApiKey()).toBe("secret-connector-key");
-  });
-
-  it("accepts bearer token", () => {
+  it("accepts legacy global bearer token", () => {
     expect(() => assertPvsConnectorAuthorized("Bearer secret-connector-key")).not.toThrow();
   });
 
-  it("rejects invalid token", () => {
+  it("rejects invalid legacy token", () => {
     expect(() => assertPvsConnectorAuthorized("Bearer wrong")).toThrow(PvsConnectorAuthError);
   });
 
-  it("rejects when connector API is not configured", () => {
-    delete process.env.PVS_CONNECTOR_API_KEY;
-    expect(() => assertPvsConnectorAuthorized("Bearer secret-connector-key")).toThrow(
-      PvsConnectorAuthError
+  it("accepts per-team credential token", async () => {
+    const rawKey = "pvs_team_specific_key_1234567890";
+    const prisma = {
+      pvsConnectorCredential: {
+        findFirst: vi.fn().mockResolvedValue({ id: "cred-1" }),
+        update: vi.fn().mockResolvedValue({}),
+      },
+    };
+
+    await expect(
+      assertPvsConnectorAuthorizedForTeam(prisma as never, `Bearer ${rawKey}`, 42)
+    ).resolves.toBeUndefined();
+
+    expect(prisma.pvsConnectorCredential.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          teamId: 42,
+          hashedApiKey: hashPvsConnectorApiKey(rawKey),
+        }),
+      })
     );
+  });
+
+  it("falls back to global key when team credential missing", async () => {
+    const prisma = {
+      pvsConnectorCredential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+
+    await expect(
+      assertPvsConnectorAuthorizedForTeam(prisma as never, "Bearer secret-connector-key", 42)
+    ).resolves.toBeUndefined();
+  });
+
+  it("rejects when neither team nor global key matches", async () => {
+    const prisma = {
+      pvsConnectorCredential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+
+    await expect(
+      assertPvsConnectorAuthorizedForTeam(prisma as never, "Bearer wrong", 42)
+    ).rejects.toThrow(PvsConnectorAuthError);
   });
 });

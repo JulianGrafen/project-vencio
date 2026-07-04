@@ -24,10 +24,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **PVS connector API** — `POST /api/pvs/outbox/poll` and `POST /api/pvs/outbox/ack` for local connector polling (Bearer `PVS_CONNECTOR_API_KEY`).
 - **Twilio webhook validation** — Smart-Fill SMS inbound route verifies `X-Twilio-Signature` on form posts.
 - **CI** — `dental-critical-path.yml` runs dental + PVS unit tests on relevant PRs.
+- **Per-team PVS connector credentials** — `PvsConnectorCredential` model; tRPC `pvsConnector.*`; team-scoped Bearer auth on poll/ack.
+- **PVS adapter interface** — `PvsAdapter` + `MockPvsAdapter` with contract tests.
 
 ### Changed
 
 - **Clean Code refactor** — Smart-Fill modules split into focused services (invite lifecycle, booking finalizer, patient repository, SMS templates); deduplicated dental tRPC middleware.
+- **dentalAuthedProcedure** on additional booking routes (`requestReschedule`, `addGuests`, `getBookingAttendees`, `getBookingHistory`, `editLocation`).
+- `resolveTeamIdFromInput` accepts `bookingUid` for tenant encryption context.
 
 ### Security / Compliance
 

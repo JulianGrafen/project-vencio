@@ -4,6 +4,7 @@ import {
   resolveTeamIdFromBookingUid,
   resolveTeamIdFromEventTypeId,
   resolveTeamIdFromEventTypeRecord,
+  resolveTeamIdFromInput,
 } from "./practice-team-resolver";
 
 const mockPrisma = {
@@ -49,5 +50,15 @@ describe("practice-team-resolver", () => {
     }));
 
     await expect(resolveTeamIdFromBookingUid(mockPrisma as never, "booking-uid")).resolves.toBe(55);
+  });
+
+  it("resolves teamId from bookingUid input alias", async () => {
+    mockPrisma.booking.findUnique = vi.fn(async () => ({
+      eventType: { teamId: 88, parentId: null },
+    }));
+
+    await expect(
+      resolveTeamIdFromInput(mockPrisma as never, { bookingUid: "uid-alias" })
+    ).resolves.toBe(88);
   });
 });

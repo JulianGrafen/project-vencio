@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import {
   PvsConnectorAuthError,
-  assertPvsConnectorAuthorized,
+  assertPvsConnectorAuthorizedForTeam,
 } from "@calcom/lib/dental/pvs/pvs-connector-auth";
 import {
   PvsOutboxNotFoundError,
@@ -39,8 +39,10 @@ const ZAckBody = z
   });
 
 async function postHandler(request: NextRequest) {
+  const body = ZAckBody.parse(await request.json());
+
   try {
-    assertPvsConnectorAuthorized(request.headers.get("authorization"));
+    await assertPvsConnectorAuthorizedForTeam(prisma, request.headers.get("authorization"), body.teamId);
   } catch (error) {
     if (error instanceof PvsConnectorAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
@@ -48,7 +50,6 @@ async function postHandler(request: NextRequest) {
     throw error;
   }
 
-  const body = ZAckBody.parse(await request.json());
   const service = new PvsOutboxService(prisma);
 
   try {

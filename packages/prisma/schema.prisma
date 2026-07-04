@@ -648,11 +648,12 @@ model Team {
   seatChangeLogs    SeatChangeLog[]
   monthlyProrations MonthlyProration[]
 
-  practiceEncryptionKey PracticeEncryptionKey?
-  treatmentResources    TreatmentResource[]
-  smartFillPatients     SmartFillPatient[]
-  smartFillTasks        SmartFillTask[]
-  pvsSyncOutbox         PvsSyncOutbox[]
+  practiceEncryptionKey   PracticeEncryptionKey?
+  treatmentResources      TreatmentResource[]
+  smartFillPatients       SmartFillPatient[]
+  smartFillTasks          SmartFillTask[]
+  pvsSyncOutbox           PvsSyncOutbox[]
+  pvsConnectorCredentials PvsConnectorCredential[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -834,6 +835,22 @@ model PvsSyncOutbox {
 
   @@index([status, nextRetryAt])
   @@index([teamId, bookingUid])
+}
+
+/// Per-practice API key for the on-prem PVS connector (hashed at rest).
+model PvsConnectorCredential {
+  id           String    @id @default(cuid())
+  teamId       Int
+  team         Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  label        String    @default("default")
+  hashedApiKey String    @unique
+  keyPrefix    String
+  isActive     Boolean   @default(true)
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([teamId, isActive])
 }
 
 model CreditBalance {

@@ -25,6 +25,7 @@ import { oooRouter } from "./ooo/_router";
 import { slotsRouter } from "./slots/_router";
 import { treatmentResourcesRouter } from "./treatmentResources/_router";
 import { smartFillRouter } from "./smartFill/_router";
+import { pvsConnectorRouter } from "./pvsConnector/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
 import { userAdminRouter } from "./users/_router";
 import { webhookRouter } from "./webhook/_router";
@@ -59,4 +60,5 @@ export const viewerRouter = router({
   travelSchedules: travelSchedulesRouter,
   treatmentResources: treatmentResourcesRouter,
   smartFill: smartFillRouter,
+  pvsConnector: pvsConnectorRouter,
 });
