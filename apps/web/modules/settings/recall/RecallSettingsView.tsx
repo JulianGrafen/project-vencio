@@ -12,7 +12,14 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
 
+import { dentalDesign } from "~/settings/dental/dental-design";
 import { DentalSettingsShell } from "~/settings/dental/DentalSettingsShell";
+import {
+  DentalAvatar,
+  DentalCard,
+  DentalHelpText,
+  DentalSectionHeader,
+} from "~/settings/dental/dental-ui";
 
 type RecallSettingsViewProps = {
   teamId: number;
@@ -89,8 +96,8 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
       title="Recall"
       description="Automatische Prophylaxe-Erinnerungen — konfigurieren Sie Intervall, Kanäle und sehen Sie anstehende Erinnerungen.">
       <div className="grid gap-8 lg:grid-cols-5">
-        <section className="space-y-4 lg:col-span-2">
-          <h3 className="text-emphasis font-medium">Einstellungen</h3>
+        <DentalCard padding="lg" className="space-y-4 lg:col-span-2">
+          <DentalSectionHeader title="Einstellungen" description="Intervall, Kanäle und Aktivierung." />
           {settingsLoading || !settings ? (
             <div className="space-y-3">
               <SkeletonText className="h-10 w-full" />
@@ -98,7 +105,7 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
             </div>
           ) : (
             <form
-              className="space-y-4 rounded-lg border p-4"
+              className="space-y-5"
               onSubmit={(event) => {
                 event.preventDefault();
                 updateMutation.mutate({
@@ -128,7 +135,7 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
                   value={intervalValue}
                   onChange={(event) => setIntervalMonths(event.target.value)}
                 />
-                <p className="text-subtle mt-1 text-xs">Standard: 6 Monate nach letztem Besuch</p>
+                <DentalHelpText>Standard: 6 Monate nach letztem Besuch</DentalHelpText>
               </div>
 
               <div>
@@ -141,7 +148,7 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
                   value={toleranceValue}
                   onChange={(event) => setToleranceDays(event.target.value)}
                 />
-                <p className="text-subtle mt-1 text-xs">Erinnerung nur innerhalb dieses Fensters nach Fälligkeit</p>
+                <DentalHelpText>Erinnerung nur innerhalb dieses Fensters nach Fälligkeit</DentalHelpText>
               </div>
 
               <SettingsToggle
@@ -156,15 +163,15 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
               </Button>
             </form>
           )}
-        </section>
+        </DentalCard>
 
-        <section className="space-y-4 lg:col-span-3">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-emphasis font-medium">Anstehende Erinnerungen (7 Tage)</h3>
-            {!pendingLoading && pending?.enabled ? (
-              <Badge variant="gray">{pending.items.length} Patienten</Badge>
-            ) : null}
-          </div>
+        <div className="space-y-6 lg:col-span-3">
+          <DentalCard padding="lg" className="space-y-4">
+          <DentalSectionHeader
+            title="Anstehende Erinnerungen"
+            description="Nächste 7 Tage"
+            count={pending?.items?.length}
+          />
 
           {pendingLoading ? (
             <SkeletonText className="h-24 w-full" />
@@ -178,10 +185,12 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
               className="py-10"
             />
           ) : (
-            <ul className="divide-subtle divide-y rounded-lg border">
+            <ul className={dentalDesign.listContainer}>
               {pending.items.map((item) => (
                 <li key={item.patientId} className="flex items-center justify-between gap-3 p-4">
-                  <div>
+                  <div className="flex items-center gap-3">
+                    <DentalAvatar name={item.patientName} />
+                    <div>
                     <p className="text-emphasis font-medium">{item.patientName}</p>
                     <p className="text-subtle text-xs">
                       Fällig {formatDate(item.recallDueDate)}
@@ -189,6 +198,7 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
                         ? " · heute überfällig"
                         : ` · in ${item.daysUntilDue} Tag(en)`}
                     </p>
+                    </div>
                   </div>
                   <Badge variant={item.daysUntilDue <= 0 ? "red" : "orange"}>
                     {item.daysUntilDue <= 0 ? "Überfällig" : "Anstehend"}
@@ -197,15 +207,16 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
               ))}
             </ul>
           )}
+          </DentalCard>
 
-          <div>
-            <h3 className="text-emphasis mb-3 font-medium">Letzte Versände</h3>
+          <DentalCard padding="lg" className="space-y-4">
+            <DentalSectionHeader title="Letzte Versände" />
             {historyLoading ? (
               <SkeletonText className="h-20 w-full" />
             ) : !history?.length ? (
               <p className="text-subtle text-sm">Noch keine Recall-Nachrichten versendet.</p>
             ) : (
-              <ul className="divide-subtle divide-y rounded-lg border text-sm">
+              <ul className={dentalDesign.listContainer}>
                 {history.map((row) => (
                   <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
                     <div>
@@ -226,8 +237,8 @@ export function RecallSettingsView({ teamId }: RecallSettingsViewProps) {
                 ))}
               </ul>
             )}
-          </div>
-        </section>
+          </DentalCard>
+        </div>
       </div>
     </DentalSettingsShell>
   );

@@ -14,88 +14,28 @@ import {
   SMART_AUTOMATION,
   TRUST_BADGES,
 } from "./landing-content";
-
-function CheckIcon() {
-  return (
-    <svg className="mt-0.5 h-5 w-5 shrink-0 text-teal-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-      <path
-        fillRule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
-
-function SectionHeading({
-  eyebrow,
-  title,
-  description,
-}: {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-}) {
-  return (
-    <div className="mx-auto mb-12 max-w-3xl text-center">
-      {eyebrow ? (
-        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">{eyebrow}</p>
-      ) : null}
-      <h2 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">{title}</h2>
-      {description ? <p className="mt-4 text-lg text-slate-600">{description}</p> : null}
-    </div>
-  );
-}
+import { LandingNav } from "./LandingNav";
+import {
+  BrandLogo,
+  CheckIcon,
+  landingDesign,
+  PrimaryButton,
+  SecondaryButton,
+  SectionHeading,
+} from "./landing-primitives";
 
 export function DentalLandingPage() {
   const [yearlyBilling, setYearlyBilling] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Link href="/zahnarzt" className="flex items-center gap-2 font-semibold text-slate-900">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-700 text-sm font-bold text-white">
-              PT
-            </span>
-            <span>{PRODUCT_NAME}</span>
-          </Link>
-          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
-            <a href="#funktionen" className="hover:text-teal-700">
-              Funktionen
-            </a>
-            <a href="#automation" className="hover:text-teal-700">
-              Smart-Fill
-            </a>
-            <a href="#compliance" className="hover:text-teal-700">
-              Compliance
-            </a>
-            <a href="#preise" className="hover:text-teal-700">
-              Preise
-            </a>
-            <a href="#faq" className="hover:text-teal-700">
-              FAQ
-            </a>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link href="/auth/login" className="hidden text-sm font-medium text-slate-600 hover:text-teal-700 sm:inline">
-              Anmelden
-            </Link>
-            <Link
-              href="/auth/login"
-              className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800">
-              Kostenlos testen
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
+      <LandingNav />
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 via-white to-white">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.12),transparent_50%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
+        <div className={`relative ${landingDesign.container} py-16 md:py-24`}>
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
               <div className="mb-6 flex flex-wrap gap-2">
@@ -107,7 +47,7 @@ export function DentalLandingPage() {
                   </span>
                 ))}
               </div>
-              <h1 className="text-4xl font-bold leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-[3.25rem]">
+              <h1 className={landingDesign.h1}>
                 Terminsoftware für Zahnarztpraxen —{" "}
                 <span className="text-teal-700">10× effizienter als Telefon & Excel.</span>
               </h1>
@@ -124,21 +64,13 @@ export function DentalLandingPage() {
                 ))}
               </ul>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/auth/login"
-                  className="inline-flex items-center justify-center rounded-lg bg-teal-700 px-6 py-3 text-base font-semibold text-white shadow-md hover:bg-teal-800">
-                  Kostenlos testen
-                </Link>
-                <a
-                  href="#demo"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-800 hover:border-teal-300 hover:text-teal-800">
-                  Live-Demo ansehen
-                </a>
+                <PrimaryButton href="/auth/login">Kostenlos testen</PrimaryButton>
+                <SecondaryButton href="#demo">Live-Demo ansehen</SecondaryButton>
               </div>
             </div>
 
             {/* Mock UI */}
-            <div id="demo" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60">
+            <div id="demo" className={`${landingDesign.card} p-6 shadow-xl shadow-slate-200/50`}>
               <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-teal-700">
                 Interaktive Vorschau
               </p>
@@ -179,8 +111,8 @@ export function DentalLandingPage() {
       </section>
 
       {/* Features */}
-      <section id="funktionen" className="border-t border-slate-100 bg-slate-50/50 py-20">
-        <div className="mx-auto max-w-6xl px-4 md:px-6">
+      <section id="funktionen" className={landingDesign.sectionMuted}>
+        <div className={landingDesign.container}>
           <SectionHeading
             eyebrow="Funktionen"
             title="Wie steigert PraxisTermin die Effizienz im Vergleich zu Telefon & Excel?"
@@ -190,7 +122,7 @@ export function DentalLandingPage() {
             {FEATURES.map((feature) => (
               <article
                 key={feature.title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-teal-200 hover:shadow-md">
+                className={`${landingDesign.cardHover} p-6`}>
                 <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{feature.description}</p>
               </article>
@@ -425,10 +357,8 @@ export function DentalLandingPage() {
       <footer className="border-t border-slate-200 bg-slate-50 py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 md:flex-row md:px-6">
           <div className="flex items-center gap-2 font-semibold text-slate-900">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-teal-700 text-xs font-bold text-white">
-              PT
-            </span>
-            {PRODUCT_NAME}
+            <BrandLogo name={PRODUCT_NAME} compact />
+            <span className="sm:hidden">{PRODUCT_NAME}</span>
           </div>
           <p className="text-sm text-slate-500">
             Terminsoftware für Zahnarztpraxen · DSGVO-konform · Made in Germany

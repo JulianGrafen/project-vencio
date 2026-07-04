@@ -18,7 +18,14 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
 
+import { dentalDesign } from "~/settings/dental/dental-design";
 import { DentalSettingsShell } from "~/settings/dental/DentalSettingsShell";
+import {
+  DentalAvatar,
+  DentalCard,
+  DentalHelpText,
+  DentalSectionHeader,
+} from "~/settings/dental/dental-ui";
 
 type SmartFillPatientPoolViewProps = {
   teamId: number;
@@ -85,145 +92,139 @@ export function SmartFillPatientPoolView({ teamId }: SmartFillPatientPoolViewPro
       teamId={teamId}
       activeTab="smart-fill"
       title="Smart-Fill Patientenpool"
-      description="Verwalten Sie Warteliste und Recall-Kandidaten — Cal.com lädt automatisch per SMS ein, wenn Termine frei werden."
+      description="Warteliste und Recall-Kandidaten — automatische SMS bei freien Terminen."
       headerAction={
         hasPatients ? (
-          <Button onClick={() => setShowAddForm((value) => !value)}>
+          <Button color={showAddForm ? "secondary" : "primary"} onClick={() => setShowAddForm((v) => !v)}>
             {showAddForm ? "Abbrechen" : "Patient hinzufügen"}
           </Button>
         ) : undefined
       }>
       {(showAddForm || !hasPatients) && (
-        <form
-          className="space-y-4 rounded-lg border bg-subtle/30 p-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            createMutation.mutate({
-              teamId,
-              name,
-              email,
-              phoneNumber,
-              waitlistEnabled,
-              recallEnabled,
-              priorityScore: Number(priorityScore) || 0,
-            });
-          }}>
-          <div>
-            <h3 className="text-emphasis font-medium">Neuen Patienten anlegen</h3>
-            <p className="text-subtle text-sm">
-              E-Mail und Telefon werden für Smart-Fill-SMS und Recall-Erinnerungen benötigt.
-            </p>
-          </div>
+        <DentalCard variant="accent" padding="lg">
+          <form
+            className="space-y-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              createMutation.mutate({
+                teamId,
+                name,
+                email,
+                phoneNumber,
+                waitlistEnabled,
+                recallEnabled,
+                priorityScore: Number(priorityScore) || 0,
+              });
+            }}>
+            <DentalSectionHeader
+              title="Neuen Patienten anlegen"
+              description="E-Mail und Telefon für Smart-Fill-SMS und Recall-Erinnerungen."
+            />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="sf-name">Name</Label>
-              <TextField id="sf-name" required value={name} onChange={(e) => setName(e.target.value)} />
+            <div className={dentalDesign.formGrid}>
+              <div>
+                <Label htmlFor="sf-name">Name</Label>
+                <TextField id="sf-name" required value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="sf-email">E-Mail</Label>
+                <TextField
+                  id="sf-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sf-phone">Telefon (SMS)</Label>
+                <TextField
+                  id="sf-phone"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+49 170 …"
+                />
+              </div>
+              <div>
+                <Label htmlFor="sf-priority">Priorität</Label>
+                <TextField
+                  id="sf-priority"
+                  type="number"
+                  min={0}
+                  max={1000}
+                  value={priorityScore}
+                  onChange={(e) => setPriorityScore(e.target.value)}
+                />
+                <DentalHelpText>Höhere Werte = bevorzugt bei freien Terminen (0 = normal)</DentalHelpText>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="sf-email">E-Mail</Label>
-              <TextField
-                id="sf-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+
+            <div className="space-y-3 rounded-lg border border-subtle bg-default/80 p-4">
+              <SettingsToggle
+                title="Smart-Fill Warteliste"
+                description="SMS-Einladung bei kurzfristig freigewordenen Terminen"
+                checked={waitlistEnabled}
+                onCheckedChange={setWaitlistEnabled}
+              />
+              <SettingsToggle
+                title="Recall aktiv"
+                description="Prophylaxe-Erinnerung nach konfiguriertem Intervall"
+                checked={recallEnabled}
+                onCheckedChange={setRecallEnabled}
               />
             </div>
-            <div>
-              <Label htmlFor="sf-phone">Telefon (SMS)</Label>
-              <TextField
-                id="sf-phone"
-                required
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+49 170 …"
-              />
-            </div>
-            <div>
-              <Label htmlFor="sf-priority">Priorität</Label>
-              <TextField
-                id="sf-priority"
-                type="number"
-                min={0}
-                max={1000}
-                value={priorityScore}
-                onChange={(e) => setPriorityScore(e.target.value)}
-              />
-              <p className="text-subtle mt-1 text-xs">
-                Höhere Werte = bevorzugt bei freien Terminen (0 = normal)
-              </p>
-            </div>
-          </div>
 
-          <SettingsToggle
-            title="Smart-Fill Warteliste"
-            description="SMS-Einladung bei kurzfristig freigewordenen Terminen"
-            checked={waitlistEnabled}
-            onCheckedChange={setWaitlistEnabled}
-          />
-          <SettingsToggle
-            title="Recall aktiv"
-            description="Prophylaxe-Erinnerung nach konfiguriertem Intervall"
-            checked={recallEnabled}
-            onCheckedChange={setRecallEnabled}
-          />
-
-          <Button type="submit" loading={createMutation.isPending}>
-            Patient speichern
-          </Button>
-        </form>
+            <Button type="submit" loading={createMutation.isPending}>
+              Patient speichern
+            </Button>
+          </form>
+        </DentalCard>
       )}
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-emphasis font-medium">Patienten ({patients?.length ?? 0})</h3>
-        </div>
+      <section className="space-y-4">
+        <DentalSectionHeader title="Patienten" count={patients?.length ?? 0} />
 
         {isLoading ? (
-          <div className="space-y-2">
-            <SkeletonText className="h-16 w-full" />
-            <SkeletonText className="h-16 w-full" />
+          <div className="space-y-3">
+            <SkeletonText className="h-20 w-full" />
+            <SkeletonText className="h-20 w-full" />
           </div>
         ) : !hasPatients ? (
           <EmptyScreen
             Icon="users"
             headline="Noch keine Patienten im Pool"
-            description="Legen Sie Patienten an, die automatisch per SMS eingeladen werden sollen, wenn Termine frei werden."
+            description="Legen Sie Patienten an, die automatisch per SMS eingeladen werden sollen."
             buttonText="Ersten Patienten anlegen"
             buttonOnClick={() => setShowAddForm(true)}
           />
         ) : (
-          <ul className="divide-subtle divide-y rounded-lg border">
+          <ul className={dentalDesign.listContainer}>
             {patients?.map((patient) => (
-              <li
-                key={patient.id}
-                className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-emphasis font-medium">{patient.name}</p>
-                    {patient.waitlistEnabled ? <Badge variant="green">Warteliste</Badge> : null}
-                    {patient.recallEnabled ? <Badge variant="blue">Recall</Badge> : null}
-                    {patient.priorityScore > 0 ? (
-                      <Badge variant="gray">Prio {patient.priorityScore}</Badge>
-                    ) : null}
+              <li key={patient.id} className={dentalDesign.listRow}>
+                <div className="flex min-w-0 flex-1 gap-4">
+                  <DentalAvatar name={patient.name} />
+                  <div className="min-w-0 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-emphasis truncate font-semibold">{patient.name}</p>
+                      {patient.waitlistEnabled ? <Badge variant="green">Warteliste</Badge> : null}
+                      {patient.recallEnabled ? <Badge variant="blue">Recall</Badge> : null}
+                      {patient.priorityScore > 0 ? (
+                        <Badge variant="gray">Prio {patient.priorityScore}</Badge>
+                      ) : null}
+                    </div>
+                    <p className="text-subtle truncate text-sm">
+                      {patient.phoneNumber} · {patient.email}
+                    </p>
+                    <p className="text-subtle text-xs">
+                      {patient.lastVisitAt
+                        ? `Letzter Besuch: ${new Date(patient.lastVisitAt).toLocaleDateString("de-DE")}`
+                        : "Letzter Besuch: wird nach Smart-Fill-Termin gesetzt"}
+                    </p>
                   </div>
-                  <p className="text-subtle text-xs">
-                    {patient.phoneNumber} · {patient.email}
-                  </p>
-                  {patient.lastVisitAt ? (
-                    <p className="text-subtle text-xs">
-                      Letzter Besuch: {new Date(patient.lastVisitAt).toLocaleDateString("de-DE")} — Recall
-                      basiert darauf
-                    </p>
-                  ) : (
-                    <p className="text-subtle text-xs">
-                      Letzter Besuch: noch nicht erfasst (wird nach Smart-Fill-Termin gesetzt)
-                    </p>
-                  )}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
                   <Button
                     color="secondary"
                     size="sm"
