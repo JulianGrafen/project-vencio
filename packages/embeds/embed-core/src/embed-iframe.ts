@@ -35,7 +35,12 @@ import { useCompatSearchParams } from "./useCompatSearchParams";
 export { useBookerEmbedEvents, useSlotsViewOnSmallScreen } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
-type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
+type BookerState =
+  | "loading"
+  | "selecting_insurance"
+  | "selecting_date"
+  | "selecting_time"
+  | "booking";
 
 // Prerendering is a hidden process and we shouldn't really track any events from it unless absolutely necessary
 const eventsAllowedInPrerendering = [
