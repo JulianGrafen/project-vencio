@@ -658,6 +658,7 @@ model Team {
   pvsConnectorCredentials PvsConnectorCredential[]
   recallSettings          RecallSettings?
   recallHistory           RecallHistory[]
+  tokenBookingPayloads    TokenBookingPayload[]
 
   /// Dental beta trial — 30 days or 10 accepted bookings, then conversion wall.
   trialStartedAt     DateTime?
@@ -671,18 +672,39 @@ model Team {
 
 /// Per-practice data encryption key (DEK), wrapped by external KMS — never stored in plaintext.
 model PracticeEncryptionKey {
-  id           String   @id @default(cuid())
-  teamId       Int      @unique
-  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  keyVersion   Int      @default(1)
-  encryptedDek String
-  kmsKeyId     String?
-  algorithm    String   @default("AES-256-GCM")
-  rotatedAt    DateTime @default(now())
-  createdAt    DateTime @default(now())
-  isActive     Boolean  @default(true)
+  id                   String    @id @default(cuid())
+  teamId               Int       @unique
+  team                 Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  keyVersion           Int       @default(1)
+  encryptedDek         String
+  kmsKeyId             String?
+  algorithm            String    @default("AES-256-GCM")
+  rotatedAt            DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  isActive             Boolean   @default(true)
+  /// RSA public key for token-booking (hybrid encryption). Private key stays on-premise.
+  bookingPublicKeyPem  String?   @db.Text
+  publicKeyFingerprint String?
+  publicKeyRotatedAt   DateTime?
 
   @@index([teamId, isActive])
+}
+
+/// First-class storage for asymmetrically sealed booking payloads (Art. 9 DSGVO).
+model TokenBookingPayload {
+  id            String   @id @default(cuid())
+  bookingUid    String   @unique
+  booking       Booking  @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  teamId        Int
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  keyVersion    Int
+  algorithm     String
+  encryptedBlob String   @db.Text
+  referenceHash String
+  sealedAt      DateTime @default(now())
+
+  @@index([teamId, sealedAt])
+  @@index([referenceHash])
 }
 
 enum TreatmentResourceType {
@@ -1249,6 +1271,7 @@ model Booking {
   resources                  BookingResource[]
   /// P2 contract data (not Art. 9 health data) — deliberately unencrypted for aggregation.
   insuranceType              InsuranceType?
+  tokenBookingPayload        TokenBookingPayload?
 
   // @@partial_index([reassignById])
 

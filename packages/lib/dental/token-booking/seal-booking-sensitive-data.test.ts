@@ -49,6 +49,10 @@ describe("seal-booking-sensitive-data", () => {
     expect(result.attendees[0]?.name).toBe("Patient");
     expect(typeof result.metadata[TOKEN_BOOKING_METADATA_KEY]).toBe("string");
     expect(typeof result.metadata[TOKEN_BOOKING_REFERENCE_KEY]).toBe("string");
+    expect(result.isTokenBookingSealed).toBe(true);
+    expect(result.tokenBookingPayload?.encryptedBlob).toBe(
+      result.metadata[TOKEN_BOOKING_METADATA_KEY]
+    );
   });
 
   it("minimizes data when no public key is configured", () => {
@@ -86,6 +90,8 @@ describe("seal-booking-sensitive-data", () => {
     });
 
     expect(sealed.title).toBe(GENERIC_DENTAL_BOOKING_TITLE);
+    expect(sealed.teamId).toBe(7);
+    expect(sealed.isTokenBookingSealed).toBe(true);
     expect(sealed.responses).toEqual({
       email: "patient@example.com",
       insuranceType: "GESETZLICH",

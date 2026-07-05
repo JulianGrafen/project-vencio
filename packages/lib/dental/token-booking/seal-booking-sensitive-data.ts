@@ -38,6 +38,18 @@ export type SealedBookingStoragePatch = {
   customInputs: Prisma.JsonValue | null;
   metadata: Record<string, unknown>;
   attendees: Array<{ name: string; email: string; phoneNumber?: string | null }>;
+  teamId: number;
+  isTokenBookingSealed: boolean;
+  tokenBookingKeyVersion: number | null;
+  tokenBookingPayload: TokenBookingPayloadRow | null;
+};
+
+export type TokenBookingPayloadRow = {
+  teamId: number;
+  keyVersion: number;
+  algorithm: string;
+  encryptedBlob: string;
+  referenceHash: string;
 };
 
 function toJsonValue(
@@ -127,6 +139,16 @@ export function sealBookingSensitiveData(
       phoneNumber: attendee.phoneNumber,
       name: "Patient",
     })),
+    teamId: input.teamId,
+    isTokenBookingSealed: true,
+    tokenBookingKeyVersion: input.practicePublicKey.keyVersion,
+    tokenBookingPayload: {
+      teamId: input.teamId,
+      keyVersion: input.practicePublicKey.keyVersion,
+      algorithm: "RSA-OAEP-AES-256-GCM",
+      encryptedBlob: encryptedPayload,
+      referenceHash: bookingReferenceHash,
+    },
   };
 }
 
@@ -163,19 +185,28 @@ export function minimizeBookingSensitiveData(
       phoneNumber: attendee.phoneNumber,
       name: "Patient",
     })),
+    teamId: input.teamId,
+    isTokenBookingSealed: false,
+    tokenBookingKeyVersion: null,
+    tokenBookingPayload: null,
   };
 }
 
-export function applyTokenBookingSealToCreateInput(
+export type TokenBookingPrepareResult = {
+  bookingData: Prisma.BookingCreateInput;
+  tokenBookingPayload: TokenBookingPayloadRow | null;
+};
+
+export function prepareTokenBookingCreate(
   newBookingData: Prisma.BookingCreateInput,
   params: {
     teamId: number | null;
     bookingUid: string;
     practicePublicKey: PracticeBookingPublicKey | null;
   }
-): Prisma.BookingCreateInput {
+): TokenBookingPrepareResult {
   if (!params.teamId) {
-    return newBookingData;
+    return { bookingData: newBookingData, tokenBookingPayload: null };
   }
 
   const attendeesCreateMany = newBookingData.attendees?.createMany?.data;
@@ -215,7 +246,7 @@ export function applyTokenBookingSealToCreateInput(
       ? (newBookingData.metadata as Record<string, unknown>)
       : {};
 
-  return {
+  const bookingData: Prisma.BookingCreateInput = {
     ...newBookingData,
     title: patch.title,
     description: patch.description,
@@ -226,6 +257,9 @@ export function applyTokenBookingSealToCreateInput(
       ...existingMetadata,
       ...patch.metadata,
     } as Prisma.InputJsonValue,
+    teamId: patch.teamId,
+    isTokenBookingSealed: patch.isTokenBookingSealed,
+    tokenBookingKeyVersion: patch.tokenBookingKeyVersion ?? undefined,
     attendees: newBookingData.attendees
       ? {
           ...newBookingData.attendees,
@@ -244,4 +278,21 @@ export function applyTokenBookingSealToCreateInput(
         }
       : undefined,
   };
+
+  return {
+    bookingData,
+    tokenBookingPayload: patch.tokenBookingPayload,
+  };
+}
+
+/** @deprecated Use prepareTokenBookingCreate for dual-write to TokenBookingPayload table. */
+export function applyTokenBookingSealToCreateInput(
+  newBookingData: Prisma.BookingCreateInput,
+  params: {
+    teamId: number | null;
+    bookingUid: string;
+    practicePublicKey: PracticeBookingPublicKey | null;
+  }
+): Prisma.BookingCreateInput {
+  return prepareTokenBookingCreate(newBookingData, params).bookingData;
 }
