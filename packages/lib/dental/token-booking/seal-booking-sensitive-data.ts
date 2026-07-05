@@ -257,9 +257,6 @@ export function prepareTokenBookingCreate(
       ...existingMetadata,
       ...patch.metadata,
     } as Prisma.InputJsonValue,
-    teamId: patch.teamId,
-    isTokenBookingSealed: patch.isTokenBookingSealed,
-    tokenBookingKeyVersion: patch.tokenBookingKeyVersion ?? undefined,
     attendees: newBookingData.attendees
       ? {
           ...newBookingData.attendees,

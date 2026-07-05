@@ -43,6 +43,7 @@ const getEventTypesFromDBSelect = {
       id: true,
       name: true,
       parentId: true,
+      metadata: true,
       bookingLimits: true,
       includeManagedEventsInLimits: true,
       rrResetInterval: true,

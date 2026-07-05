@@ -301,9 +301,7 @@ export default class EventManager {
     // Fallback to cal video if no location is set
     if (!evt.location) {
       if (isDentalComplianceMode()) {
-        const practiceAddress = resolveDentalPracticeAddressForBooking({
-          userMetadata: evt.organizer?.metadata,
-        });
+        const practiceAddress = resolveDentalPracticeAddressForBooking({});
         evt.location = practiceAddress || resolveDentalBookingLocation({ location: null, practiceAddress });
       } else {
         // See if cal video is enabled & has keys

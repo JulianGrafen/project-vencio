@@ -548,7 +548,9 @@ export const getPublicEvent = async (
 
   const dentalPracticeAddress = resolveDentalPracticeAddressFromContext({
     teamMetadata: event.team?.metadata,
-    userMetadata: eventWithUserProfiles.users?.[0]?.metadata,
+    userMetadata:
+      eventWithUserProfiles.owner?.metadata ??
+      eventWithUserProfiles.subsetOfHosts?.[0]?.user?.metadata,
   });
   const eventLocations = applyDentalLocationPolicyToEventLocations(
     (eventWithUserProfiles.locations || []) as LocationObject[],

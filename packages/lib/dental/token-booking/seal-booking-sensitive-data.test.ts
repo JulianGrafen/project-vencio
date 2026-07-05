@@ -6,8 +6,7 @@ import {
   TOKEN_BOOKING_METADATA_KEY,
   TOKEN_BOOKING_REFERENCE_KEY,
 } from "./types";
-import { minimizeBookingSensitiveData, sealBookingSensitiveData } from "./seal-booking-sensitive-data";
-import { applyTokenBookingSealToCreateInput } from "./seal-booking-sensitive-data";
+import { minimizeBookingSensitiveData, sealBookingSensitiveData, prepareTokenBookingCreate } from "./seal-booking-sensitive-data";
 
 describe("seal-booking-sensitive-data", () => {
   const { publicKey } = generateKeyPairSync("rsa", {
@@ -83,15 +82,15 @@ describe("seal-booking-sensitive-data", () => {
       },
     };
 
-    const sealed = applyTokenBookingSealToCreateInput(createInput, {
+    const { bookingData: sealed, tokenBookingPayload } = prepareTokenBookingCreate(createInput, {
       teamId: 7,
       bookingUid: "booking-uid-1",
       practicePublicKey: { teamId: 7, publicKeyPem: publicKey, keyVersion: 1 },
     });
 
     expect(sealed.title).toBe(GENERIC_DENTAL_BOOKING_TITLE);
-    expect(sealed.teamId).toBe(7);
-    expect(sealed.isTokenBookingSealed).toBe(true);
+    expect(tokenBookingPayload?.teamId).toBe(7);
+    expect(tokenBookingPayload?.encryptedBlob).toBeTruthy();
     expect(sealed.responses).toEqual({
       email: "patient@example.com",
       insuranceType: "GESETZLICH",
