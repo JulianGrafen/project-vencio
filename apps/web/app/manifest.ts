@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { resolveDentalBrandName } from "@calcom/lib/dental/brand";
-import { MEDICAL_TRUST_COLORS } from "@calcom/lib/dental/constants";
+import { MEDICAL_TRUST_COLORS } from "@calcom/lib/dental/theme/medical-trust-colors";
 
 export default function manifest(): MetadataRoute.Manifest {
   const name = resolveDentalBrandName();
