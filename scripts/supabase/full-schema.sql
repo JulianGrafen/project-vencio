@@ -1,14 +1,4 @@
--- Supabase: full schema for PraxisTermin / Cal.diy (generated from schema.prisma)
--- Run in Supabase → SQL Editor → New query → Paste → Run
-
--- Supabase bootstrap: run once before Prisma migrations (idempotent).
--- Requires DATABASE_DIRECT_URL (port 5432, not transaction pooler).
-
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
--- Prisma migrations use gen_random_uuid() throughout the history.
--- pgcrypto is pre-enabled on most Supabase projects; this is a safety net.
-
+-- Generated from schema.prisma — do not edit manually
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
@@ -32,6 +22,12 @@ CREATE TYPE "public"."UserPermissionRole" AS ENUM ('USER', 'ADMIN');
 
 -- CreateEnum
 CREATE TYPE "public"."TreatmentResourceType" AS ENUM ('CHAIR', 'ROOM', 'XRAY');
+
+-- CreateEnum
+CREATE TYPE "public"."InsuranceType" AS ENUM ('GESETZLICH', 'PRIVAT', 'SELBSTZAHLER');
+
+-- CreateEnum
+CREATE TYPE "public"."MedicalCategory" AS ENUM ('PROPHYLAXE', 'SCHMERZBEHANDLUNG', 'KONTROLLE', 'FUELLUNG', 'IMPLANTOLOGIE', 'KIEFERORTHOPAEDIE', 'SONSTIGES');
 
 -- CreateEnum
 CREATE TYPE "public"."SmartFillTaskStatus" AS ENUM ('PENDING', 'INVITED', 'CONFIRMED', 'DECLINED', 'EXPIRED', 'FAILED', 'CANCELLED');
@@ -544,6 +540,20 @@ CREATE TABLE "public"."BookingResource" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."EventTypeMedicalProfile" (
+    "id" TEXT NOT NULL,
+    "eventTypeId" INTEGER NOT NULL,
+    "category" "public"."MedicalCategory" NOT NULL DEFAULT 'SONSTIGES',
+    "allowedInsuranceTypes" "public"."InsuranceType"[],
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "isEmergency" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EventTypeMedicalProfile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."SmartFillPatient" (
     "id" TEXT NOT NULL,
     "teamId" INTEGER NOT NULL,
@@ -632,6 +642,8 @@ CREATE TABLE "public"."RecallHistory" (
     "sentAt" TIMESTAMP(3),
     "error" TEXT,
     "optOutToken" TEXT,
+    "convertedBookingUid" TEXT,
+    "convertedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -860,6 +872,7 @@ CREATE TABLE "public"."Booking" (
     "cancelledBy" TEXT,
     "rescheduledBy" TEXT,
     "creationSource" "public"."CreationSource",
+    "insuranceType" "public"."InsuranceType",
 
     CONSTRAINT "Booking_pkey" PRIMARY KEY ("id")
 );
@@ -2218,6 +2231,12 @@ CREATE UNIQUE INDEX "TreatmentResource_teamId_slug_key" ON "public"."TreatmentRe
 CREATE INDEX "BookingResource_resourceId_idx" ON "public"."BookingResource"("resourceId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "EventTypeMedicalProfile_eventTypeId_key" ON "public"."EventTypeMedicalProfile"("eventTypeId");
+
+-- CreateIndex
+CREATE INDEX "EventTypeMedicalProfile_category_idx" ON "public"."EventTypeMedicalProfile"("category");
+
+-- CreateIndex
 CREATE INDEX "SmartFillPatient_teamId_waitlistEnabled_lastVisitAt_idx" ON "public"."SmartFillPatient"("teamId", "waitlistEnabled", "lastVisitAt");
 
 -- CreateIndex
@@ -2261,6 +2280,9 @@ CREATE INDEX "RecallHistory_teamId_status_recallDueDate_idx" ON "public"."Recall
 
 -- CreateIndex
 CREATE INDEX "RecallHistory_teamId_createdAt_idx" ON "public"."RecallHistory"("teamId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "RecallHistory_teamId_convertedAt_idx" ON "public"."RecallHistory"("teamId", "convertedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RecallHistory_patientId_recallDueDate_channel_key" ON "public"."RecallHistory"("patientId", "recallDueDate", "channel");
@@ -2402,6 +2424,9 @@ CREATE INDEX "Booking_userId_createdAt_idx" ON "public"."Booking"("userId", "cre
 
 -- CreateIndex
 CREATE INDEX "Booking_userPrimaryEmailBlindIndex_idx" ON "public"."Booking"("userPrimaryEmailBlindIndex");
+
+-- CreateIndex
+CREATE INDEX "Booking_eventTypeId_insuranceType_idx" ON "public"."Booking"("eventTypeId", "insuranceType");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tracking_bookingId_key" ON "public"."Tracking"("bookingId");
@@ -3107,6 +3132,9 @@ ALTER TABLE "public"."BookingResource" ADD CONSTRAINT "BookingResource_bookingId
 
 -- AddForeignKey
 ALTER TABLE "public"."BookingResource" ADD CONSTRAINT "BookingResource_resourceId_fkey" FOREIGN KEY ("resourceId") REFERENCES "public"."TreatmentResource"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."EventTypeMedicalProfile" ADD CONSTRAINT "EventTypeMedicalProfile_eventTypeId_fkey" FOREIGN KEY ("eventTypeId") REFERENCES "public"."EventType"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."SmartFillPatient" ADD CONSTRAINT "SmartFillPatient_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "public"."Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;

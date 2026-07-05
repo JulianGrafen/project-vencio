@@ -30,17 +30,25 @@ async function main(): Promise<void> {
     console.info("Prisma can't be initialized, skipping migrations");
     return;
   }
-  // throws an error if migration fails
+  const deployEnv = {
+    ...process.env,
+    // Migrations must use the direct connection — never the transaction pooler.
+    DATABASE_URL: process.env.DATABASE_DIRECT_URL,
+  };
+
   const { stdout, stderr } = await exec("yarn prisma migrate deploy", {
-    env: {
-      ...process.env,
-    },
+    env: deployEnv,
+    maxBuffer: 10 * 1024 * 1024,
   });
-  console.log(stdout);
-  console.error(stderr);
+
+  if (stdout) console.log(stdout);
+  if (stderr) console.error(stderr);
 }
 
-main().catch((e) => {
-  console.error(e.stdout || e.stderr || e.message);
+main().catch((e: NodeJS.ErrnoException & { stdout?: string; stderr?: string }) => {
+  console.error("Prisma migrate deploy failed:");
+  if (e.stdout) console.error(e.stdout);
+  if (e.stderr) console.error(e.stderr);
+  console.error(e.message ?? e);
   process.exit(1);
 });
