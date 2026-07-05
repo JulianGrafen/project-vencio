@@ -80,6 +80,10 @@ function ensureRequiredSecret(name: string, byteLength = 32): void {
 ensureRequiredSecret("NEXTAUTH_SECRET");
 ensureRequiredSecret("CALENDSO_ENCRYPTION_KEY", 24);
 
+if (process.env.DENTAL_ENCRYPTION_ENABLED === "true") {
+  ensureRequiredSecret("DENTAL_KMS_MASTER_KEY");
+}
+
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 

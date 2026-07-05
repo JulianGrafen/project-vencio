@@ -21,6 +21,10 @@ export function bootstrapRuntimeEnv(): void {
 
   ensureRuntimeSecret(env, "NEXTAUTH_SECRET");
   ensureRuntimeSecret(env, "CALENDSO_ENCRYPTION_KEY", 24);
+
+  if (process.env.DENTAL_ENCRYPTION_ENABLED === "true") {
+    ensureRuntimeSecret(env, "DENTAL_KMS_MASTER_KEY");
+  }
 }
 
 function ensureRuntimeSecret(

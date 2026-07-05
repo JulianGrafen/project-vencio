@@ -1,7 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-import { PracticeKeyResolver } from "@calcom/lib/encryption/key-resolver";
+import { createLazyPracticeKeyResolver, type PracticeKeyResolver } from "@calcom/lib/encryption/key-resolver";
 import { isDentalEncryptionEnabled } from "@calcom/lib/dental/feature-flags";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
@@ -51,7 +51,9 @@ if (!isNaN(loggerLevel)) {
 }
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
-const dentalKeyResolver = isDentalEncryptionEnabled() ? new PracticeKeyResolver(baseClient) : null;
+const dentalKeyResolver: PracticeKeyResolver | null = isDentalEncryptionEnabled()
+  ? createLazyPracticeKeyResolver(baseClient)
+  : null;
 
 function withStandardExtensions(client: PrismaClient) {
   let extended = client

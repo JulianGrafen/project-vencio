@@ -45,9 +45,17 @@ export function packGcmPayload(iv: Buffer, ciphertext: Buffer, authTag: Buffer):
 }
 
 export function assertValidMasterKey(masterKey: string): Buffer {
-  const key = Buffer.from(masterKey, "latin1");
-  if (key.length !== KEY_LENGTH) {
-    throw new Error(`Master key must be ${KEY_LENGTH} bytes`);
+  const rawKey = Buffer.from(masterKey, "latin1");
+  if (rawKey.length === KEY_LENGTH) {
+    return rawKey;
   }
-  return key;
+
+  const base64Key = Buffer.from(masterKey, "base64");
+  if (base64Key.length === KEY_LENGTH) {
+    return base64Key;
+  }
+
+  throw new Error(
+    `Master key must be ${KEY_LENGTH} bytes (32-character raw string or base64 from openssl rand -base64 32)`
+  );
 }

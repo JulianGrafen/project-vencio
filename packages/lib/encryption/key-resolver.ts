@@ -14,13 +14,21 @@ const resolverByPrisma = new WeakMap<PracticeKeyStore, PracticeKeyResolver>();
 
 export class PracticeKeyResolver {
   private readonly cache = new Map<number, CachedDek>();
-  private readonly kms: KeyManagementService;
+  private kmsInstance: KeyManagementService | undefined;
+  private readonly injectedKms: KeyManagementService | undefined;
 
   constructor(
     private readonly prisma: PracticeKeyStore,
     kms?: KeyManagementService
   ) {
-    this.kms = kms ?? createKeyManagementService();
+    this.injectedKms = kms;
+  }
+
+  private get kms(): KeyManagementService {
+    if (!this.kmsInstance) {
+      this.kmsInstance = this.injectedKms ?? createKeyManagementService();
+    }
+    return this.kmsInstance;
   }
 
   async resolve(teamId: number): Promise<PracticeKeyMaterial> {
@@ -78,6 +86,19 @@ export class PracticeKeyResolver {
   invalidate(teamId: number): void {
     this.cache.delete(teamId);
   }
+}
+
+/** Defers KMS initialization until the first encrypted read/write (safe during Next.js build). */
+export function createLazyPracticeKeyResolver(prisma: PracticeKeyStore): PracticeKeyResolver {
+  let resolver: PracticeKeyResolver | undefined;
+
+  return new Proxy({} as PracticeKeyResolver, {
+    get(_target, prop) {
+      resolver ??= new PracticeKeyResolver(prisma);
+      const value = resolver[prop as keyof PracticeKeyResolver];
+      return typeof value === "function" ? value.bind(resolver) : value;
+    },
+  });
 }
 
 /** Returns a cached resolver instance per Prisma client (shared DEK cache). */
