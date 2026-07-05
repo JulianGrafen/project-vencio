@@ -371,6 +371,7 @@ export const getPublicEvent = async (
               username: org,
             }
           : {}),
+        metadata: users[0].metadata,
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
@@ -643,6 +644,7 @@ export function getProfileFromEvent(event: GetProfileFromEventInput) {
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
     ),
+    metadata: profile.metadata,
   };
 }
 
