@@ -1,5 +1,6 @@
 {
   "$schema": "https://turborepo.org/schema.json",
+  "envMode": "loose",
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
@@ -333,8 +334,9 @@
       "outputs": ["public/app-store/**"]
     },
     "@calcom/prisma#build": {
-      "cache": false,
-      "dependsOn": ["post-install"]
+      "cache": true,
+      "dependsOn": ["post-install"],
+      "env": ["SKIP_DB_MIGRATIONS", "DATABASE_DIRECT_URL", "DATABASE_URL"]
     },
     "@calcom/prisma#db-migrate": {
       "cache": false,
@@ -549,8 +551,13 @@
       "env": ["PRISMA_GENERATE_DATAPROXY"]
     },
     "@calcom/prisma#post-install": {
-      "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "cache": true,
+      "outputs": [
+        "../../node_modules/.prisma/**",
+        "generated/prisma/**",
+        "client/**",
+        "zod/**"
+      ]
     },
     "start": {
       "outputs": ["dist/**", "build/**"]
@@ -592,8 +599,8 @@
       "outputs": ["dist/**", "build/**"]
     },
     "@calcom/embed-core#build": {
-      "cache": false,
-      "outputs": ["../../../apps/web/public/embed/**"],
+      "cache": true,
+      "outputs": ["../../../apps/web/public/embed/**", "dist/**"],
       "env": [
         "EMBED_PUBLIC_VERCEL_URL",
         "EMBED_PUBLIC_WEBAPP_URL",

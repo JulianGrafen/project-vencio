@@ -270,7 +270,8 @@ const nextConfig = (phase: string): NextConfig => {
     experimental: {
       optimizePackageImports: ["@calcom/ui"],
     },
-    productionBrowserSourceMaps: true,
+    // Source maps add several minutes to Vercel builds; enable only when uploading to Sentry.
+    productionBrowserSourceMaps: Boolean(process.env.SENTRY_AUTH_TOKEN),
     transpilePackages: [
       "@calcom/app-store",
       "@calcom/dayjs",

@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "cd ../.. && yarn install --immutable",
-  "buildCommand": "cd ../.. && yarn build",
+  "installCommand": "cd ../.. && HUSKY=0 yarn install --immutable",
+  "buildCommand": "cd ../.. && HUSKY=0 SKIP_DB_MIGRATIONS=1 yarn build",
   "crons": [
     {
       "path": "/api/cron/calendar-subscriptions-cleanup",

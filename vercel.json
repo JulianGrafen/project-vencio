@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "yarn install --immutable",
-  "buildCommand": "yarn build",
+  "installCommand": "HUSKY=0 yarn install --immutable",
+  "buildCommand": "HUSKY=0 SKIP_DB_MIGRATIONS=1 yarn build",
   "outputDirectory": "apps/web/.next",
   "crons": [
     {
