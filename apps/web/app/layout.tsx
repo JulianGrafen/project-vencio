@@ -1,5 +1,6 @@
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { MEDICAL_TRUST_COLORS } from "@calcom/lib/dental/theme/medical-trust-colors";
 import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -111,6 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       translate="no"
       lang={locale}
       dir={direction}
+      {...(isDentalComplianceLayout ? { "data-teeth-al": true } : {})}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       suppressHydrationWarning
       data-nextjs-router="app">
@@ -119,6 +121,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           :root {
             --font-sans: ${isDentalComplianceLayout ? "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" : "Inter, system-ui"};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            ${
+              isDentalComplianceLayout
+                ? `
+            --teeth-al-primary: ${MEDICAL_TRUST_COLORS.primary};
+            --teeth-al-primary-emphasis: ${MEDICAL_TRUST_COLORS.primaryEmphasis};
+            --teeth-al-primary-muted: ${MEDICAL_TRUST_COLORS.primaryMuted};
+            --teeth-al-background: ${MEDICAL_TRUST_COLORS.background};
+            `
+                : ""
+            }
           }
         `}</style>
         {process.env.NODE_ENV === "development" && (

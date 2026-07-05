@@ -7,7 +7,7 @@ export const DENTAL_PRODUCT_NAME = "teeth.al";
  * Resolves the user-facing product name for auth, PWA manifest, and emails.
  * Prefers explicit NEXT_PUBLIC_APP_NAME, then teeth.al in compliance mode.
  */
-export function resolveDentalBrandName(fallback = "Cal.diy"): string {
+export function resolveDentalBrandName(fallback = DENTAL_PRODUCT_NAME): string {
   const explicit = process.env.NEXT_PUBLIC_APP_NAME?.trim();
   if (explicit) {
     return explicit;

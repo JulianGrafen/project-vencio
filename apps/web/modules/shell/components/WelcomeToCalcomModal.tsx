@@ -1,5 +1,6 @@
 "use client";
 
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -22,6 +23,10 @@ const features = [
 export function WelcomeToCalcomModal() {
   const { t } = useLocale();
   const { isOpen, closeModal } = useWelcomeToCalcomModal();
+
+  if (isDentalClientComplianceMode()) {
+    return null;
+  }
 
   const LARGE = { outer: 48, icon: 24 };
   const RINGS = [60, 95, 130]; // Ring radii in px

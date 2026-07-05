@@ -58,6 +58,9 @@ const isDentalComplianceBuild =
 
 if (isDentalComplianceBuild) {
   env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = "true";
+  if (!process.env.NEXT_PUBLIC_APP_NAME?.trim()) {
+    env.NEXT_PUBLIC_APP_NAME = "teeth.al";
+  }
 }
 
 function ensureRequiredSecret(name: string, byteLength = 32): void {

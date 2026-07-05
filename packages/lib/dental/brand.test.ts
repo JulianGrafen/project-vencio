@@ -32,10 +32,10 @@ describe("resolveDentalBrandName", () => {
     expect(resolveDentalBrandName()).toBe(DENTAL_PRODUCT_NAME);
   });
 
-  it("falls back to Cal.diy outside compliance mode", () => {
+  it("falls back to teeth.al outside compliance mode", () => {
     delete process.env.NEXT_PUBLIC_APP_NAME;
     delete process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE;
     delete process.env.DENTAL_ENCRYPTION_ENABLED;
-    expect(resolveDentalBrandName()).toBe("Cal.diy");
+    expect(resolveDentalBrandName()).toBe("teeth.al");
   });
 });
