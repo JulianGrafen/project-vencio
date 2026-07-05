@@ -129,6 +129,9 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
           </div>
         }>
         <div className="relative">
+          {!queryIntegrations.isPending && queryIntegrations.data?.items?.length === 0 ? (
+            <p className="text-subtle text-sm">{t("calendar_oauth_not_configured")}</p>
+          ) : null}
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}

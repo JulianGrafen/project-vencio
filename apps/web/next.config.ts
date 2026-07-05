@@ -1,7 +1,6 @@
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
 import { randomBytes } from "node:crypto";
-import path from "node:path";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
@@ -287,15 +286,10 @@ const nextConfig = (phase: string): NextConfig => {
     turbopack: {
       ...(isDentalComplianceBuild
         ? {
+            // Paths must be relative to apps/web — Turbopack does not support absolute resolveAlias paths.
             resolveAlias: {
-              "posthog-js": path.join(
-                process.cwd(),
-                "../../packages/lib/dental/posthog-noop.ts"
-              ),
-              "@dub/analytics/react": path.join(
-                process.cwd(),
-                "../../packages/lib/dental/dub-analytics-noop.tsx"
-              ),
+              "posthog-js": "../../packages/lib/dental/posthog-noop.ts",
+              "@dub/analytics/react": "../../packages/lib/dental/dub-analytics-noop.tsx",
             },
           }
         : {}),

@@ -4,6 +4,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import getApps from "../utils";
+import { getCalendarAppSlugsEnabledAtRuntime } from "./syncAppStoreFromEnv";
 
 type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
@@ -70,10 +71,11 @@ const getEnabledAppsFromCredentials = async (
 
   enabledApps = [...enabledApps, ...delegationCredentialSupportedEnabledApps];
 
+  const runtimeEnabledSlugs = getCalendarAppSlugsEnabledAtRuntime();
   const apps = getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {
     const appDbQuery = enabledApps.find((metadata) => metadata.slug === app.slug);
-    if (appDbQuery?.enabled || app.isGlobal) {
+    if (appDbQuery?.enabled || app.isGlobal || runtimeEnabledSlugs.has(app.slug)) {
       reducedArray.push({ ...app, enabled: true });
     }
     return reducedArray;

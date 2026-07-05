@@ -1983,6 +1983,7 @@
   "personal_settings_subtitle": "Richten wir Ihr persönliches Konto ein",
   "profile_photo": "Profilfoto",
   "connect_calendar_to_prevent_conflicts": "Verbinden Sie Ihren Kalender, um Doppelbuchungen und Konflikte zu vermeiden",
+  "calendar_oauth_not_configured": "Es sind noch keine Kalender-Integrationen verfügbar. Bitte GOOGLE_API_CREDENTIALS in Vercel setzen (siehe docs/dental/DEPLOYMENT.md). Sie können diesen Schritt vorerst überspringen.",
   "connect_video_app": "Verbinden Sie Ihre Video-App",
   "video_app_connection_subtitle": "Verbinden Sie Ihre bevorzugte Videokonferenz-App",
   "welcome_to_cal_com": "Willkommen bei teeth.al",

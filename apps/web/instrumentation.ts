@@ -1,10 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 import { type Instrumentation } from "next";
 
-import { bootstrapRuntimeEnv } from "./lib/bootstrap-runtime-env";
-
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { bootstrapRuntimeEnv } = await import("./lib/bootstrap-runtime-env");
     bootstrapRuntimeEnv();
 
     try {

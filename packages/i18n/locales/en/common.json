@@ -2006,6 +2006,7 @@
   "personal_settings_subtitle": "Let's set up your personal account",
   "profile_photo": "Profile photo",
   "connect_calendar_to_prevent_conflicts": "Connect your calendar to prevent double bookings and conflicts",
+  "calendar_oauth_not_configured": "No calendar integrations are available yet. Ask your administrator to set GOOGLE_API_CREDENTIALS in the deployment environment (see docs/dental/DEPLOYMENT.md). You can skip this step for now.",
   "connect_video_app": "Connect your video app",
   "video_app_connection_subtitle": "Connect your preferred video conferencing app",
   "welcome_to_cal_com": "Welcome to teeth.al",

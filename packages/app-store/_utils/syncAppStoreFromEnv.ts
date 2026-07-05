@@ -52,6 +52,23 @@ async function upsertAppFromEnv({ slug, dirName, categories, type, keys }: AppSe
   });
 }
 
+/** Calendar apps that should be connectable even when DB seed/sync has not run yet. */
+export function getCalendarAppSlugsEnabledAtRuntime(): ReadonlySet<string> {
+  const slugs = new Set(["apple-calendar", "caldav-calendar"]);
+
+  if (parseGoogleApiCredentialsFromEnv()) {
+    slugs.add("google-calendar");
+    slugs.add("google-meet");
+  }
+
+  if (getOffice365AppKeysFromEnv()) {
+    slugs.add("office365-calendar");
+    slugs.add("msteams");
+  }
+
+  return slugs;
+}
+
 /**
  * Ensures calendar integrations are registered in the App table when OAuth
  * credentials are provided via environment variables (e.g. Vercel) without
