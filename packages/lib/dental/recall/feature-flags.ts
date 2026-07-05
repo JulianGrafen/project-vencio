@@ -1,13 +1,13 @@
 import { parseBooleanEnv } from "../env";
+import { isDentalClientComplianceMode } from "../compliance-config";
 import { isDentalEncryptionEnabled } from "../feature-flags";
-import { RECALL_ENV } from "./constants";
 
 /**
  * Recall automation is enabled when explicitly turned on or in dental compliance deployments.
  */
 export function isRecallEnabled(): boolean {
-  if (parseBooleanEnv(process.env[RECALL_ENV.ENABLED])) {
+  if (parseBooleanEnv(process.env.RECALL_ENABLED)) {
     return true;
   }
-  return isDentalEncryptionEnabled();
+  return isDentalEncryptionEnabled() || isDentalClientComplianceMode();
 }

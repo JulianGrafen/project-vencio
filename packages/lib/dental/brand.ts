@@ -1,4 +1,4 @@
-import { DENTAL_ENV, parseBooleanEnv } from "./env";
+import { parseBooleanEnv } from "./env";
 
 /** Default product name for dental compliance deployments. */
 export const DENTAL_PRODUCT_NAME = "teeth.al";
@@ -14,9 +14,9 @@ export function resolveDentalBrandName(fallback = "Cal.diy"): string {
   }
 
   if (
-    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_COMPLIANCE_MODE]) ||
-    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_ENCRYPTION_ENABLED]) ||
-    parseBooleanEnv(process.env[DENTAL_ENV.ENCRYPTION_ENABLED])
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE) ||
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED) ||
+    parseBooleanEnv(process.env.DENTAL_ENCRYPTION_ENABLED)
   ) {
     return DENTAL_PRODUCT_NAME;
   }

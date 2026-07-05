@@ -50,8 +50,8 @@ export function sanitizeBookingTracking<T extends Record<string, unknown> | unde
 
 export function isDentalClientComplianceMode(): boolean {
   return (
-    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_COMPLIANCE_MODE]) ||
-    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_ENCRYPTION_ENABLED])
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE) ||
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED)
   );
 }
 
@@ -71,14 +71,14 @@ export function isDentalPracticeOnboardingEnabled(): boolean {
 export function isDentalClientTrackingDisabled(): boolean {
   return (
     isDentalClientComplianceMode() ||
-    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_DISABLE_TRACKING])
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_DISABLE_TRACKING)
   );
 }
 
 export function isDentalClientAnalyticsDisabled(): boolean {
   return (
     isDentalClientComplianceMode() ||
-    parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_DISABLE_THIRD_PARTY_ANALYTICS])
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_DISABLE_THIRD_PARTY_ANALYTICS)
   );
 }
 
