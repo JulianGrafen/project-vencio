@@ -257,6 +257,16 @@ const nextConfig = (phase: string): NextConfig => {
 
   return {
     output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
+    env: isDentalComplianceBuild
+      ? {
+          NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE: "true",
+          NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED:
+            process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED ?? "true",
+          ...(process.env.NEXT_PUBLIC_APP_NAME?.trim()
+            ? { NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME.trim() }
+            : { NEXT_PUBLIC_APP_NAME: "teeth.al" }),
+        }
+      : undefined,
     serverExternalPackages: [
       "deasync",
       "http-cookie-agent",

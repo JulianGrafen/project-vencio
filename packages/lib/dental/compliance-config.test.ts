@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
 import {
   isDentalClientComplianceMode,
@@ -48,6 +48,27 @@ describe("compliance-config", () => {
   it("activates client compliance mode via NEXT_PUBLIC flag", () => {
     process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE = "true";
     expect(isDentalClientComplianceMode()).toBe(true);
+  });
+
+  it("activates client compliance mode on SSR when server encryption is enabled", () => {
+    const originalWindow = globalThis.window;
+    vi.stubGlobal("window", undefined);
+
+    try {
+      delete process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE;
+      process.env.DENTAL_ENCRYPTION_ENABLED = "true";
+      expect(isDentalClientComplianceMode()).toBe(true);
+    } finally {
+      vi.stubGlobal("window", originalWindow);
+    }
+  });
+
+  it("activates client compliance mode in browser when data-teeth-al is on html", () => {
+    delete process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE;
+    delete process.env.DENTAL_ENCRYPTION_ENABLED;
+    document.documentElement.setAttribute("data-teeth-al", "");
+    expect(isDentalClientComplianceMode()).toBe(true);
+    document.documentElement.removeAttribute("data-teeth-al");
   });
 
   it("enables practice onboarding for teeth.al brand without compliance flag", () => {

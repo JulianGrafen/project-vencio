@@ -48,10 +48,28 @@ export function sanitizeBookingTracking<T extends Record<string, unknown> | unde
 // Client-side compliance (NEXT_PUBLIC_* only — safe for browser bundles)
 // ---------------------------------------------------------------------------
 
+function isTeethAlBrandedClient(): boolean {
+  return process.env.NEXT_PUBLIC_APP_NAME?.trim() === DENTAL_PRODUCT_NAME;
+}
+
+/**
+ * Client bundles only inline NEXT_PUBLIC_* at build time. When the server runs in
+ * dental compliance mode, layout.tsx sets `data-teeth-al` on <html> — client code
+ * reads that so UI gates stay in sync without relying on a rebuild.
+ */
 export function isDentalClientComplianceMode(): boolean {
+  if (typeof window === "undefined") {
+    return isDentalComplianceMode() || isTeethAlBrandedClient();
+  }
+
+  if (document.documentElement.hasAttribute("data-teeth-al")) {
+    return true;
+  }
+
   return (
     parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE) ||
-    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED)
+    parseBooleanEnv(process.env.NEXT_PUBLIC_DENTAL_ENCRYPTION_ENABLED) ||
+    isTeethAlBrandedClient()
   );
 }
 
