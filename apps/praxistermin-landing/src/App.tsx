@@ -279,7 +279,7 @@ export default function App() {
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <SectionHeading
             eyebrow="Funktionen"
-            title="Wie steigert PraxisTermin die Effizienz im Vergleich zu Telefon & Excel?"
+            title="Wie steigert teeth.al die Effizienz im Vergleich zu Telefon & Excel?"
             description="Vom ersten Online-Termin bis zur revisionssicheren Dokumentation — ein durchgängiger Workflow für Ihre Praxis."
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -421,7 +421,7 @@ export default function App() {
               <h3 className="text-xl font-bold text-slate-900">Im Ernstfall zählt Struktur</h3>
               <p className="mt-3 text-slate-700">
                 Datenschutzbeauftragte und Aufsicht fragen nicht nach Ihrem guten Willen — sondern nach
-                Nachweisen. PraxisTermin liefert verschlüsselte Speicherung, Mandantentrennung und
+                Nachweisen. teeth.al liefert verschlüsselte Speicherung, Mandantentrennung und
                 dokumentierte Zugriffe.
               </p>
               <PrimaryButton href={appLink("/auth/login")} className="mt-6 px-5 py-2.5 text-sm">
@@ -543,7 +543,7 @@ export default function App() {
       <section className="border-t border-slate-100 bg-gradient-to-br from-teal-800 to-teal-900 py-20 text-white">
         <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-200">Kostenlos & unverbindlich</p>
-          <h2 className="mt-3 text-3xl font-bold md:text-4xl">Jetzt PraxisTermin kostenlos testen</h2>
+          <h2 className="mt-3 text-3xl font-bold md:text-4xl">Jetzt teeth.al kostenlos testen</h2>
           <p className="mt-4 text-lg text-teal-100">
             Überzeugen Sie sich selbst — starten Sie in Minuten mit Ihrer Praxis. Wir begleiten Sie beim Setup.
           </p>

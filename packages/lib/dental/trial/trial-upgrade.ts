@@ -23,7 +23,7 @@ export function resolvePracticeTrialUpgradeAction(
 
   const email = env[PRACTICE_TRIAL_ENV.UPGRADE_EMAIL]?.trim() || PRACTICE_TRIAL_DEFAULT_UPGRADE_EMAIL;
   return {
-    href: `mailto:${email}?subject=${encodeURIComponent("Upgrade PraxisTermin")}`,
+    href: `mailto:${email}?subject=${encodeURIComponent("Upgrade teeth.al")}`,
     label: "Upgrade anfragen",
     external: false,
   };

@@ -84,7 +84,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.diy`;
+          const iCalUID = `${uidOfBookingToBeRescheduled}@teeth.al`;
           await createBookingScenario(
             getScenarioData({
               webhooks: [
@@ -313,7 +313,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.diy`;
+          const iCalUID = `${uidOfBookingToBeRescheduled}@teeth.al`;
           await createBookingScenario(
             getScenarioData({
               webhooks: [
@@ -1347,7 +1347,7 @@ describe("handleNewBooking", () => {
             });
             const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
             const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-            const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.diy`;
+            const iCalUID = `${uidOfBookingToBeRescheduled}@teeth.al`;
 
             const scenarioData = getScenarioData({
               webhooks: [
@@ -1799,7 +1799,7 @@ describe("handleNewBooking", () => {
 
             const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
             const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-            const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.diy`;
+            const iCalUID = `${uidOfBookingToBeRescheduled}@teeth.al`;
 
             const subscriberUrl = "http://my-webhook.example.com";
             const scenarioData = getScenarioData({
@@ -2168,7 +2168,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.diy`;
+          const iCalUID = `${uidOfBookingToBeRescheduled}@teeth.al`;
 
           // Original booking has a different location (Google Meet)
           await createBookingScenario(

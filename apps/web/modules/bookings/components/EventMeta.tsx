@@ -6,11 +6,14 @@ import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { resolveDentalPracticeInfo } from "@calcom/lib/dental/team-metadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { PracticeInfoHeader } from "@calcom/web/modules/bookings/components/PracticeInfoHeader";
 import { EventMetaBlock } from "@calcom/web/modules/bookings/components/event-meta/Details";
 import { SeatsAvailabilityText } from "@calcom/web/modules/bookings/components/SeatsAvailabilityText";
 import { m } from "framer-motion";
@@ -80,6 +83,7 @@ export const EventMeta = ({
     | "fieldTranslations"
     | "autoTranslateDescriptionEnabled"
     | "enablePerHostLocations"
+    | "team"
   > | null;
   isPending: boolean;
   isPrivateLink: boolean;
@@ -155,6 +159,16 @@ export const EventMeta = ({
     userLocale
   );
 
+  const practiceInfo =
+    isDentalClientComplianceMode() && event
+      ? resolveDentalPracticeInfo({
+          teamName: event.team?.name,
+          teamMetadata: event.team?.metadata,
+          userMetadata: event.profile?.metadata,
+          profileName: event.profile?.name,
+        })
+      : null;
+
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
       {isPending && (
@@ -176,6 +190,7 @@ export const EventMeta = ({
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
           </EventTitle>
+          {practiceInfo ? <PracticeInfoHeader practice={practiceInfo} /> : null}
           {(event.description || translatedDescription) && (
             <EventMetaBlock data-testid="event-meta-description" contentClassName="mb-8">
               <ScrollableWithGradients

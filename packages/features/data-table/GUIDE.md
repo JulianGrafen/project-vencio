@@ -1,6 +1,6 @@
 # DataTable System Guide
 
-A comprehensive guide to using Cal.diy's DataTable system for building powerful, filterable, and paginated data tables.
+A comprehensive guide to using teeth.al's DataTable system for building powerful, filterable, and paginated data tables.
 
 ## Table of Contents
 

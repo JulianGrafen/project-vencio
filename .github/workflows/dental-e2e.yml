@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "apps/web/playwright/dental/**"
+      - "apps/web/modules/bookings/**"
+      - "packages/features/bookings/**"
       - "packages/lib/dental/**"
       - "packages/pvs-integration/**"
       - "packages/pvs-connector/**"
@@ -16,6 +18,8 @@ on:
 env:
   NEXT_PUBLIC_IS_E2E: "1"
   PVS_SYNC_ENABLED: "1"
+  DENTAL_ENCRYPTION_ENABLED: "1"
+  NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE: "1"
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/calendso
   DATABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/calendso
   NEXTAUTH_SECRET: e2e-dental-nextauth-secret-min-32-chars

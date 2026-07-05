@@ -1,16 +1,16 @@
 vi.mock("@calcom/lib/next-seo.config", () => ({
   default: {
     headSeo: {
-      siteName: "Cal.diy",
+      siteName: "teeth.al",
     },
     defaultNextSeo: {
-      title: "Cal.diy",
+      title: "teeth.al",
       description: "Scheduling infrastructure for everyone.",
     },
   },
   seoConfig: {
     headSeo: {
-      siteName: "Cal.diy",
+      siteName: "teeth.al",
     },
   },
   buildSeoMeta: vi.fn().mockReturnValue({}),

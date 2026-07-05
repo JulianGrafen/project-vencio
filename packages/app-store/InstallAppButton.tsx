@@ -1,5 +1,6 @@
 "use client";
 
+import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import type { App } from "@calcom/types/App";
 
 import { InstallAppButtonWithoutPlanCheck } from "./InstallAppButtonWithoutPlanCheck";
@@ -10,6 +11,7 @@ export const InstallAppButton = (
     type: App["type"];
     wrapperClassName?: string;
     disableInstall?: boolean;
+    options?: UseAddAppMutationOptions;
   } & InstallAppButtonProps
 ) => {
   return (

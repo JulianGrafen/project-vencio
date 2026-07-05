@@ -7,6 +7,16 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     bootstrapRuntimeEnv();
 
+    try {
+      const { isPrismaAvailableCheck } = await import("@calcom/prisma/is-prisma-available-check");
+      if (await isPrismaAvailableCheck()) {
+        const { syncCalendarAppsFromEnv } = await import("@calcom/app-store/_utils/syncAppStoreFromEnv");
+        await syncCalendarAppsFromEnv();
+      }
+    } catch (error) {
+      console.warn("Calendar app store sync skipped:", error);
+    }
+
     const { assertDentalProductionConfig } = await import("@calcom/lib/dental/production-config");
     try {
       assertDentalProductionConfig();

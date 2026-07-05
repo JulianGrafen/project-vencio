@@ -1,4 +1,5 @@
 export type DentalSettingsTabId =
+  | "practice-info"
   | "smart-fill"
   | "recall"
   | "pvs-connector"
@@ -13,6 +14,12 @@ export type DentalSettingsTab = {
 };
 
 export const DENTAL_SETTINGS_TABS: DentalSettingsTab[] = [
+  {
+    id: "practice-info",
+    label: "Praxis",
+    description: "Adresse & Notfallnummer",
+    href: (teamId) => `/settings/practice-info?teamId=${teamId}`,
+  },
   {
     id: "smart-fill",
     label: "Smart-Fill",

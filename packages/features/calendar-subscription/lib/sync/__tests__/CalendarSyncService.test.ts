@@ -158,7 +158,7 @@ describe("CalendarSyncService", () => {
   });
 
   describe("handleEvents", () => {
-    test("should process only Cal.diy events", async () => {
+    test("should process only teeth.al events", async () => {
       const events = [mockCalComEvent, mockNonCalComEvent, mockCancelledEvent];
 
       mockBookingRepository.findBookingByUidWithEventType = vi
@@ -177,7 +177,7 @@ describe("CalendarSyncService", () => {
       });
     });
 
-    test("should return early when no Cal.diy events", async () => {
+    test("should return early when no teeth.al events", async () => {
       const events = [mockNonCalComEvent];
 
       await service.handleEvents(mockSelectedCalendar, events);

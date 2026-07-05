@@ -2,7 +2,7 @@
 
 import { HAS_ORG_OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
-import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { isDentalClientComplianceMode, shouldHideAppStoreNavigation } from "@calcom/lib/dental/compliance-config";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -362,6 +362,9 @@ const useTabs = ({
           (childTab) => permissions?.canUpdateOrganization || childTab.name !== "api_docs"
         );
         return { ...tab, children: filtered };
+      } else if (tab.href === "/settings/admin" && shouldHideAppStoreNavigation()) {
+        const filtered = tab.children?.filter((childTab) => childTab.name !== "apps");
+        return { ...tab, children: filtered };
       }
       return tab;
     });
@@ -372,13 +375,33 @@ const useTabs = ({
           ...processedTabs.slice(0, 2),
           {
             name: "Praxis-Einstellungen",
-            href: "/settings/practice",
+            href: "/settings/practice-info",
             icon: "building" as const,
             children: [
               {
-                name: "Smart-Fill & Recall",
-                href: "/settings/practice",
-                trackingMetadata: { section: "dental", page: "practice" },
+                name: "Praxisinformationen",
+                href: "/settings/practice-info",
+                trackingMetadata: { section: "dental", page: "practice-info" },
+              },
+              {
+                name: "Smart-Fill",
+                href: "/settings/smart-fill",
+                trackingMetadata: { section: "dental", page: "smart-fill" },
+              },
+              {
+                name: "Recall",
+                href: "/settings/recall",
+                trackingMetadata: { section: "dental", page: "recall" },
+              },
+              {
+                name: "Behandlungsressourcen",
+                href: "/settings/treatment-resources",
+                trackingMetadata: { section: "dental", page: "treatment-resources" },
+              },
+              {
+                name: "PVS Sync",
+                href: "/settings/pvs-connector",
+                trackingMetadata: { section: "dental", page: "pvs-connector" },
               },
             ],
           },

@@ -8,6 +8,8 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { PermissionCheckService } from "@calcom/lib/dental/permission-check.service";
+import { applyDentalLocationPolicyToEventLocations } from "@calcom/lib/dental/booking-location-policy";
+import { resolveDentalPracticeAddressFromContext } from "@calcom/lib/dental/team-metadata";
 import { getOrgOrTeamAvatar, getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -544,13 +546,22 @@ export const getPublicEvent = async (
     users = [];
   }
 
+  const dentalPracticeAddress = resolveDentalPracticeAddressFromContext({
+    teamMetadata: event.team?.metadata,
+    userMetadata: eventWithUserProfiles.users?.[0]?.metadata,
+  });
+  const eventLocations = applyDentalLocationPolicyToEventLocations(
+    (eventWithUserProfiles.locations || []) as LocationObject[],
+    dentalPracticeAddress
+  );
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
-    locations: privacyFilteredLocations((eventWithUserProfiles.locations || []) as LocationObject[]),
+    locations: privacyFilteredLocations(eventLocations),
     bookingFields: getBookingFieldsWithSystemFields(event),
     recurringEvent: isRecurringEvent(eventWithUserProfiles.recurringEvent)
       ? parseRecurringEvent(event.recurringEvent)

@@ -6,7 +6,7 @@ import type { ConsoleUserInfoType, WebUserInfoType } from "../ISyncService";
 import type ISyncService from "../ISyncService";
 import SyncServiceCore from "../ISyncService";
 
-// Cal.diy Custom Contact Fields
+// teeth.al Custom Contact Fields
 const calComCustomContactFields: SendgridFieldOptions = [
   // Field name, field type
   ["username", "Text"],

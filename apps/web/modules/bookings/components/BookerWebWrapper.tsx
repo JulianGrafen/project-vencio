@@ -14,6 +14,11 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  getDentalBookerBrandColors,
+  getDentalBookerRootProps,
+  isDentalBookerThemeEnabled,
+} from "@calcom/lib/dental/booker/dental-booker-theme";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
@@ -87,6 +92,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
   });
 
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
+  const selectedInsuranceType = useBookerStoreContext((state) => state.selectedInsuranceType);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -120,6 +126,14 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     extraOptions: routerQuery,
     prefillFormParams,
   });
+
+  useEffect(() => {
+    if (!selectedInsuranceType) return;
+    bookerForm.bookingForm.setValue("responses.insuranceType", selectedInsuranceType, {
+      shouldValidate: true,
+    });
+  }, [selectedInsuranceType, bookerForm.bookingForm]);
+
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
     email: bookerForm.formEmail,
@@ -190,9 +204,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     },
     [router]
   );
+  const dentalBrandColors = isDentalBookerThemeEnabled() ? getDentalBookerBrandColors() : null;
   useBrandColors({
-    brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
-    darkBrandColor: event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    brandColor: dentalBrandColors?.brandColor ?? event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    darkBrandColor:
+      dentalBrandColors?.darkBrandColor ?? event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     theme: event.data?.profile.theme,
   });
 
@@ -200,8 +216,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     if (hasSession) onOverlaySwitchStateChange(true);
   }, [hasSession]);
 
+  const dentalBookerRootProps = getDentalBookerRootProps();
+
   return (
-    <BookerComponent
+    <div className={dentalBookerRootProps ? "contents" : undefined} {...dentalBookerRootProps}>
+      <BookerComponent
       {...props}
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");
@@ -235,6 +254,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
       userLocale={session?.user.locale}
       renderCaptcha
     />
+    </div>
   );
 };
 

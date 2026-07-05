@@ -1,7 +1,7 @@
 {
-  "name": "Cal.diy",
+  "name": "teeth.al",
   "description": "Open Source Scheduling",
-  "repository": "https://github.com/calcom/cal.diy",
+  "repository": "https://github.com/juliangrafen/project-vencio",
   "logo": "https://cal.com/android-chrome-512x512.png",
   "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"],
   "addons": [

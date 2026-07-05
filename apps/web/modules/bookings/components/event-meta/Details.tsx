@@ -4,6 +4,7 @@ import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { EventDetailBlocks } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { filterDentalBookingLocations } from "@calcom/lib/dental/booking-locations";
 import classNames from "@calcom/ui/classNames";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/PriceIcon";
@@ -131,6 +132,7 @@ export const EventMetaBlock = ({
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const displayLocations = filterDentalBookingLocations(event?.locations ?? []);
 
   return (
     <>
@@ -148,10 +150,10 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.LOCATION:
-            if (!event?.locations?.length || event.enablePerHostLocations) return null;
+            if (!displayLocations.length || event.enablePerHostLocations) return null;
             return (
               <EventMetaBlock key={block}>
-                <AvailableEventLocations locations={event.locations} />
+                <AvailableEventLocations locations={displayLocations} />
               </EventMetaBlock>
             );
 

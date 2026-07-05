@@ -1,6 +1,6 @@
 # Dental Production Deployment Guide
 
-**Scope:** PraxisTermin / Cal.diy dental fork — Vercel, self-hosted EU, on-prem PVS connector  
+**Scope:** teeth.al dental fork — Vercel, self-hosted EU, on-prem PVS connector  
 **Last updated:** 2026-07-04
 
 ---
@@ -80,6 +80,49 @@ EMAIL_SERVER_PASSWORD=
 # PVS sync (auto-enabled when DENTAL_ENCRYPTION_ENABLED=true)
 # Per-team API keys via Settings → PVS Connector — no global key in production
 ```
+
+### Dental booking form (patient intake dropdowns)
+
+When `NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true` (or `DENTAL_ENCRYPTION_ENABLED=true`), the public booking form shows **dropdown fields only** — no free-text notes:
+
+| Field | Type |
+|-------|------|
+| Versicherungsart | Select (Kasse / Privat / Selbstzahler) |
+| Geburtsdatum | Tag / Monat / Jahr (3 selects) |
+| Patientenstatus | Select (Erstpatient / Bestandspatient) |
+
+`Zusätzliche Notizen` and `Weitere Gäste` are hidden (DSGVO Art. 9).
+
+During onboarding (**Settings → personal details**), the dentist must enter **Adresse der Praxis**. That address is used as the **„Wo“** location in booking confirmations — in-practice only, never Cal Video.
+
+```bash
+NEXT_PUBLIC_DENTAL_COMPLIANCE_MODE=true
+DENTAL_ENCRYPTION_ENABLED=true
+```
+
+### Calendar OAuth (required for “Kalender verbinden”)
+
+Without calendar credentials, the connect UI is empty or OAuth fails after redirect.
+
+1. **Google Calendar** — [Google Cloud Console](https://console.cloud.google.com/):
+   - Create OAuth 2.0 Client (Web application)
+   - Authorized redirect URI: `https://your-domain.example/api/integrations/googlecalendar/callback`
+   - Set in Vercel:
+
+```bash
+GOOGLE_API_CREDENTIALS={"web":{"client_id":"…","client_secret":"…","redirect_uris":["https://your-domain.example/api/integrations/googlecalendar/callback"]}}
+```
+
+2. **Microsoft 365 / Outlook** (optional):
+
+```bash
+MS_GRAPH_CLIENT_ID=
+MS_GRAPH_CLIENT_SECRET=
+```
+
+Authorized redirect URI: `https://your-domain.example/api/integrations/office365calendar/callback`
+
+On server startup, calendar apps are synced from these env vars into the `App` table (no manual `yarn seed-app-store` required on Vercel). After deploy, open **Settings → Calendars** — Google/Outlook should appear and **Verbinden** should complete OAuth and return to the same page.
 
 ### Cron jobs (configured in `vercel.json` / `apps/web/vercel.json`)
 

@@ -1,0 +1,58 @@
+/**
+ * teeth.al Medical Trust theme — scoped to public booking surfaces.
+ * Activate via data-teeth-al-booker on a wrapper element (see dental-booker-theme.ts).
+ */
+[data-teeth-al-booker] {
+  --cal-brand: #0f4c81;
+  --cal-brand-emphasis: #0b3d66;
+  --cal-brand-muted: #e8f1f8;
+  --cal-brand-text: #ffffff;
+  --cal-brand-subtle: #cbd5e1;
+
+  --cal-bg: #f8fafc;
+  --cal-bg-muted: #ffffff;
+  --cal-bg-subtle: #f1f5f9;
+  --cal-bg-emphasis: #e2e8f0;
+
+  --cal-bg-primary: #0f4c81;
+  --cal-bg-primary-emphasis: #0b3d66;
+  --cal-bg-primary-muted: #e8f1f8;
+
+  --cal-bg-brand: #0f4c81;
+  --cal-bg-brand-emphasis: #0b3d66;
+  --cal-bg-brand-muted: #e8f1f8;
+
+  --cal-bg-success: #ecfdf5;
+  --cal-bg-semantic-success-subtle: #ecfdf5;
+  --cal-bg-semantic-success-emphasis: #059669;
+  --cal-text-success: #059669;
+  --cal-text-semantic-success: #047857;
+  --cal-text-semantic-success-emphasis: #065f46;
+
+  --cal-bg-error: #fff1f2;
+  --cal-bg-semantic-error-subtle: #fff1f2;
+  --cal-bg-semantic-error-emphasis: #e11d48;
+  --cal-text-error: #e11d48;
+  --cal-text-semantic-error: #be123c;
+
+  --cal-text-emphasis: #0f172a;
+  --cal-text: #1e293b;
+  --cal-text-subtle: #64748b;
+  --cal-text-muted: #94a3b8;
+
+  --cal-border: #e2e8f0;
+  --cal-border-subtle: #f1f5f9;
+  --cal-border-booker: #e2e8f0;
+
+  --text-bookinghighlight: #0f4c81;
+}
+
+[data-teeth-al-booker] .main {
+  background-color: var(--cal-bg);
+}
+
+[data-teeth-al-booker] [data-testid="booker-container"] {
+  background-color: var(--cal-bg-muted);
+  border-color: var(--cal-border);
+  box-shadow: 0 1px 3px 0 rgb(15 76 129 / 0.06);
+}

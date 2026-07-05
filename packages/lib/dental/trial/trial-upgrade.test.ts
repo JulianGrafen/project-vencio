@@ -24,6 +24,6 @@ describe("resolvePracticeTrialUpgradeAction", () => {
     expect(action.external).toBe(false);
     expect(action.label).toBe("Upgrade anfragen");
     expect(action.href).toContain("mailto:sales@praxis.de");
-    expect(action.href).toContain("Upgrade%20PraxisTermin");
+    expect(action.href).toContain("Upgrade%20teeth.al");
   });
 });

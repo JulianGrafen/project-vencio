@@ -1,6 +1,6 @@
 # Supabase Datenbank — Komplett-Setup
 
-**Scope:** PraxisTermin / project-vencio — PostgreSQL auf Supabase für Vercel Production  
+**Scope:** teeth.al / project-vencio — PostgreSQL auf Supabase für Vercel Production  
 **Last updated:** 2026-07-04
 
 ---

@@ -1,7 +1,8 @@
 import { BookingStatus } from "@calcom/prisma/enums";
 
-/** PraxisTermin / dental UI brand accent (teal). */
-export const DENTAL_BRAND_TEAL = "#0d9488";
+/** teeth.al medical trust palette — see theme/medical-trust-colors.ts */
+export const DENTAL_BRAND_PRIMARY = "#0F4C81";
+export const DENTAL_BRAND_TEAL = DENTAL_BRAND_PRIMARY;
 
 /** "Medical Trust" branding for patient-facing booking surfaces. */
 export const MEDICAL_TRUST_BRAND = {

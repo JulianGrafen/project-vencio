@@ -336,6 +336,15 @@ const BookerPlatformWrapperComponent = (
     prefillFormParams: prefillFormParams,
     clientId,
   });
+  const selectedInsuranceType = useBookerStoreContext((state) => state.selectedInsuranceType);
+
+  useEffect(() => {
+    if (!selectedInsuranceType) return;
+    bookerForm.bookingForm.setValue("responses.insuranceType", selectedInsuranceType, {
+      shouldValidate: true,
+    });
+  }, [selectedInsuranceType, bookerForm.bookingForm]);
+
   const {
     mutate: createBooking,
     isPending: creatingBooking,

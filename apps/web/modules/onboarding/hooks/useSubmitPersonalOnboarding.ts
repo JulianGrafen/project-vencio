@@ -1,37 +1,22 @@
 import { useRouter } from "next/navigation";
 
+import { getOnboardingEventTypeCreates } from "@calcom/lib/dental/onboarding-event-types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { setShowWelcomeToCalcomModalFlag } from "@calcom/web/modules/shell/hooks/useWelcomeToCalcomModal";
 
+import { useOnboardingStore } from "../store/onboarding-store";
+
 const ONBOARDING_REDIRECT_KEY = "onBoardingRedirect";
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
-
-const DEFAULT_EVENT_TYPES = [
-  {
-    title: "15min_meeting",
-    slug: "15min",
-    length: 15,
-  },
-  {
-    title: "30min_meeting",
-    slug: "30min",
-    length: 30,
-  },
-  {
-    title: "secret_meeting",
-    slug: "secret",
-    length: 15,
-    hidden: true,
-  },
-];
 
 export const useSubmitPersonalOnboarding = () => {
   const router = useRouter();
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const practiceAddress = useOnboardingStore((state) => state.personalDetails.practiceAddress);
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
@@ -41,13 +26,18 @@ export const useSubmitPersonalOnboarding = () => {
       try {
         // Create default event types if user has none
         if (eventTypes?.length === 0) {
+          const defaultEventTypes = getOnboardingEventTypeCreates((key) => t(key), {
+            practiceAddress: practiceAddress?.trim() || undefined,
+          });
           await Promise.all(
-            DEFAULT_EVENT_TYPES.map(async (event) => {
+            defaultEventTypes.map(async (event) => {
               return createEventType.mutateAsync({
-                title: t(event.title),
+                title: event.title,
                 slug: event.slug,
                 length: event.length,
                 hidden: event.hidden,
+                locations: event.locations,
+                metadata: event.metadata,
               });
             })
           );

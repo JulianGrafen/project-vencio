@@ -1879,7 +1879,7 @@ describe("handleNewBooking", () => {
       "Availability Check during booking",
       () => {
         test(
-          `should fail a booking if there is already a Cal.diy booking overlapping the time`,
+          `should fail a booking if there is already a teeth.al booking overlapping the time`,
           async () => {
             const handleNewBooking = getNewBookingHandler();
 

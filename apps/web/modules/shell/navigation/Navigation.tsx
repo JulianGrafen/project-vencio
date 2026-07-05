@@ -1,4 +1,5 @@
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { shouldHideAppStoreNavigation } from "@calcom/lib/dental/compliance-config";
 import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import classNames from "@calcom/ui/classNames";
 import { useSession } from "next-auth/react";
@@ -65,7 +66,9 @@ const getNavigationItems = (): NavigationItemType[] => [
 
 const useNavigationItems = () => {
   return useMemo(() => {
-    const items = getNavigationItems();
+    const items = getNavigationItems().filter(
+      (item) => !(shouldHideAppStoreNavigation() && item.name === "apps")
+    );
 
     const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
     const mobileNavigationBottomItems = items.filter(

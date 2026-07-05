@@ -7,6 +7,6 @@
 
 # API v2
 
-This directory contains API endpoints for Cal.diy.
+This directory contains API endpoints for teeth.al.
 
 All code in this repository is licensed under the [MIT License](../../../../LICENSE).

@@ -2,10 +2,15 @@ import Link from "next/link";
 
 type DentalSettingsCrossLinksProps = {
   teamId: number;
-  current?: "pvs-connector" | "smart-fill" | "treatment-resources";
+  current?: "practice-info" | "pvs-connector" | "smart-fill" | "treatment-resources";
 };
 
 const LINKS = [
+  {
+    id: "practice-info" as const,
+    label: "Praxisinformationen",
+    href: (teamId: number) => `/settings/practice-info?teamId=${teamId}`,
+  },
   { id: "pvs-connector" as const, label: "PVS Connector", href: (teamId: number) => `/settings/pvs-connector?teamId=${teamId}` },
   { id: "smart-fill" as const, label: "Smart-Fill Patientenpool", href: (teamId: number) => `/settings/smart-fill?teamId=${teamId}` },
   {

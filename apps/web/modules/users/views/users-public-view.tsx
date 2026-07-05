@@ -13,6 +13,7 @@ import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
 import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
+import { getDentalBookerRootProps } from "@calcom/lib/dental/booker/dental-booker-theme";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/web/modules/event-types/components";
 import EmptyPage from "@calcom/web/modules/event-types/components/EmptyPage";
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
@@ -63,7 +64,8 @@ export function UserPage(props: PageProps) {
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-12"
-          )}>
+          )}
+          {...getDentalBookerRootProps()}>
           <div className="border-subtle bg-default text-default mb-8 overflow-hidden rounded-xl border">
             {isOrg && user.profile.organization?.bannerUrl && (
               <OrgBanner
@@ -146,7 +148,6 @@ export function UserPage(props: PageProps) {
                     name="arrow-right"
                     className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
                   />
-                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">
                     <div className="flex flex-wrap items-center">
                       <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>

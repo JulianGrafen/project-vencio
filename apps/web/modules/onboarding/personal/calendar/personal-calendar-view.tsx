@@ -139,7 +139,11 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
                 app={app}
                 isInstalling={installingAppSlug === app.slug}
                 onInstallClick={setInstallingAppSlug}
-                installOptions={createInstallHandlers(app.slug)}
+                installOptions={createInstallHandlers(
+                  app.slug,
+                  undefined,
+                  typeof window !== "undefined" ? window.location.href : undefined
+                )}
               />
             ))}
           </div>

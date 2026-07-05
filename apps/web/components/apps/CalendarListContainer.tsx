@@ -1,6 +1,7 @@
 "use client";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
+import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -54,8 +55,18 @@ function CalendarList(props: Props): JSX.Element {
               actions={
                 <InstallAppButton
                   type={item.type}
+                  options={{
+                    returnTo: typeof window !== "undefined" ? window.location.href : undefined,
+                    onSuccess: () => props.onChanged(),
+                  } satisfies UseAddAppMutationOptions}
                   render={(buttonProps) => (
-                    <Button color="secondary" {...buttonProps}>
+                    <Button
+                      color="secondary"
+                      {...buttonProps}
+                      onClick={(event) => {
+                        document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
+                        buttonProps?.onClick?.(event);
+                      }}>
                       {t("connect")}
                     </Button>
                   )}

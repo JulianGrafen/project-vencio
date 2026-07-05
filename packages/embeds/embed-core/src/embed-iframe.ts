@@ -35,7 +35,12 @@ import { useCompatSearchParams } from "./useCompatSearchParams";
 export { useBookerEmbedEvents, useSlotsViewOnSmallScreen } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
-type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
+type BookerState =
+  | "loading"
+  | "selecting_insurance"
+  | "selecting_date"
+  | "selecting_time"
+  | "booking";
 
 // Prerendering is a hidden process and we shouldn't really track any events from it unless absolutely necessary
 const eventsAllowedInPrerendering = [
@@ -350,7 +355,7 @@ export const methods = {
 
     if (stylesConfig) {
       console.warn(
-        "Cal.diy Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.diy/blob/main/packages/config/tailwind-preset.js#L19"
+        "teeth.al Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.diy/blob/main/packages/config/tailwind-preset.js#L19"
       );
     }
 
@@ -547,7 +552,7 @@ function main() {
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
     showPageAsNonEmbed();
-    // We would want to avoid a situation where Cal.diy embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
+    // We would want to avoid a situation where teeth.al embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
     log("Embed SDK Skipped as we are in top");
     return;
   }

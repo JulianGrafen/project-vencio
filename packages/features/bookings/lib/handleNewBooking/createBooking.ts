@@ -1,4 +1,8 @@
-import { sanitizeBookingTracking } from "@calcom/lib/dental/compliance-config";
+import { sanitizeBookingTracking, isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import {
+  applyTokenBookingSealToCreateInput,
+  resolvePracticeBookingPublicKey,
+} from "@calcom/lib/dental/token-booking";
 import { assertNoHealthDataInText } from "@calcom/lib/encryption/health-data-guard";
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -201,12 +205,26 @@ async function saveBooking(
     });
   }
 
+  let bookingCreateData = createBookingObj.data;
+
+  if (isDentalComplianceMode() && pvsSyncContext?.teamId) {
+    const practicePublicKey = await resolvePracticeBookingPublicKey(pvsSyncContext.teamId);
+    bookingCreateData = applyTokenBookingSealToCreateInput(bookingCreateData, {
+      teamId: pvsSyncContext.teamId,
+      bookingUid: String(bookingCreateData.uid),
+      practicePublicKey,
+    });
+  }
+
   return prisma.$transaction(async (tx) => {
     if (originalBookingUpdateDataForCancellation) {
       await tx.booking.update(originalBookingUpdateDataForCancellation);
     }
 
-    const booking = await tx.booking.create(createBookingObj);
+    const booking = await tx.booking.create({
+      ...createBookingObj,
+      data: bookingCreateData,
+    });
 
     if (pvsSyncContext?.teamId && shouldCountBookingForTrial(booking.status)) {
       await new PracticeTrialService(tx).recordAcceptedBooking(pvsSyncContext.teamId);
