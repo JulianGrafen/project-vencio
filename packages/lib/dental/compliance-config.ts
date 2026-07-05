@@ -1,4 +1,5 @@
 import { DENTAL_ENV, parseBooleanEnv } from "./env";
+import { DENTAL_PRODUCT_NAME } from "./brand";
 import { isDentalEncryptionEnabled } from "./feature-flags";
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,19 @@ export function isDentalClientComplianceMode(): boolean {
     parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_COMPLIANCE_MODE]) ||
     parseBooleanEnv(process.env[DENTAL_ENV.NEXT_PUBLIC_ENCRYPTION_ENABLED])
   );
+}
+
+/**
+ * teeth.al signup: practice address, Behandlungsarten, in-practice locations.
+ * Enabled in client compliance mode or when the app is branded as teeth.al (default fork).
+ */
+export function isDentalPracticeOnboardingEnabled(): boolean {
+  if (isDentalClientComplianceMode()) {
+    return true;
+  }
+
+  const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || DENTAL_PRODUCT_NAME;
+  return appName === DENTAL_PRODUCT_NAME;
 }
 
 export function isDentalClientTrackingDisabled(): boolean {

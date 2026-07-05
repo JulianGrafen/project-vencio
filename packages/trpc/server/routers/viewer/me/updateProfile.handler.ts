@@ -4,7 +4,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import { isDentalComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { isDentalComplianceMode, isDentalPracticeOnboardingEnabled } from "@calcom/lib/dental/compliance-config";
 import {
   seedDentalEventTypesForUser,
   syncDentalEventTypeLocationsForUser,
@@ -193,9 +193,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       );
     }
 
-    if (isDentalComplianceMode()) {
-      const parsedMetadata = userMetadataSchema.parse(userMetadata);
-      const practiceAddress = parsedMetadata?.dental?.practiceAddress?.trim();
+    const parsedMetadata = userMetadataSchema.parse(userMetadata);
+    const practiceAddress = parsedMetadata?.dental?.practiceAddress?.trim();
+    const shouldSeedDentalEventTypes =
+      isDentalComplianceMode() || (isDentalPracticeOnboardingEnabled() && Boolean(practiceAddress));
+
+    if (shouldSeedDentalEventTypes) {
       await seedDentalEventTypesForUser(prisma, user.id, { locale, practiceAddress });
       if (practiceAddress) {
         await syncDentalEventTypeLocationsForUser(prisma, user.id, practiceAddress);

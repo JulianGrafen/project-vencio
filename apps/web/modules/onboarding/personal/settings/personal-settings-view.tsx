@@ -1,7 +1,7 @@
 "use client";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
+import { isDentalPracticeOnboardingEnabled } from "@calcom/lib/dental/compliance-config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -46,7 +46,7 @@ export const PersonalSettingsView = ({
     }
   }, [personalDetails.avatar, user]);
 
-  const isDentalOnboarding = isDentalClientComplianceMode();
+  const isDentalOnboarding = isDentalPracticeOnboardingEnabled();
 
   const formSchema = z.object({
     name: z

@@ -1,4 +1,4 @@
-import { isDentalClientComplianceMode } from "./compliance-config";
+import { isDentalPracticeOnboardingEnabled } from "./compliance-config";
 import {
   buildDentalEventTypeCreatePayload,
   DENTAL_DEFAULT_EVENT_TYPES,
@@ -27,7 +27,7 @@ export function getOnboardingEventTypeCreates(
   translate: (key: string) => string,
   options?: { practiceAddress?: string }
 ): OnboardingEventTypeCreateInput[] {
-  if (isDentalClientComplianceMode()) {
+  if (isDentalPracticeOnboardingEnabled()) {
     return DENTAL_DEFAULT_EVENT_TYPES.map((definition) =>
       buildDentalEventTypeCreatePayload(
         definition,
