@@ -1,7 +1,7 @@
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -31,18 +31,30 @@ async function getMedicalProfilesByEventTypeId(eventTypeIds: number[]) {
     return new Map<number, MedicalProfilePublic>();
   }
 
-  const profiles = await prisma.eventTypeMedicalProfile.findMany({
-    where: { eventTypeId: { in: eventTypeIds } },
-    select: {
-      eventTypeId: true,
-      category: true,
-      allowedInsuranceTypes: true,
-      displayOrder: true,
-      isEmergency: true,
-    },
-  });
+  try {
+    const profiles = await prisma.eventTypeMedicalProfile.findMany({
+      where: { eventTypeId: { in: eventTypeIds } },
+      select: {
+        eventTypeId: true,
+        category: true,
+        allowedInsuranceTypes: true,
+        displayOrder: true,
+        isEmergency: true,
+      },
+    });
 
-  return new Map(profiles.map((profile) => [profile.eventTypeId, profile]));
+    return new Map(profiles.map((profile) => [profile.eventTypeId, profile]));
+  } catch (error) {
+    // Fresh deploys may skip Prisma migrate on Vercel — public pages must still load.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      log.warn(
+        "EventTypeMedicalProfile table missing — apply scripts/supabase/002_medical_recall_patch.sql. Serving event types without medical profiles."
+      );
+      return new Map();
+    }
+
+    throw error;
+  }
 }
 
 type MedicalProfilePublic = Prisma.EventTypeMedicalProfileGetPayload<{
