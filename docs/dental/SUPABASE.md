@@ -112,8 +112,8 @@ Das Script [`scripts/supabase/deploy-migrations.sh`](../../scripts/supabase/depl
 
 | Variable | Wert |
 |----------|------|
-| `DATABASE_URL` | Transaction pooler (6543) |
-| `DATABASE_DIRECT_URL` | Session/Direct (5432) |
+| `DATABASE_URL` | Transaction pooler (6543), `?pgbouncer=true` |
+| `DATABASE_DIRECT_URL` | **Session pooler (5432)** auf `*.pooler.supabase.com` — nicht `db.*.supabase.co` (Vercel Build kann Direct-Host nicht erreichen) |
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
 | `CALENDSO_ENCRYPTION_KEY` | `openssl rand -base64 24` |
 | `NEXT_PUBLIC_WEBAPP_URL` | `https://deine-app.vercel.app` |
@@ -153,7 +153,8 @@ Repository Secrets setzen:
 
 | Problem | Lösung |
 |---------|--------|
-| `P1001: Can't reach database` | IP-Allowlist in Supabase prüfen; „Allow all“ für Serverless |
+| `P1001: Can't reach database` auf **Vercel Build** | `DATABASE_DIRECT_URL` auf **Session pooler** `:5432` stellen (`*.pooler.supabase.com`), nicht `db.*.supabase.co`. Oder Migration vor Deploy: GitHub Action „Supabase Migrate“ oder `scripts/supabase/002_medical_recall_patch.sql` im SQL Editor. |
+| `P1001` lokal / CI | IP-Allowlist in Supabase prüfen; Session pooler :5432 verwenden |
 | Migration hängt / timeout | `DATABASE_DIRECT_URL` auf Direct (5432) stellen |
 | `prepared statement` Fehler | `DATABASE_URL` muss `?pgbouncer=true` haben |
 | `gen_random_uuid does not exist` | `yarn db:supabase-deploy` erneut (bootstrap `pgcrypto`) |
