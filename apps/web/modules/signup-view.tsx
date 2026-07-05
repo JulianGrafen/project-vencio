@@ -20,6 +20,7 @@ import {
   WEBSITE_TERMS_URL,
   WEBSITE_URL,
 } from "@calcom/lib/constants";
+import { isDentalPracticeOnboardingEnabled } from "@calcom/lib/dental/compliance-config";
 import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
@@ -51,6 +52,8 @@ import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Toaster } from "sonner";
 import { z } from "zod";
+
+import { DentalSignupShowcase } from "@calcom/web/modules/signup/DentalSignupShowcase";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
@@ -210,6 +213,7 @@ export default function Signup({
   const [turnstileKey, setTurnstileKey] = useState(0);
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
+  const isDentalSignup = isDentalPracticeOnboardingEnabled();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
@@ -416,9 +420,15 @@ export default function Signup({
                 )}
                 <div className="flex flex-col gap-2">
                   <h1 className="font-cal text-[28px] leading-none">
-                    {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
+                    {isDentalSignup
+                      ? t("dental_signup_title")
+                      : IS_CALCOM
+                        ? t("create_your_calcom_account")
+                        : t("create_your_account")}
                   </h1>
-                  {IS_CALCOM ? (
+                  {isDentalSignup ? (
+                    <p className="font-medium text-base text-subtle leading-5">{t("dental_signup_description")}</p>
+                  ) : IS_CALCOM ? (
                     <p className="font-medium text-base text-subtle leading-5">
                       {t("cal_signup_description")}
                     </p>
@@ -771,6 +781,10 @@ export default function Signup({
             )}
           </div>
           <div className="mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl border-subtle pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:bg-subtle lg:py-12 lg:pl-12 dark:bg-none">
+            {isDentalSignup ? (
+              <DentalSignupShowcase />
+            ) : (
+              <>
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mr-12 mb-6 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
@@ -856,6 +870,8 @@ export default function Signup({
                 </div>
               ))}
             </div>
+              </>
+            )}
           </div>
         </div>
         <Toaster position="bottom-right" />
