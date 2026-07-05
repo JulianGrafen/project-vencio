@@ -1,6 +1,6 @@
 "use client";
 
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { trpc } from "@calcom/trpc/react";
 import { Label, Select } from "@calcom/ui/components/form";
@@ -15,8 +15,10 @@ type TreatmentResourceSelectorProps = {
 };
 
 export function TreatmentResourceSelector({ eventTypeId }: TreatmentResourceSelectorProps) {
-  const selectedTreatmentResourceId = useBookerStore((state) => state.selectedTreatmentResourceId);
-  const setSelectedTreatmentResourceId = useBookerStore((state) => state.setSelectedTreatmentResourceId);
+  const selectedTreatmentResourceId = useBookerStoreContext((state) => state.selectedTreatmentResourceId);
+  const setSelectedTreatmentResourceId = useBookerStoreContext(
+    (state) => state.setSelectedTreatmentResourceId
+  );
 
   const enabled = isDentalClientComplianceMode() && Boolean(eventTypeId);
 

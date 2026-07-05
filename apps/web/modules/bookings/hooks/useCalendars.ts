@@ -2,6 +2,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { ToggledConnectedCalendars } from "@calcom/features/bookings/Booker/types";
@@ -18,8 +19,9 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
   const switchEnabled =
-    searchParams?.get("overlayCalendar") === "true" ||
-    localStorage?.getItem("overlayCalendarSwitchDefault") === "true";
+    !isDentalClientComplianceMode() &&
+    (searchParams?.get("overlayCalendar") === "true" ||
+      localStorage?.getItem("overlayCalendarSwitchDefault") === "true");
 
   const [set, setSet] = useState<Set<ToggledConnectedCalendars>>(() => {
     const storedValue = localStorage.getItem("toggledConnectedCalendars");

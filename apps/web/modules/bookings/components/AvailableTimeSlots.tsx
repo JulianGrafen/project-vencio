@@ -12,13 +12,12 @@ import type { Slot } from "~/schedules/lib/types";
 import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { useSlotsForAvailableDates } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
-import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { isOverlayCalendarSlotSelectionEnabled } from "@calcom/lib/dental/booker/overlay-calendar";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -131,8 +130,7 @@ export const AvailableTimeSlots = ({
 
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(dates, scheduleData?.slots);
 
-  const overlayCalendarToggled =
-    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+  const overlayCalendarToggled = isOverlayCalendarSlotSelectionEnabled();
 
   const onTimeSelect = useCallback(
     (time: string, attendees: number, seatsPerTimeSlot?: number | null, bookingUid?: string) => {

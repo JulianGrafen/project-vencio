@@ -6,11 +6,10 @@ import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { isOverlayCalendarSlotSelectionEnabled } from "@calcom/lib/dental/booker/overlay-calendar";
 import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
 import type { BookerEvent, Slots } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -106,8 +105,7 @@ const SlotItem = ({
     return eventData?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventData]);
 
-  const overlayCalendarToggled =
-    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+  const overlayCalendarToggled = isOverlayCalendarSlotSelectionEnabled();
 
   const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStoreContext((state) => state.bookingData);

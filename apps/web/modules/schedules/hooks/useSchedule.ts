@@ -33,6 +33,7 @@ export type UseScheduleWithCacheArgs = {
     extraDays: number;
     columnViewExtraDays: { current: number };
   };
+  treatmentResourceId?: string | null;
 };
 
 const getAvailabilityLoadedEventPayload = ({
@@ -64,9 +65,13 @@ export const useSchedule = ({
   useApiV2 = false,
   enabled: enabledProp = true,
   bookerLayout,
+  treatmentResourceId: treatmentResourceIdProp,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
-  const selectedTreatmentResourceId = useBookerStore((state) => state.selectedTreatmentResourceId);
+  const selectedTreatmentResourceIdFromStore = useBookerStore(
+    (state) => state.selectedTreatmentResourceId
+  );
+  const selectedTreatmentResourceId = treatmentResourceIdProp ?? selectedTreatmentResourceIdFromStore;
 
   const [startTime, endTime] = useTimesForSchedule({
     month,

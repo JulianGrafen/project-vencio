@@ -94,8 +94,15 @@ export const useScheduleForEvent = ({
   };
 }) => {
   const { timezone } = useBookerTime();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, selectedTreatmentResourceId] =
+    useBookerStoreContext(
+    (state) => [
+      state.username,
+      state.eventSlug,
+      state.month,
+      state.selectedDuration,
+      state.selectedTreatmentResourceId,
+    ],
     shallow
   );
 
@@ -117,6 +124,7 @@ export const useScheduleForEvent = ({
     teamMemberEmail,
     useApiV2: useApiV2,
     bookerLayout,
+    treatmentResourceId: selectedTreatmentResourceId,
   });
 
   return {

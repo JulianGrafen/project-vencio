@@ -19,6 +19,7 @@ import {
   getDentalBookerRootProps,
   isDentalBookerThemeEnabled,
 } from "@calcom/lib/dental/booker/dental-booker-theme";
+import { isDentalClientComplianceMode } from "@calcom/lib/dental/compliance-config";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
@@ -213,8 +214,18 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
   });
 
   useEffect(() => {
+    if (isDentalClientComplianceMode()) {
+      if (
+        searchParams?.get("overlayCalendar") === "true" ||
+        localStorage.getItem("overlayCalendarSwitchDefault")
+      ) {
+        onOverlaySwitchStateChange(false);
+      }
+      return;
+    }
+
     if (hasSession) onOverlaySwitchStateChange(true);
-  }, [hasSession]);
+  }, [hasSession, onOverlaySwitchStateChange, searchParams]);
 
   const dentalBookerRootProps = getDentalBookerRootProps();
 
