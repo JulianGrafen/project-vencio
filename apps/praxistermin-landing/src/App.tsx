@@ -580,6 +580,9 @@ export default function App() {
             <a href="#faq" className="hover:text-teal-700">
               FAQ
             </a>
+            <a href={appLink("/impressum")} className="hover:text-teal-700">
+              Impressum
+            </a>
           </div>
         </div>
       </footer>

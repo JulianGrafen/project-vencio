@@ -1,3 +1,5 @@
+import { DENTAL_CONTACT_EMAIL } from "../contact";
+
 /** Trial duration in days from {@link PracticeTrialFields.trialStartedAt}. */
 export const PRACTICE_TRIAL_DURATION_DAYS = 30;
 
@@ -12,7 +14,7 @@ export const PRACTICE_TRIAL_ENV = {
   UPGRADE_EMAIL: "PRACTICE_TRIAL_UPGRADE_EMAIL",
 } as const;
 
-export const PRACTICE_TRIAL_DEFAULT_UPGRADE_EMAIL = "hello@praxistermin.de";
+export const PRACTICE_TRIAL_DEFAULT_UPGRADE_EMAIL = DENTAL_CONTACT_EMAIL;
 
 /** Upgrade / pricing page path (conversion wall redirect target). */
 export const PRACTICE_TRIAL_UPGRADE_PATH = "/upgrade";

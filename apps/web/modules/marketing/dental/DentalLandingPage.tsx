@@ -392,6 +392,9 @@ export function DentalLandingPage() {
             <a href="#faq" className="hover:text-teal-700">
               FAQ
             </a>
+            <Link href="/impressum" className="hover:text-teal-700">
+              Impressum
+            </Link>
           </div>
         </div>
       </footer>
